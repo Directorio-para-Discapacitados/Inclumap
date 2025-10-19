@@ -1,3 +1,4 @@
+import { UserEntity } from "src/user/entity/user.entity";
 import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity({ name: 'people' })
@@ -19,4 +20,7 @@ export class PeopleEntity {
 
     @Column({type: 'varchar', length: 255})
     gender: string;
+
+    @OneToOne(() => UserEntity, (user) => user.people, { onDelete: 'CASCADE' })
+    user: UserEntity;
 }
