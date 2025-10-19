@@ -21,6 +21,7 @@ describe('UserController (e2e)', () => {
 
   beforeAll(async () => {
     process.env.NODE_ENV = 'test';
+<<<<<<< HEAD
     require('dotenv').config({ path: '.env.test' });
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -150,6 +151,8 @@ describe('UserController (e2e)', () => {
   beforeAll(async () => {
     process.env.NODE_ENV = 'test';
     // Cargar .env.test si existe
+=======
+>>>>>>> 15c6839 (Documentación Swagger y actualización del README para el endpoint de gestión de roles)
     require('dotenv').config({ path: '.env.test' });
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -168,7 +171,6 @@ describe('UserController (e2e)', () => {
         UserModule,
       ],
     })
-      // Desactivar guards reales para simplificar las pruebas e2e
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: () => true })
       .overrideGuard(RolesGuard)
@@ -189,7 +191,6 @@ describe('UserController (e2e)', () => {
 
   beforeEach(async () => {
     // Limpiar tablas relacionadas respetando FKs. Usamos TRUNCATE ... CASCADE para evitar errores
-    // Nota: adaptar nombres de tablas si difieren en tu DB
     await dataSource.query('TRUNCATE TABLE role_changes, users_roles, roles, users RESTART IDENTITY CASCADE');
     await userRepo.save({ user_email: 'test@example.com', user_password: 'pwd', user_role: 'usuario' });
   });
@@ -209,7 +210,6 @@ describe('UserController (e2e)', () => {
 
   it('no-admin obtiene 403', async () => {
     // Para validar 403 debemos activar RolesGuard que devuelva false
-    // Inicializamos un nuevo módulo con RolesGuard falso
     const moduleNoAdmin: TestingModule = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env.test' }),
