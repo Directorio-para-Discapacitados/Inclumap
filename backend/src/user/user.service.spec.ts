@@ -119,9 +119,10 @@ describe('UserService', () => {
     it('debería lanzar BadRequestException si el administrador no está identificado', async () => {
       // Arrange
       const dto: ChangeRoleDto = { role: 'administrador' };
-      const req = {}; // Sin información del admin
-      // Devolver un usuario con rol diferente para que el flujo continue hasta validar changedBy
+      // Simular que el usuario existe y tiene un rol diferente al nuevo
       mockQueryRunner.manager.findOne.mockResolvedValueOnce({ ...mockUser, user_role: 'usuario' });
+      // No se identifica admin en la petición
+      const req = {};
 
       // Act & Assert
       await expect(service.changeUserRole(mockUser.user_id, dto, req))
