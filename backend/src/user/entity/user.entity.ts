@@ -12,7 +12,4 @@ export class UserEntity {
     @Column({ type: 'varchar', length: 255 })
     user_password: string;
 
-    @Column({ type: 'varchar', length: 255 })
-    registration_date: string;
-
 }
