@@ -4,6 +4,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
+import { ChangeRoleDto } from './dtos/change-role.dto';
+import { RoleChangeEntity } from '../roles/entity/role-change.entity';
 
 
 
@@ -13,6 +15,8 @@ export class UserService {
     constructor(
         @InjectRepository(UserEntity)
         private readonly _userRepository: Repository<UserEntity>,
+        @InjectRepository(RoleChangeEntity)
+        private readonly _roleChangeRepository: Repository<RoleChangeEntity>,
 
     ) { }
 
@@ -138,23 +142,57 @@ export class UserService {
     }
 
     
-  async eliminarUsuario(user_id: number): Promise<string> {
-    const usuario = await this._userRepository.findOne({
-      where: { user_id },
-    });
-  
-    if (!usuario) {
-      throw new NotFoundException('Usuario no encontrado');
+    async eliminarUsuario(user_id: number): Promise<string> {
+        const usuario = await this._userRepository.findOne({
+            where: { user_id },
+        });
+
+        if (!usuario) {
+            throw new NotFoundException('Usuario no encontrado');
+        }
+
+        try {
+            await this._userRepository.remove(usuario);
+            return 'Usuario eliminado correctamente';
+        } catch (error) {
+            console.error('Error al eliminar usuario:', error);
+            throw new InternalServerErrorException('Error al intentar eliminar el usuario');
+        }
     }
-  
-    try {
-      await this._userRepository.remove(usuario);
-      return 'Usuario eliminado correctamente';
-    } catch (error) {
-      console.error('Error al eliminar usuario:', error); 
-      throw new InternalServerErrorException('Error al intentar eliminar el usuario');
+
+    // Cambiar rol de un usuario y registrar en audit log
+    async changeUserRole(user_id: number, dto: ChangeRoleDto, req?: any): Promise<string> {
+        try {
+            const usuario = await this._userRepository.findOne({ where: { user_id } });
+            if (!usuario) throw new NotFoundException('Usuario no encontrado');
+
+            const previous = usuario.user_role;
+            const next = dto.role;
+
+            if (previous === next) {
+                return 'No hay cambios en el rol';
+            }
+
+            // Actualizar columna enum user_role
+            usuario.user_role = next;
+            await this._userRepository.save(usuario);
+
+            // Registrar en role_changes
+            const changedBy = req && req.user ? req.user.user_id : (req && req.headers ? (req.headers['x-user-id'] ? Number(req.headers['x-user-id']) : null) : null);
+            await this._roleChangeRepository.save({
+                user_id: usuario.user_id,
+                previous_role: previous ?? null,
+                new_role: next,
+                changed_by: changedBy,
+                reason: dto.reason ?? null,
+            });
+
+            return 'Rol actualizado correctamente';
+        } catch (error) {
+            if (error instanceof NotFoundException) throw error;
+            throw new InternalServerErrorException('Error al cambiar el rol');
+        }
     }
-  }
 }  
 
 

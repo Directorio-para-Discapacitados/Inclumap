@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Patch, Req, ForbiddenException } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserEntity } from './entity/user.entity';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { CreateUserDto } from './dtos/create-user.dto';
+import { ChangeRoleDto } from './dtos/change-role.dto';
 
 
 @Controller('user')
@@ -33,6 +34,17 @@ export class UserController {
     @Delete(":id")
     async eliminarUsuario(@Param('id') id: number): Promise<string> {
         return await this._userService.eliminarUsuario(id);
+    }
+
+    @Patch(":id/role")
+    async changeRole(@Param('id') id: number, @Body() dto: ChangeRoleDto, @Req() req: any): Promise<string> {
+        // Verificación mínima temporal: header x-admin: 'true' para simular autorización
+        const isAdminHeader = req.headers['x-admin'];
+        if (!isAdminHeader || isAdminHeader !== 'true') {
+            throw new ForbiddenException('Acceso denegado: solo administradores');
+        }
+
+        return await this._userService.changeUserRole(id, dto, req);
     }
 }
 
