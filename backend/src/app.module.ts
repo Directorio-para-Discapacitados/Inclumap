@@ -6,6 +6,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { DB_DATABASE, DB_HOST, DB_PASSWORD, DB_PORT, DB_USER } from './config/constants';
+import { PeopleModule } from './people/people.module';
 
 @Module({
   imports: [
@@ -28,7 +29,8 @@ import { DB_DATABASE, DB_HOST, DB_PASSWORD, DB_PORT, DB_USER } from './config/co
       }),
       inject: [ConfigService],
     }),
-    UserModule
+    UserModule,
+    PeopleModule
   ],
   controllers: [AppController],
   providers: [AppService],
