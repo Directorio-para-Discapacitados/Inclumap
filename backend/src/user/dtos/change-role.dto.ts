@@ -1,9 +1,10 @@
 import { IsIn, IsOptional, IsString } from 'class-validator';
+import { ALLOWED_ROLES, AllowedRole } from '../../config/roles.constants';
 
 export class ChangeRoleDto {
   @IsString()
-  @IsIn(['usuario', 'administrador'])
-  role: 'usuario' | 'administrador';
+  @IsIn(ALLOWED_ROLES as readonly string[])
+  role: AllowedRole;
 
   @IsOptional()
   @IsString()
