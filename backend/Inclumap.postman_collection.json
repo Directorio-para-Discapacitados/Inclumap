@@ -1,0 +1,100 @@
+{
+  "info": {
+    "name": "Inclumap API",
+    "description": "Colección de pruebas para registro, login, cambio de rol y consulta de historial.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Registro de usuario",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"user_email\": \"test@example.com\",\n  \"user_password\": \"pwd123\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "register"]
+        }
+      }
+    },
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"user_email\": \"test@example.com\",\n  \"user_password\": \"pwd123\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "login"]
+        }
+      }
+    },
+    {
+      "name": "Cambiar rol (éxito)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+          { "key": "x-user-id", "value": "999", "type": "text" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"role\": \"administrador\",\n  \"reason\": \"Promoción\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/user/1/role",
+          "host": ["{{baseUrl}}"],
+          "path": ["user", "1", "role"]
+        }
+      }
+    },
+    {
+      "name": "Cambiar rol (fallo: no admin)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"role\": \"administrador\",\n  \"reason\": \"Intento sin permisos\"\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/user/1/role",
+          "host": ["{{baseUrl}}"],
+          "path": ["user", "1", "role"]
+        }
+      }
+    },
+    {
+      "name": "Ver historial de cambios de rol",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/user/1/role-history",
+          "host": ["{{baseUrl}}"],
+          "path": ["user", "1", "role-history"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "token", "value": "" }
+  ]
+}
