@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { PeopleEntity } from "src/people/entity/people.entity";
+import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 
 @Entity({ name: 'users'})
@@ -12,4 +13,6 @@ export class UserEntity {
     @Column({ type: 'varchar', length: 255 })
     user_password: string;
 
+    @OneToOne(() => PeopleEntity, (people) => people.user, { cascade: true, onDelete: 'CASCADE' })
+    people: PeopleEntity;
 }

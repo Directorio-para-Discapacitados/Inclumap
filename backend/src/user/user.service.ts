@@ -141,6 +141,7 @@ export class UserService {
   async eliminarUsuario(user_id: number): Promise<string> {
     const usuario = await this._userRepository.findOne({
       where: { user_id },
+      relations: ['people'],
     });
   
     if (!usuario) {
