@@ -7,8 +7,8 @@ export default function Navbar() {
       <h1 className="logo">Inclumap</h1>
       <ul className="nav-links">
         <li><Link to="/">Inicio</Link></li>
+        <li><Link to="/registro">Registro</Link></li>
         <li><Link to="/login">Iniciar sesión</Link></li>
-        <li><Link to="/registro">Registrarse</Link></li>
         <li><Link to="/perfil">Perfil</Link></li>
       </ul>
     </nav>
