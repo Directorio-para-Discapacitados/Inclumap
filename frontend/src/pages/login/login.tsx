@@ -30,7 +30,7 @@ export default function Login() {
       </form>
 
       <button className="google-btn">
-        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
+        <img src="" alt="Google" />
         Iniciar con Google
       </button>
     </div>
