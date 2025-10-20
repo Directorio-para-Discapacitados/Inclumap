@@ -1,11 +1,18 @@
 .navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;       
   background-color: var(--color-primary);
   color: var(--color-white);
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
+  z-index: 1000;
+  box-sizing: border-box; 
 }
+
 
 .logo {
   font-size: 1.5rem;

@@ -1,5 +1,5 @@
 import { useState, ChangeEvent } from "react";
-import "./Registro.css";
+import "./registro.css";
 
 export default function Registro() {
   const [tipo, setTipo] = useState<"persona" | "local">("persona");
