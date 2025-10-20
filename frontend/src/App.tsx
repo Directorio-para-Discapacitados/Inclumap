@@ -1,10 +1,9 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Navbar from "./assets/Components/Navbar";
-import Inicio from "./pages/inicio";
-import Login from "./pages/login";
-import Registro from "./pages/registro";
-import Perfil from "./pages/perfil";
-import "./assets/css/App.css";
+import Navbar from "./Components/Navbar";
+import Inicio from "./pages/inicio/inicio";
+import Login from "./pages/login/login";
+import Registro from "./pages/registro/registro";
+import Perfil from "./pages/perfil/perfil";
 
 function App() {
   return (
