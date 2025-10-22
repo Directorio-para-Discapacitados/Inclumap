@@ -7,8 +7,6 @@ import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { DB_DATABASE, DB_HOST, DB_PASSWORD, DB_PORT, DB_USER } from './config/constants';
 import { PeopleModule } from './people/people.module';
-import { RolesModule } from './roles/roles.module';
-import { UserRolModule } from './user_rol/user_rol.module';
 
 @Module({
   imports: [
@@ -32,9 +30,7 @@ import { UserRolModule } from './user_rol/user_rol.module';
       inject: [ConfigService],
     }),
     UserModule,
-    PeopleModule,
-    RolesModule,
-    UserRolModule
+    PeopleModule
   ],
   controllers: [AppController],
   providers: [AppService],

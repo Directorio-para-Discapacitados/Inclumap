@@ -1,0 +1,9 @@
+.inicio-container {
+  text-align: center;
+  padding: 3rem;
+}
+
+.inicio-container h2 {
+  color: var(--color-primary);
+  margin-bottom: 1rem;
+}
