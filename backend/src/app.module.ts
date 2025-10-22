@@ -5,9 +5,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
-import { AuthModule } from './auth/auth.module';
-import { RolesModule } from './roles/roles.module';
 import { DB_DATABASE, DB_HOST, DB_PASSWORD, DB_PORT, DB_USER } from './config/constants';
+import { PeopleModule } from './people/people.module';
+import { RolesModule } from './roles/roles.module';
+import { UserRolModule } from './user_rol/user_rol.module';
 
 @Module({
   imports: [
@@ -30,9 +31,10 @@ import { DB_DATABASE, DB_HOST, DB_PASSWORD, DB_PORT, DB_USER } from './config/co
       }),
       inject: [ConfigService],
     }),
-  UserModule,
-  RolesModule,
-  AuthModule,
+    UserModule,
+    PeopleModule,
+    RolesModule,
+    UserRolModule
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,16 +1,10 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Patch, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags, ApiParam, ApiBody } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserEntity } from './entity/user.entity';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { CreateUserDto } from './dtos/create-user.dto';
-import { ChangeRoleDto } from './dtos/change-role.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { Roles } from '../auth/roles.decorator';
-import { RolesGuard } from '../auth/roles.guard';
 
 
-@ApiTags('users')
 @Controller('user')
 export class UserController {
     constructor(private readonly _userService: UserService) { }
@@ -39,20 +33,6 @@ export class UserController {
     @Delete(":id")
     async eliminarUsuario(@Param('id') id: number): Promise<string> {
         return await this._userService.eliminarUsuario(id);
-    }
-
-    @Patch(":id/role")
-    @ApiBearerAuth('JWT')
-    @ApiOperation({ summary: 'Cambiar el rol de un usuario (solo administradores)' })
-    @ApiParam({ name: 'id', description: 'ID del usuario a modificar', type: Number })
-    @ApiBody({ type: ChangeRoleDto })
-    @ApiResponse({ status: 200, description: 'Rol actualizado correctamente' })
-    @ApiResponse({ status: 400, description: 'Entrada inválida o no se pudo identificar al admin' })
-    @ApiResponse({ status: 403, description: 'Acceso denegado: se requiere rol administrador' })
-    @UseGuards(JwtAuthGuard, RolesGuard)
-    @Roles('administrador')
-    async changeRole(@Param('id') id: number, @Body() dto: ChangeRoleDto, @Req() req: any): Promise<string> {
-        return await this._userService.changeUserRole(id, dto, req);
     }
 }
 

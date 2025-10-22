@@ -4,9 +4,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
-import { ChangeRoleDto } from './dtos/change-role.dto';
-import { RoleChangeEntity } from '../roles/entity/role-change.entity';
-import { ALLOWED_ROLES } from '../config/roles.constants';
 
 
 
@@ -16,8 +13,6 @@ export class UserService {
     constructor(
         @InjectRepository(UserEntity)
         private readonly _userRepository: Repository<UserEntity>,
-        @InjectRepository(RoleChangeEntity)
-        private readonly _roleChangeRepository: Repository<RoleChangeEntity>,
 
     ) { }
 
@@ -143,97 +138,24 @@ export class UserService {
     }
 
     
-    async eliminarUsuario(user_id: number): Promise<string> {
-        const usuario = await this._userRepository.findOne({
-            where: { user_id },
-        });
-
-        if (!usuario) {
-            throw new NotFoundException('Usuario no encontrado');
-        }
-
-        try {
-            await this._userRepository.remove(usuario);
-            return 'Usuario eliminado correctamente';
-        } catch (error) {
-            console.error('Error al eliminar usuario:', error);
-            throw new InternalServerErrorException('Error al intentar eliminar el usuario');
-        }
+  async eliminarUsuario(user_id: number): Promise<string> {
+    const usuario = await this._userRepository.findOne({
+      where: { user_id },
+      relations: ['people'],
+    });
+  
+    if (!usuario) {
+      throw new NotFoundException('Usuario no encontrado');
     }
-
-    // Cambiar rol de un usuario y registrar en audit log
-    async changeUserRole(user_id: number, dto: ChangeRoleDto, req?: any): Promise<string> {
-        const queryRunner = this._userRepository.manager.connection.createQueryRunner();
-        await queryRunner.connect();
-        await queryRunner.startTransaction();
-
-        try {
-            // Validar existencia del usuario
-            const usuario = await queryRunner.manager.findOne(UserEntity, { 
-                where: { user_id },
-                lock: { mode: 'pessimistic_write' }
-            });
-            if (!usuario) {
-                throw new NotFoundException('Usuario no encontrado');
-            }
-
-            const previous = usuario.user_role;
-            const next = dto.role;
-
-            // Validar que el rol actual sea diferente al nuevo
-            if (previous === next) {
-                await queryRunner.rollbackTransaction();
-                return 'No hay cambios en el rol';
-            }
-
-            // Validar que el rol esté permitido
-            if (!ALLOWED_ROLES.includes(next)) {
-                throw new BadRequestException(`Rol '${next}' no válido. Roles permitidos: ${ALLOWED_ROLES.join(', ')}`);
-            }
-
-            // Obtener el ID del administrador que realiza el cambio
-            const changedBy = req?.user?.user_id ?? 
-                            (req?.headers?.['x-user-id'] ? Number(req.headers['x-user-id']) : null);
-
-            if (!changedBy) {
-                throw new BadRequestException('No se pudo identificar al administrador que realiza el cambio');
-            }
-
-            // Actualizar el rol del usuario
-            usuario.user_role = next;
-            await queryRunner.manager.save(usuario);
-
-            // Registrar el cambio en el log de auditoría
-            const roleChange = queryRunner.manager.create(RoleChangeEntity, {
-                user_id: usuario.user_id,
-                previous_role: previous,
-                new_role: next,
-                changed_by: changedBy,
-                reason: dto.reason ?? 'Sin razón especificada'
-            });
-            await queryRunner.manager.save(roleChange);
-
-            // Confirmar la transacción
-            await queryRunner.commitTransaction();
-            return `Rol actualizado correctamente de '${previous}' a '${next}'`;
-
-        } catch (error) {
-            // Revertir cambios en caso de error
-            await queryRunner.rollbackTransaction();
-            
-            if (error instanceof NotFoundException || error instanceof BadRequestException) {
-                throw error;
-            }
-            
-            throw new InternalServerErrorException(
-                'Error al cambiar el rol del usuario. Por favor, inténtelo de nuevo.'
-            );
-
-        } finally {
-            // Liberar el queryRunner
-            await queryRunner.release();
-        }
+  
+    try {
+      await this._userRepository.remove(usuario);
+      return 'Usuario eliminado correctamente';
+    } catch (error) {
+      console.error('Error al eliminar usuario:', error); 
+      throw new InternalServerErrorException('Error al intentar eliminar el usuario');
     }
+  }
 }  
 
 

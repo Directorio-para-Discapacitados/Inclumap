@@ -1,31 +1,22 @@
-import { Column, Entity, PrimaryGeneratedColumn, ManyToMany, JoinTable } from "typeorm";
-import { RoleEntity } from '../../roles/entity/role.entity';
+import { PeopleEntity } from "src/people/entity/people.entity";
+import { UserRolesEntity } from "src/user_rol/entity/user_rol.entity";
+import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
 
 @Entity({ name: 'users'})
 export class UserEntity {
-        @PrimaryGeneratedColumn()
-        user_id : number;
+    @PrimaryGeneratedColumn()
+    user_id : number;
 
-        @Column({ type: 'varchar', length: 255,  unique: true })
-        user_email: string;
+    @Column({ type: 'varchar', length: 255,  unique: true })
+    user_email: string;
 
-        @Column({ type: 'varchar', length: 255 })
-        user_password: string;
+    @Column({ type: 'varchar', length: 255 })
+    user_password: string;
 
-    @Column({
-      type: 'enum',
-      enum: ['usuario', 'administrador'],
-      default: 'usuario',
-    })
-    user_role: 'usuario' | 'administrador';
+    @OneToOne(() => PeopleEntity, (people) => people.user, { cascade: true, onDelete: 'CASCADE' })
+    people: PeopleEntity;
 
-        @ManyToMany(() => RoleEntity)
-        @JoinTable({
-            name: 'users_roles',
-            joinColumn: { name: 'user_id', referencedColumnName: 'user_id' },
-            inverseJoinColumn: { name: 'role_id', referencedColumnName: 'role_id' },
-        })
-        roles?: RoleEntity[];
-
+    @OneToMany(() => UserRolesEntity, (userroles) => userroles.user, { cascade: true, onDelete: 'CASCADE' })
+    userroles: UserRolesEntity[];
 }
