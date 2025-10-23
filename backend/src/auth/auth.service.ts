@@ -120,7 +120,7 @@ export class AuthService {
         throw new BadRequestException('El NIT ya está registrado');
     }
 
-    // Generar un salt para mejorar la seguridad del hash de la contraseña
+    // Generar hash de contraseña
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(businessData.user_password, salt);
 
@@ -132,27 +132,28 @@ export class AuthService {
 
     await this.userRepository.save(newUser);
 
-    // Verificar si se proporcionaron roles, de lo contrario asignar un rol por defecto
-    let rol;
-    if (businessData.rolIds && businessData.rolIds.length > 0) {
-        rol = await this.rolRepository.findOne({ where: { rol_id: businessData.rolIds[0] } });
-    } else {
-        rol = await this.rolRepository.findOne({ where: { rol_id: 3 } }); // Rol por defecto para negocios
+    // Asignar múltiples roles: Usuario (2) + Propietario/Negocio (3)
+    const rolesToAssign = businessData.rolIds && businessData.rolIds.length > 0 
+        ? businessData.rolIds 
+        : [2, 3]; // Por defecto: usuario + negocio
+
+    for (const rolId of rolesToAssign) {
+        const rol = await this.rolRepository.findOne({ where: { rol_id: rolId } });
+        
+        if (!rol) {
+            throw new BadRequestException(`Rol con ID ${rolId} no encontrado`);
+        }
+
+        // Crear la relación entre el usuario y el rol
+        const userRole = this.userRolesRepository.create({
+            user: newUser,
+            rol: rol,
+        });
+
+        await this.userRolesRepository.save(userRole);
     }
 
-    if (!rol) {
-        throw new BadRequestException('Rol no encontrado');
-    }
-
-    // Crear la relación entre el usuario y el rol
-    const userRole = this.userRolesRepository.create({
-        user: newUser,
-        rol: rol,
-    });
-
-    await this.userRolesRepository.save(userRole);
-
-    // Crear la persona asociada a ese usuario
+    // Crear la persona asociada
     const newPeople = this.peopleRepository.create({
         firstName: businessData.firstName,
         firstLastName: businessData.firstLastName,
@@ -164,7 +165,7 @@ export class AuthService {
 
     await this.peopleRepository.save(newPeople);
 
-    // Crear el negocio asociado a ese usuario
+    // Crear el negocio asociado
     const newBusiness = this.businessRepository.create({
         business_name: businessData.business_name,
         address: businessData.business_address,
@@ -176,10 +177,9 @@ export class AuthService {
 
     await this.businessRepository.save(newBusiness);
 
-    // Crear las relaciones de accesibilidad si se proporcionan
+    // Crear relaciones de accesibilidad
     if (businessData.accessibilityIds && businessData.accessibilityIds.length > 0) {
         for (const accessibilityId of businessData.accessibilityIds) {
-            // Buscar la accesibilidad en AccessibilityEntity
             const accessibility = await this.accessibilityRepository.findOne({ 
                 where: { accessibility_id: accessibilityId } 
             });
@@ -188,7 +188,6 @@ export class AuthService {
                 throw new BadRequestException(`Accesibilidad con ID ${accessibilityId} no encontrada`);
             }
 
-            // Crear la relación en business_accessibility
             const businessAccessibility = this.businessAccessibilityRepository.create({
                 business: newBusiness,
                 accessibility: accessibility,
@@ -198,24 +197,36 @@ export class AuthService {
         }
     }
 
-    // Crear el payload para el token JWT
+    // Obtener todos los roles asignados para el payload
+    const userRoles = await this.userRolesRepository.find({
+        where: { user: { user_id: newUser.user_id } },
+        relations: ['rol']
+    });
+
+    const rolIds = userRoles.map(ur => ur.rol.rol_id);
+
+    // Crear payload para el token JWT
     const payload = {
+        user_id: newUser.user_id,
         user_email: newUser.user_email,
         firstName: newPeople.firstName,
         firstLastName: newPeople.firstLastName,
         cellphone: newPeople.cellphone,
         address: newPeople.address,
+        business_id: newBusiness.business_id,
         business_name: newBusiness.business_name,
         business_address: newBusiness.address,
         NIT: newBusiness.NIT,
-        rolIds: [rol.rol_id],
+        rolIds: rolIds,
         accessibilityIds: businessData.accessibilityIds || [],
     };
 
     // Generar el token JWT
     const token = this.jwtService.sign(payload);
 
-    return { message: 'Negocio registrado exitosamente', token };
+    return { 
+        message: 'Negocio registrado exitosamente', token,
+       };
 }
 
 
