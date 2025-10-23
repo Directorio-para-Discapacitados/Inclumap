@@ -7,6 +7,9 @@ import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { DB_DATABASE, DB_HOST, DB_PASSWORD, DB_PORT, DB_USER } from './config/constants';
 import { PeopleModule } from './people/people.module';
+import { BusinessModule } from './business/business.module';
+import { BusinessAccessibilityModule } from './business_accessibility/business_accessibility.module';
+import { AccessibilityModule } from './accessibility/accessibility.module';
 
 @Module({
   imports: [
@@ -30,7 +33,10 @@ import { PeopleModule } from './people/people.module';
       inject: [ConfigService],
     }),
     UserModule,
-    PeopleModule
+    PeopleModule,
+    BusinessModule,
+    BusinessAccessibilityModule,
+    AccessibilityModule
   ],
   controllers: [AppController],
   providers: [AppService],

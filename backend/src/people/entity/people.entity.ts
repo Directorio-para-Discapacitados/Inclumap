@@ -22,5 +22,8 @@ export class PeopleEntity {
     gender: string;
 
     @OneToOne(() => UserEntity, (user) => user.people, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'user_id' })
     user: UserEntity;
+
 }
+

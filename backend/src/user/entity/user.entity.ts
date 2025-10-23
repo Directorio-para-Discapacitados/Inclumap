@@ -1,8 +1,10 @@
+import { BusinessEntity } from "src/business/entity/business.entity";
 import { PeopleEntity } from "src/people/entity/people.entity";
-import { Column, Entity, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { UserRolesEntity } from 'src/user_rol/entity/user_rol.entity';
 
 
-@Entity({ name: 'users'})
+@Entity({ name: 'user'})
 export class UserEntity {
     @PrimaryGeneratedColumn()
     user_id : number;
@@ -15,4 +17,10 @@ export class UserEntity {
 
     @OneToOne(() => PeopleEntity, (people) => people.user, { cascade: true, onDelete: 'CASCADE' })
     people: PeopleEntity;
+
+    @OneToOne(() => BusinessEntity, (business) => business.user, { cascade: true, onDelete: 'CASCADE' })
+    business: BusinessEntity;
+
+    @OneToMany(() => UserRolesEntity, (userroles) => userroles.user)
+    userroles: UserRolesEntity[];
 }
