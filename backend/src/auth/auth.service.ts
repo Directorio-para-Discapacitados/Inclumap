@@ -14,6 +14,8 @@ import { BusinessEntity } from 'src/business/entity/business.entity';
 import { BusinessAccessibilityEntity } from 'src/business_accessibility/entity/business_accessibility.entity';
 import { AccessibilityEntity } from 'src/accessibility/entity/accesibility.entity';
 import { CreateFullBusinessDto } from './dtos/createFullBusiness.dto';
+import { TokenDto } from './dtos/token.dto';
+import { usuarioEmailResetPasswordDto } from './dtos/usuario-email-resetpassword.dto';
 
 
 @Injectable()
@@ -229,10 +231,6 @@ export class AuthService {
        };
 }
 
-
-
-
-
   async login(dto: LoginDto): Promise<any> {
     const { user_email, user_password } = dto;
 
@@ -260,12 +258,71 @@ export class AuthService {
       rol_name: userRole.rol.rol_name,
     };
 
-    const token = this.jwtService.sign(payload, { expiresIn: '1h' });
+    const token = this.jwtService.sign(payload);
 
     return { message: 'Usuario logueadi exitosamente', token };
 
-
   }
+
+
+  //Metodo refrescarToken
+  async refreshToken(dto: TokenDto): Promise<any> {
+
+    const usuario = await this.jwtService.decode(dto.token);
+
+    const payload = {
+      user_id: usuario['user_id'],
+      user_email: usuario['user_email'],
+      rol_id: usuario['rol_id'],
+      rol_name: usuario['rol_name'],
+    }
+    const token = this.jwtService.sign(payload);
+
+    return token;
+  }
+
+  //Generar Codigo de restablecimiento de contraseña
+  generarcodigoResetPassword(): any {
+    const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+    return codigo;
+  }
+
+
+   //Solicitar restablecimiento de contraseña
+   async solicitarRestablecimientoPassword(userdto: usuarioEmailResetPasswordDto): Promise<void> {
+    const { user_email } = userdto;
+
+    try {
+      const user = await this.userRepository.findOne({ where: { user_email }, relations: ['people', 'business'] });
+
+      if (!user) {
+        throw new BadRequestException('El correo electrónico no está registrado');
+      }
+
+      // Generar un código de restablecimiento de contraseña
+      const resetPasswordCode = this.generatePasswordResetCode();
+      user.resetpassword_token = resetPasswordCode;
+      user.resetpassword_token_expiration = new Date(Date.now() + 10 * 60 * 1000);
+
+      await this.userRepository.save(user);
+
+      
+      //Elimincacion del código de restablecimiento después de 10 minutos
+      setTimeout(async () => {
+        user.resetpassword_token = null;
+        user.resetpassword_token_expiration = null;
+        await this.userRepository.save(user);
+      }, 10 * 60 * 1000);
+
+      // Mensaje de éxito
+      return { message: 'Su solicitud se completó correctamente. Revise su correo electrónico.' };
+
+    } catch (error) {
+      throw new BadRequestException('Error en la solicitud:' + error.message);
+    }
+  }
+
+
 }
 
 
