@@ -10,6 +10,10 @@ import { compare } from 'bcrypt';
 import { CreateFullUserDto } from './dtos/createFullUser.dto';
 import * as bcrypt from 'bcrypt';
 import { PeopleEntity } from 'src/people/entity/people.entity';
+import { BusinessEntity } from 'src/business/entity/business.entity';
+import { BusinessAccessibilityEntity } from 'src/business_accessibility/entity/business_accessibility.entity';
+import { AccessibilityEntity } from 'src/accessibility/entity/accesibility.entity';
+import { CreateFullBusinessDto } from './dtos/createFullBusiness.dto';
 
 
 @Injectable()
@@ -26,6 +30,15 @@ export class AuthService {
 
     @InjectRepository(UserRolesEntity)
     private readonly userRolesRepository: Repository<UserRolesEntity>,
+
+    @InjectRepository(BusinessEntity)
+    private readonly businessRepository: Repository<BusinessEntity>,
+
+    @InjectRepository(BusinessAccessibilityEntity)
+    private readonly businessAccessibilityRepository: Repository<BusinessAccessibilityEntity>,
+
+    @InjectRepository(AccessibilityEntity) 
+    private readonly accessibilityRepository: Repository<AccessibilityEntity>,
 
     private readonly jwtService: JwtService,
   ) { }
@@ -93,6 +106,119 @@ export class AuthService {
 
     return { message: 'Usuario registrados exitosamente', token };
   }
+
+  async registerFullBusiness(businessData: CreateFullBusinessDto): Promise<{ message: string; token: string }> {
+    // Verificar si el correo electrónico ya está registrado
+    const existingUser = await this.userRepository.findOne({ where: { user_email: businessData.user_email } });
+    if (existingUser) {
+        throw new BadRequestException('El correo electrónico ya está registrado');
+    }
+
+    // Verificar si el NIT ya está registrado
+    const existingBusiness = await this.businessRepository.findOne({ where: { NIT: businessData.NIT } });
+    if (existingBusiness) {
+        throw new BadRequestException('El NIT ya está registrado');
+    }
+
+    // Generar un salt para mejorar la seguridad del hash de la contraseña
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(businessData.user_password, salt);
+
+    // Crear el nuevo usuario
+    const newUser = this.userRepository.create({
+        user_email: businessData.user_email,
+        user_password: hashedPassword,
+    });
+
+    await this.userRepository.save(newUser);
+
+    // Verificar si se proporcionaron roles, de lo contrario asignar un rol por defecto
+    let rol;
+    if (businessData.rolIds && businessData.rolIds.length > 0) {
+        rol = await this.rolRepository.findOne({ where: { rol_id: businessData.rolIds[0] } });
+    } else {
+        rol = await this.rolRepository.findOne({ where: { rol_id: 3 } }); // Rol por defecto para negocios
+    }
+
+    if (!rol) {
+        throw new BadRequestException('Rol no encontrado');
+    }
+
+    // Crear la relación entre el usuario y el rol
+    const userRole = this.userRolesRepository.create({
+        user: newUser,
+        rol: rol,
+    });
+
+    await this.userRolesRepository.save(userRole);
+
+    // Crear la persona asociada a ese usuario
+    const newPeople = this.peopleRepository.create({
+        firstName: businessData.firstName,
+        firstLastName: businessData.firstLastName,
+        cellphone: businessData.cellphone,
+        address: businessData.address,
+        gender: businessData.gender,
+        user: newUser,
+    });
+
+    await this.peopleRepository.save(newPeople);
+
+    // Crear el negocio asociado a ese usuario
+    const newBusiness = this.businessRepository.create({
+        business_name: businessData.business_name,
+        address: businessData.business_address,
+        NIT: businessData.NIT,
+        description: businessData.description,
+        coordinates: businessData.coordinates,
+        user: newUser,
+    });
+
+    await this.businessRepository.save(newBusiness);
+
+    // Crear las relaciones de accesibilidad si se proporcionan
+    if (businessData.accessibilityIds && businessData.accessibilityIds.length > 0) {
+        for (const accessibilityId of businessData.accessibilityIds) {
+            // Buscar la accesibilidad en AccessibilityEntity
+            const accessibility = await this.accessibilityRepository.findOne({ 
+                where: { accessibility_id: accessibilityId } 
+            });
+            
+            if (!accessibility) {
+                throw new BadRequestException(`Accesibilidad con ID ${accessibilityId} no encontrada`);
+            }
+
+            // Crear la relación en business_accessibility
+            const businessAccessibility = this.businessAccessibilityRepository.create({
+                business: newBusiness,
+                accessibility: accessibility,
+            });
+            
+            await this.businessAccessibilityRepository.save(businessAccessibility);
+        }
+    }
+
+    // Crear el payload para el token JWT
+    const payload = {
+        user_email: newUser.user_email,
+        firstName: newPeople.firstName,
+        firstLastName: newPeople.firstLastName,
+        cellphone: newPeople.cellphone,
+        address: newPeople.address,
+        business_name: newBusiness.business_name,
+        business_address: newBusiness.address,
+        NIT: newBusiness.NIT,
+        rolIds: [rol.rol_id],
+        accessibilityIds: businessData.accessibilityIds || [],
+    };
+
+    // Generar el token JWT
+    const token = this.jwtService.sign(payload);
+
+    return { message: 'Negocio registrado exitosamente', token };
+}
+
+
 
 
 

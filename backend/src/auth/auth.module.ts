@@ -10,6 +10,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { BusinessEntity } from 'src/business/entity/business.entity';
+import { BusinessAccessibilityEntity } from 'src/business_accessibility/entity/business_accessibility.entity';
+import { AccessibilityEntity } from 'src/accessibility/entity/accesibility.entity';
 
 
 @Module({
@@ -24,7 +27,7 @@ import { AuthController } from './auth.controller';
         signOptions: { expiresIn: '30m' }
       })
     }),
-    TypeOrmModule.forFeature([UserEntity, RolEntity, UserRolesEntity, PeopleEntity]),
+    TypeOrmModule.forFeature([UserEntity, RolEntity, UserRolesEntity, PeopleEntity, BusinessEntity, BusinessAccessibilityEntity, AccessibilityEntity]),
   ],
   providers: [AuthService, JwtStrategy],
   controllers: [AuthController]
