@@ -14,6 +14,9 @@ import { BusinessEntity } from 'src/business/entity/business.entity';
 import { BusinessAccessibilityEntity } from 'src/business_accessibility/entity/business_accessibility.entity';
 import { AccessibilityEntity } from 'src/accessibility/entity/accesibility.entity';
 import { CreateFullBusinessDto } from './dtos/createFullBusiness.dto';
+import { TokenDto } from './dtos/token.dto';
+import { usuarioEmailResetPasswordDto } from './dtos/usuario-email-resetpassword.dto';
+import { UpgradeToBusinessDto } from './dtos/upgradeToBusiness.dto';
 
 
 @Injectable()
@@ -100,6 +103,8 @@ export class AuthService {
       address: newPeople.address,
       rolIds: [rol.rol_id],
     };
+    
+
 
     // Generar el token JWT
     const token = this.jwtService.sign(payload);
@@ -229,10 +234,6 @@ export class AuthService {
        };
 }
 
-
-
-
-
   async login(dto: LoginDto): Promise<any> {
     const { user_email, user_password } = dto;
 
@@ -260,12 +261,187 @@ export class AuthService {
       rol_name: userRole.rol.rol_name,
     };
 
-    const token = this.jwtService.sign(payload, { expiresIn: '1h' });
+    const token = this.jwtService.sign(payload);
 
-    return { message: 'Usuario logueadi exitosamente', token };
-
+    return { message: 'Usuario loguead0 exitosamente', token };
 
   }
+
+  async upgradeToBusiness(userId: number, businessData: UpgradeToBusinessDto): Promise<{ message: string; token: string }> {
+    // 1. Verificar que el usuario existe
+    const user = await this.userRepository.findOne({
+        where: { user_id: userId },
+        relations: ['people', 'business', 'userroles', 'userroles.rol']
+    });
+
+    if (!user) {
+        throw new BadRequestException('Usuario no encontrado');
+    }
+
+    // 2. Verificar si ya tiene negocio
+    if (user.business) {
+        throw new BadRequestException('El usuario ya tiene un negocio registrado');
+    }
+
+    // 3. Verificar si el NIT ya está registrado
+    const existingBusiness = await this.businessRepository.findOne({
+        where: { NIT: businessData.NIT }
+    });
+
+    if (existingBusiness) {
+        throw new BadRequestException('El NIT ya está registrado');
+    }
+
+    // 4. Verificar si ya tiene rol de negocio
+    const hasBusinessRole = user.userroles.some(ur => ur.rol.rol_id === 3);
+    
+    // 5. Agregar rol de negocio si no lo tiene
+    if (!hasBusinessRole) {
+        const businessRole = await this.rolRepository.findOne({
+            where: { rol_id: 3 }
+        });
+
+        if (!businessRole) {
+            throw new BadRequestException('Rol de negocio no encontrado');
+        }
+
+        const userRole = this.userRolesRepository.create({
+            user: user,
+            rol: businessRole,
+        });
+
+        await this.userRolesRepository.save(userRole);
+    }
+
+    // 6. Crear el negocio
+    const newBusiness = this.businessRepository.create({
+        business_name: businessData.business_name,
+        address: businessData.business_address,
+        NIT: businessData.NIT,
+        description: businessData.description,
+        coordinates: businessData.coordinates,
+        user: user,
+    });
+
+    await this.businessRepository.save(newBusiness);
+
+    // 7. Crear relaciones de accesibilidad
+    if (businessData.accessibilityIds && businessData.accessibilityIds.length > 0) {
+        for (const accessibilityId of businessData.accessibilityIds) {
+            const accessibility = await this.accessibilityRepository.findOne({
+                where: { accessibility_id: accessibilityId }
+            });
+            
+            if (accessibility) {
+                const businessAccessibility = this.businessAccessibilityRepository.create({
+                    business: newBusiness,
+                    accessibility: accessibility,
+                });
+                await this.businessAccessibilityRepository.save(businessAccessibility);
+            }
+        }
+    }
+
+    // 8. Obtener usuario actualizado con todos los roles
+    const updatedUser = await this.userRepository.findOne({
+        where: { user_id: userId },
+        relations: ['people', 'userroles', 'userroles.rol', 'business']
+    });
+
+    // Verificar que updatedUser no sea null
+    if (!updatedUser) {
+        throw new BadRequestException('Error al actualizar el usuario');
+    }
+
+    // Verificar que people existe
+    if (!updatedUser.people) {
+        throw new BadRequestException('Datos de persona no encontrados');
+    }
+
+    const rolIds = updatedUser.userroles.map(ur => ur.rol.rol_id);
+
+    // 9. Generar nuevo token con la información actualizada
+    const payload = {
+        user_id: updatedUser.user_id,
+        user_email: updatedUser.user_email,
+        firstName: updatedUser.people.firstName,
+        firstLastName: updatedUser.people.firstLastName,
+        cellphone: updatedUser.people.cellphone,
+        address: updatedUser.people.address,
+        business_id: newBusiness.business_id,
+        business_name: newBusiness.business_name,
+        business_address: newBusiness.address,
+        NIT: newBusiness.NIT,
+        rolIds: rolIds,
+        accessibilityIds: businessData.accessibilityIds || [],
+    };
+
+    const token = this.jwtService.sign(payload);
+
+    return {
+        message: 'Negocio registrado exitosamente',
+        token,
+    };
+}
+
+
+  //Metodo refrescarToken
+  async refreshToken(dto: TokenDto): Promise<any> {
+
+    const usuario = await this.jwtService.decode(dto.token);
+
+    const payload = {
+      user_id: usuario['user_id'],
+      user_email: usuario['user_email'],
+      rol_id: usuario['rol_id'],
+      rol_name: usuario['rol_name'],
+    }
+    const token = this.jwtService.sign(payload);
+
+    return token;
+  }
+
+  //Generar Codigo de restablecimiento de contraseña
+  generarcodigoResetPassword(): any {
+    const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+    return codigo;
+  }
+
+
+   //Solicitar restablecimiento de contraseña
+   async solicitarRestablecimientoPassword(userdto: usuarioEmailResetPasswordDto): Promise<void> {
+    const { user_email } = userdto;
+
+    try {
+      const user = await this.userRepository.findOne({ where: { user_email }, relations: ['people', 'business'] });
+
+      if (!user) {
+        throw new BadRequestException('El correo electrónico no está registrado');
+      }
+
+      // Generar un código de restablecimiento de contraseña
+      const resetPasswordCode = this.generarcodigoResetPassword();
+      user.resetpassword_token = resetPasswordCode;
+      user.resetpassword_token_expiration = new Date(Date.now() + 10 * 60 * 1000);
+
+      await this.userRepository.save(user);
+
+      
+      //Elimincacion del código de restablecimiento después de 10 minutos
+      setTimeout(async () => {
+        user.resetpassword_token = null;
+        user.resetpassword_token_expiration = null;
+        await this.userRepository.save(user);
+      }, 10 * 60 * 1000);
+
+      
+
+    } catch (error) {
+      throw new BadRequestException('Error en la solicitud:' + error);
+    }
+  }
+
+
 }
 
 

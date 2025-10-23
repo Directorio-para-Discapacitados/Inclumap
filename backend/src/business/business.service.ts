@@ -1,4 +1,4 @@
-import {BadRequestException,Injectable,InternalServerErrorException,NotFoundException} from '@nestjs/common';
+import {BadRequestException,ForbiddenException,Injectable,InternalServerErrorException,NotFoundException} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BusinessEntity } from './entity/business.entity';
@@ -93,21 +93,33 @@ import { UpdateBusinessDto } from './dto/update-business.dto';
       }
     }
   
-    // Actualizar un negocio
     async actualizarNegocio(
       business_id: number,
       dto: UpdateBusinessDto,
+      user: any 
     ): Promise<string> {
       try {
         if (!business_id) {
           throw new BadRequestException('ID de negocio inválido');
         }
-  
-        const negocio = await this._businessRepository.findOne({ where: { business_id } });
+    
+        const negocio = await this._businessRepository.findOne({ 
+          where: { business_id },
+          relations: ['user'] 
+        });
+        
         if (!negocio) {
           throw new NotFoundException('Negocio no encontrado');
         }
-  
+    
+        // VERIFICAR PERMISOS: Solo admin o dueño puede actualizar
+        const isOwner = negocio.user.user_id === user.user_id;
+        const isAdmin = user.rolIds.includes(1); // rol admin = 1
+    
+        if (!isOwner && !isAdmin) {
+          throw new ForbiddenException('No tienes permisos para actualizar este negocio');
+        }
+    
         // Validar NIT duplicado si se actualiza
         if (dto.NIT) {
           const existeNIT = await this._businessRepository
@@ -115,19 +127,21 @@ import { UpdateBusinessDto } from './dto/update-business.dto';
             .where('negocio.business_id != :business_id', { business_id })
             .andWhere('negocio.NIT = :NIT', { NIT: dto.NIT })
             .getOne();
-  
+    
           if (existeNIT) {
             throw new BadRequestException('El NIT ya está registrado en otro negocio');
           }
         }
-  
+    
         // Actualizar campos
         Object.assign(negocio, dto);
         await this._businessRepository.save(negocio);
-  
+    
         return 'Negocio actualizado correctamente';
       } catch (error) {
-        if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        if (error instanceof BadRequestException || 
+            error instanceof NotFoundException ||
+            error instanceof ForbiddenException) { 
           throw error;
         }
         throw new InternalServerErrorException('Error al intentar actualizar el negocio');
