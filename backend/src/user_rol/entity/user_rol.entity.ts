@@ -9,8 +9,10 @@ export class UserRolesEntity {
     userroles_id: number;
 
     @ManyToOne(() => UserEntity, (user) => user.userroles, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'user_id' })
     user: UserEntity;
 
     @ManyToOne(() => RolEntity, (rol) => rol.userroles)
+    @JoinColumn({ name: 'rol_id' })
     rol: RolEntity;
 }
