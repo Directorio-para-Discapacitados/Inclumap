@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PeopleEntity } from './entity/people.entity';
@@ -44,6 +44,26 @@ export class PeopleService {
     }
   }
 
+  async obtenerPersonaPorUserId(user_id: number): Promise<PeopleEntity> {
+    try {
+      const persona = await this._peopleRepository.findOne({ // ✅ Cambiar a _peopleRepository
+        where: { user: { user_id } },
+        relations: ['user']
+      });
+
+      if (!persona) {
+        throw new NotFoundException('Persona no encontrada para este usuario');
+      }
+
+      return persona;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al obtener la persona');
+    }
+  }
+
   // Obtener una persona por ID
   async obtenerPersonaPorId(people_id: number): Promise<any> {
     try {
@@ -69,28 +89,73 @@ export class PeopleService {
     }
   }
 
-  async actualizarPersona(user_id: number, dto: UpdatePeopleDto): Promise<string> {
-    // Validar si el ID del usuario es válido
-    const usuario = await this._userRepository.findOne({ where: { user_id } });
-    if (!usuario) {
-      throw new NotFoundException('Usuario no encontrado');
+  async actualizarPersona(
+    user_id: number, 
+    dto: UpdatePeopleDto,
+    currentUser: any 
+  ): Promise<string> {
+    try {
+      
+      // Asegurar que ambos sean números y comparar correctamente
+      const userIdFromParam = Number(user_id);
+      const userIdFromToken = Number(currentUser.user_id);
+      const isOwner = userIdFromParam === userIdFromToken;
+      const isAdmin = currentUser.rolIds.includes(1);
+  
+  
+      if (!isOwner && !isAdmin) {
+       
+        throw new ForbiddenException('No tienes permisos para actualizar esta persona');
+      }
+  
+  
+      // Validar si el ID del usuario es válido
+      const usuario = await this._userRepository.findOne({ where: { user_id } });
+      if (!usuario) {
+        
+        throw new NotFoundException('Usuario no encontrado');
+      }
+  
+     
+  
+      // Buscar la persona asociada al usuario
+      const persona = await this._peopleRepository.findOne({ 
+        where: { user: usuario } 
+      });
+      if (!persona) {
+        
+        throw new NotFoundException('Persona no encontrada');
+      }
+  
+
+  
+      // Actualizar los campos de la persona
+      if (dto.firstName) {
+        persona.firstName = dto.firstName;
+      }
+      if (dto.firstLastName) { 
+        persona.firstLastName = dto.firstLastName;
+      }
+      if (dto.cellphone) {
+        persona.cellphone = dto.cellphone;
+      }
+      if (dto.address) {
+        persona.address = dto.address;
+      }
+  
+      // Guardar los cambios
+      await this._peopleRepository.save(persona);
+  
+      return 'Información de la persona actualizada correctamente';
+  
+    } catch (error) {
+     
+      
+      if (error instanceof NotFoundException || error instanceof ForbiddenException) {
+        throw error;
+      }
+      
+      throw new InternalServerErrorException('Error al actualizar la persona');
     }
-  
-    // Buscar la persona asociada al usuario
-    const persona = await this._peopleRepository.findOne({ where: { user: usuario } });
-    if (!persona) {
-      throw new NotFoundException('Persona no encontrada');
-    }
-  
-    // Actualizar los campos de la persona
-    if (dto.firstName) persona.firstName = dto.firstName;
-    if (dto.firstLastName) persona.firstLastName = dto.firstLastName;
-    if (dto.cellphone) persona.cellphone = dto.cellphone;
-    if (dto.address) persona.address = dto.address;
-  
-    // Guardar los cambios
-    await this._peopleRepository.save(persona);
-  
-    return 'Información de la persona actualizada correctamente';
   }
 }

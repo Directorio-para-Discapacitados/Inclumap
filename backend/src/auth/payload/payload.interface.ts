@@ -1,8 +1,11 @@
-
 export interface PayloadInterface {
     user_id: number;
     user_email: string;
-    rol_id: number;
-    rol_name: string;
-
+    firstName: string;
+    firstLastName: string;
+    cellphone: string;
+    address: string;
+    rolIds: number[]; 
+    business_id?: number;
+    business_name?: string;
 }

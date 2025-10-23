@@ -1,8 +1,11 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dtos/login.dto';
 import { CreateFullUserDto } from './dtos/createFullUser.dto';
 import { CreateFullBusinessDto } from './dtos/createFullBusiness.dto';
+import { UpgradeToBusinessDto } from './dtos/upgradeToBusiness.dto';
+import { User } from './decorators/user.decorator';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 
 @Controller('auth')
@@ -19,6 +22,11 @@ export class AuthController {
     return this.authService.registerFullBusiness(createFullBusinessDto);
   }
 
+  @Post('upgrade-to-business')
+  @UseGuards(JwtAuthGuard)
+  upgradeToBusiness(@User() user: any, @Body() businessData: UpgradeToBusinessDto) {
+    return this.authService.upgradeToBusiness(user.user_id, businessData);
+  }
 
   @Post('login')
   async login(@Body() loginDto: LoginDto) {

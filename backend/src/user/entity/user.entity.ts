@@ -18,8 +18,9 @@ export class UserEntity {
     @Column({ type: 'uuid', unique: true, nullable: true,name: 'resetpassword_token' })
     resetpassword_token: string | null;
 
-    @Column({ type: 'datetime', nullable: true, name: 'resetpassword_token_expiration' })
+    @Column({ type: 'timestamp', nullable: true, name: 'resetpassword_token_expiration' })
     resetpassword_token_expiration: Date | null;
+
 
     @OneToOne(() => PeopleEntity, (people) => people.user, { cascade: true, onDelete: 'CASCADE' })
     people: PeopleEntity;
