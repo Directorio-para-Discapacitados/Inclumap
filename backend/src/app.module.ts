@@ -10,6 +10,7 @@ import { PeopleModule } from './people/people.module';
 import { BusinessModule } from './business/business.module';
 import { BusinessAccessibilityModule } from './business_accessibility/business_accessibility.module';
 import { AccessibilityModule } from './accessibility/accessibility.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -36,7 +37,8 @@ import { AccessibilityModule } from './accessibility/accessibility.module';
     PeopleModule,
     BusinessModule,
     BusinessAccessibilityModule,
-    AccessibilityModule
+    AccessibilityModule,
+    AuthModule
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,4 +1,4 @@
-import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsNumber, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class UpdateUserDto {
   @IsOptional()
@@ -9,5 +9,9 @@ export class UpdateUserDto {
   @IsString({ message: 'La contraseña debe ser una cadena de texto o numeros' })
   @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
   user_password?: string;
+
+  @IsOptional()
+  @IsNumber({}, { message: 'Rol indefinido' })
+  rol_id?: number;  
 
 }
