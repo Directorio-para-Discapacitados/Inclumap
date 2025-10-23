@@ -57,6 +57,52 @@ $ npm run test:e2e
 $ npm run test:cov
 ```
 
+## Ejecución de tests localmente
+
+1. Crea una base de datos de prueba en Postgres (ejemplo: `inclumap_test`).
+2. Ajusta las variables en `.env.test` para que apunten a tu DB de prueba:
+  - POSTGRES_HOST
+  - POSTGRES_PORT
+  - POSTGRES_USER
+  - POSTGRES_PASSWORD
+  - POSTGRES_DB
+3. Instala dependencias:
+  ```bash
+  npm install
+  ```
+4. Ejecuta los tests:
+  ```bash
+  npm run test
+  npm run test:e2e
+  ```
+
+## Documentación del endpoint PATCH /user/:id/role
+
+### PATCH /user/:id/role
+
+Permite a un administrador cambiar el rol de un usuario y registrar el cambio en el historial.
+
+**Headers:**
+- `x-user-id`: ID del usuario administrador que realiza el cambio
+
+**Body:**
+```json
+{
+  "role": "administrador", // o "usuario"
+  "reason": "Motivo del cambio"
+}
+```
+
+**Respuestas:**
+- 200: Rol actualizado correctamente
+- 200: No hay cambios en el rol (si el rol es el mismo)
+- 400: Rol inválido o datos incorrectos
+- 403: No autorizado (no admin)
+- 404: Usuario no encontrado
+
+**Swagger UI:**
+Disponible en `/api/docs` tras instalar `@nestjs/swagger` y `swagger-ui-express`.
+
 ## Deployment
 
 When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
