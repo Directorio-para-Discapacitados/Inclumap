@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RolEntity } from 'src/roles/entity/rol.entity';
@@ -19,6 +19,7 @@ import { usuarioEmailResetPasswordDto } from './dtos/usuario-email-resetpassword
 import { UpgradeToBusinessDto } from './dtos/upgradeToBusiness.dto';
 import { MailsService } from 'src/mails/mails.service';
 import { MoreThan } from 'typeorm';
+import { ChangePasswordDto } from './dtos/change-password.dto';
 
 
 @Injectable()
@@ -479,40 +480,72 @@ export class AuthService {
   }
 
   // Restablecer contraseña
-async restablecerPassword(codigo: string, newPassword: string): Promise<{ message: string }> {
-  try {
-    const user = await this.userRepository.findOne({
-      where: { 
-        resetpassword_token: codigo,
-        resetpassword_token_expiration: MoreThan(new Date())
+  async restablecerPassword(codigo: string, newPassword: string): Promise<{ message: string }> {
+    try {
+      const user = await this.userRepository.findOne({
+        where: {
+          resetpassword_token: codigo,
+          resetpassword_token_expiration: MoreThan(new Date())
+        }
+      });
+
+      if (!user) {
+        throw new BadRequestException('Código inválido o expirado');
       }
-    });
 
-    if (!user) {
-      throw new BadRequestException('Código inválido o expirado');
+      if (newPassword.length < 6) {
+        throw new BadRequestException('La contraseña debe tener al menos 6 caracteres');
+      }
+
+      // Hash de la nueva contraseña
+      const salt = await bcrypt.genSalt(10);
+      user.user_password = await bcrypt.hash(newPassword, salt);
+
+      // Limpiar el código de restablecimiento
+      user.resetpassword_token = null;
+      user.resetpassword_token_expiration = null;
+
+      await this.userRepository.save(user);
+
+      return { message: 'Contraseña restablecida exitosamente' };
+    } catch (error) {
+      throw new BadRequestException('Error restableciendo la contraseña');
     }
-
-    if (newPassword.length < 6) {
-      throw new BadRequestException('La contraseña debe tener al menos 6 caracteres');
-    }
-
-    // Hash de la nueva contraseña
-    const salt = await bcrypt.genSalt(10);
-    user.user_password = await bcrypt.hash(newPassword, salt);
-    
-    // Limpiar el código de restablecimiento
-    user.resetpassword_token = null;
-    user.resetpassword_token_expiration = null;
-
-    await this.userRepository.save(user);
-
-    return { message: 'Contraseña restablecida exitosamente' };
-  } catch (error) {
-    throw new BadRequestException('Error restableciendo la contraseña');
   }
 
-
-
-}
+  async changePassword(user_id: number, changePasswordDto: ChangePasswordDto): Promise<{ message: string }> {
+    try {
+      // Buscar usuario
+      const user = await this.userRepository.findOne({ where: { user_id } });
+      if (!user) {
+        throw new NotFoundException('Usuario no encontrado');
+      }
+  
+      // Verificar contraseña actual
+      const isCurrentPasswordValid = await bcrypt.compare(changePasswordDto.currentPassword, user.user_password);
+      if (!isCurrentPasswordValid) {
+        throw new BadRequestException('La contraseña actual es incorrecta');
+      }
+  
+      // Verificar que la nueva contraseña sea diferente
+      const isSamePassword = await bcrypt.compare(changePasswordDto.newPassword, user.user_password);
+      if (isSamePassword) {
+        throw new BadRequestException('La nueva contraseña debe ser diferente a la actual');
+      }
+  
+      // Hash de la nueva contraseña
+      const salt = await bcrypt.genSalt(10);
+      user.user_password = await bcrypt.hash(changePasswordDto.newPassword, salt);
+  
+      await this.userRepository.save(user);
+  
+      return { message: 'Contraseña cambiada exitosamente' };
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al cambiar la contraseña');
+    }
+  }
 }
 
