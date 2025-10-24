@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dtos/login.dto';
 import { CreateFullUserDto } from './dtos/createFullUser.dto';
@@ -8,6 +8,8 @@ import { User } from './decorators/user.decorator';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { usuarioEmailResetPasswordDto } from './dtos/usuario-email-resetpassword.dto';
 import { ChangePasswordDto } from './dtos/change-password.dto';
+import { GoogleAuthDto } from './dtos/google-auth.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 
 @Controller('auth')
@@ -51,12 +53,24 @@ export class AuthController {
   }
 
   @Post('change-password')
-@UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
 
-async changePassword(
-  @User() user: any, 
-  @Body() changePasswordDto: ChangePasswordDto
-) {
-  return this.authService.changePassword(user.user_id, changePasswordDto);
-}
+  async changePassword(
+    @User() user: any,
+    @Body() changePasswordDto: ChangePasswordDto
+  ) {
+    return this.authService.changePassword(user.user_id, changePasswordDto);
+  }
+
+  @Post('google')
+  async googleAuth(@Body() googleAuthDto: GoogleAuthDto) {
+    return this.authService.googleLogin(googleAuthDto);
+  }
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleAuthRedirect(@Req() req) {
+    return this.authService.googleLogin(req.user);
+  }
+
 }
