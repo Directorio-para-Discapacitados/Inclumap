@@ -46,7 +46,7 @@ export class PeopleService {
 
   async obtenerPersonaPorUserId(user_id: number): Promise<PeopleEntity> {
     try {
-      const persona = await this._peopleRepository.findOne({ // ✅ Cambiar a _peopleRepository
+      const persona = await this._peopleRepository.findOne({ 
         where: { user: { user_id } },
         relations: ['user']
       });

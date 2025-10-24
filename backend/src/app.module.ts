@@ -11,6 +11,8 @@ import { BusinessModule } from './business/business.module';
 import { BusinessAccessibilityModule } from './business_accessibility/business_accessibility.module';
 import { AccessibilityModule } from './accessibility/accessibility.module';
 import { AuthModule } from './auth/auth.module';
+import { MailsModule } from './mails/mails.module';
+import { GoogleStrategy } from './auth/strategies/google.strategy';
 
 @Module({
   imports: [
@@ -38,9 +40,10 @@ import { AuthModule } from './auth/auth.module';
     BusinessModule,
     BusinessAccessibilityModule,
     AccessibilityModule,
-    AuthModule
+    AuthModule,
+    MailsModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, GoogleStrategy],
 })
 export class AppModule {}
