@@ -15,7 +15,7 @@ export class UserEntity {
     @Column({ type: 'varchar', length: 255 })
     user_password: string;
 
-    @Column({ type: 'uuid', unique: true, nullable: true,name: 'resetpassword_token' })
+    @Column({ type: 'varchar', length: 6, nullable: true, name: 'resetpassword_token' })
     resetpassword_token: string | null;
 
     @Column({ type: 'timestamp', nullable: true, name: 'resetpassword_token_expiration' })

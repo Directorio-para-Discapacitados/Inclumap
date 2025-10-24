@@ -17,6 +17,8 @@ import { CreateFullBusinessDto } from './dtos/createFullBusiness.dto';
 import { TokenDto } from './dtos/token.dto';
 import { usuarioEmailResetPasswordDto } from './dtos/usuario-email-resetpassword.dto';
 import { UpgradeToBusinessDto } from './dtos/upgradeToBusiness.dto';
+import { MailsService } from 'src/mails/mails.service';
+import { v4 as uuidv4 } from 'uuid';
 
 
 @Injectable()
@@ -44,6 +46,7 @@ export class AuthService {
     private readonly accessibilityRepository: Repository<AccessibilityEntity>,
 
     private readonly jwtService: JwtService,
+    private readonly mailService: MailsService,
   ) { }
 
   async registerFullUser(userData: CreateFullUserDto): Promise<{ message: string; token: string }> {
@@ -278,12 +281,12 @@ export class AuthService {
         throw new BadRequestException('Usuario no encontrado');
     }
 
-    // 2. Verificar si ya tiene negocio
+    // Verificar si ya tiene negocio
     if (user.business) {
         throw new BadRequestException('El usuario ya tiene un negocio registrado');
     }
 
-    // 3. Verificar si el NIT ya está registrado
+    // Verificar si el NIT ya está registrado
     const existingBusiness = await this.businessRepository.findOne({
         where: { NIT: businessData.NIT }
     });
@@ -292,10 +295,10 @@ export class AuthService {
         throw new BadRequestException('El NIT ya está registrado');
     }
 
-    // 4. Verificar si ya tiene rol de negocio
+    // Verificar si ya tiene rol de negocio
     const hasBusinessRole = user.userroles.some(ur => ur.rol.rol_id === 3);
     
-    // 5. Agregar rol de negocio si no lo tiene
+    // Agregar rol de negocio si no lo tiene
     if (!hasBusinessRole) {
         const businessRole = await this.rolRepository.findOne({
             where: { rol_id: 3 }
@@ -313,7 +316,7 @@ export class AuthService {
         await this.userRolesRepository.save(userRole);
     }
 
-    // 6. Crear el negocio
+    // Crear el negocio
     const newBusiness = this.businessRepository.create({
         business_name: businessData.business_name,
         address: businessData.business_address,
@@ -325,7 +328,7 @@ export class AuthService {
 
     await this.businessRepository.save(newBusiness);
 
-    // 7. Crear relaciones de accesibilidad
+    // Crear relaciones de accesibilidad
     if (businessData.accessibilityIds && businessData.accessibilityIds.length > 0) {
         for (const accessibilityId of businessData.accessibilityIds) {
             const accessibility = await this.accessibilityRepository.findOne({
@@ -342,7 +345,7 @@ export class AuthService {
         }
     }
 
-    // 8. Obtener usuario actualizado con todos los roles
+    // Obtener usuario actualizado con todos los roles
     const updatedUser = await this.userRepository.findOne({
         where: { user_id: userId },
         relations: ['people', 'userroles', 'userroles.rol', 'business']
@@ -360,7 +363,7 @@ export class AuthService {
 
     const rolIds = updatedUser.userroles.map(ur => ur.rol.rol_id);
 
-    // 9. Generar nuevo token con la información actualizada
+    // Generar nuevo token con la información actualizada
     const payload = {
         user_id: updatedUser.user_id,
         user_email: updatedUser.user_email,
@@ -384,62 +387,70 @@ export class AuthService {
     };
 }
 
+//Metodo refrescarToken
+async refreshToken(dto: TokenDto): Promise<any> {
 
-  //Metodo refrescarToken
-  async refreshToken(dto: TokenDto): Promise<any> {
+  const usuario = await this.jwtService.decode(dto.token);
 
-    const usuario = await this.jwtService.decode(dto.token);
+  const payload = {
+    user_id: usuario['user_id'],
+    user_email: usuario['user_email'],
+    rol_id: usuario['rol_id'],
+    rol_name: usuario['rol_name'],
+  }
+  const token = this.jwtService.sign(payload);
 
-    const payload = {
-      user_id: usuario['user_id'],
-      user_email: usuario['user_email'],
-      rol_id: usuario['rol_id'],
-      rol_name: usuario['rol_name'],
+  return token;
+}
+
+//Generar Codigo de restablecimiento de contraseña
+generarcodigoResetPassword(): any {
+  const codigo = Math.floor(100000 + Math.random() * 900000).toString();
+  return codigo;
+}
+
+//Solicitar restablecimiento de contraseña
+async solicitarRestablecimientoPassword(userdto: usuarioEmailResetPasswordDto): Promise<{ message: string }> {
+  //extraer el correo electrónico del DTO
+  const { user_email } = userdto;
+
+  try {
+    const user = await this.userRepository.findOne({ where: { user_email }, relations: ['people'] });
+
+    if (!user) {
+      throw new UnauthorizedException('El correo electrónico no está registrado');
     }
-    const token = this.jwtService.sign(payload);
 
-    return token;
-  }
+    // Generar un código de restablecimiento de contraseña
+    const resetPasswordCode = this.generarcodigoResetPassword();
+    user.resetpassword_token = resetPasswordCode;
+    user.resetpassword_token_expiration = new Date(Date.now() + 10 * 60 * 1000);
 
-  //Generar Codigo de restablecimiento de contraseña
-  generarcodigoResetPassword(): any {
-    const codigo = Math.floor(100000 + Math.random() * 900000).toString();
-    return codigo;
-  }
+    await this.userRepository.save(user);
 
+    // Construir objeto Usuario para el mail
+    const usuarioMail = {
+      user_email: user.user_email,
+      firstName: user.people?.firstName || '',
+    };
 
-   //Solicitar restablecimiento de contraseña
-   async solicitarRestablecimientoPassword(userdto: usuarioEmailResetPasswordDto): Promise<void> {
-    const { user_email } = userdto;
+    //enviar correo electrónico al usuario con el código de restablecimiento
+    await this.mailService.sendUserrequestPassword(usuarioMail, resetPasswordCode);
 
-    try {
-      const user = await this.userRepository.findOne({ where: { user_email }, relations: ['people', 'business'] });
-
-      if (!user) {
-        throw new BadRequestException('El correo electrónico no está registrado');
-      }
-
-      // Generar un código de restablecimiento de contraseña
-      const resetPasswordCode = this.generarcodigoResetPassword();
-      user.resetpassword_token = resetPasswordCode;
-      user.resetpassword_token_expiration = new Date(Date.now() + 10 * 60 * 1000);
-
+    //Elimincacion del código de restablecimiento después de 10 minutos
+    setTimeout(async () => {
+      user.resetpassword_token = null;
+      user.resetpassword_token_expiration = null;
       await this.userRepository.save(user);
+    }, 10 * 60 * 1000);
 
-      
-      //Elimincacion del código de restablecimiento después de 10 minutos
-      setTimeout(async () => {
-        user.resetpassword_token = null;
-        user.resetpassword_token_expiration = null;
-        await this.userRepository.save(user);
-      }, 10 * 60 * 1000);
+    // Mensaje de éxito
+    return { message: 'Su solicitud se completó correctamente. Revise su correo electrónico.' };
 
-      
-
-    } catch (error) {
-      throw new BadRequestException('Error en la solicitud:' + error);
-    }
+  } catch (error) {
+    throw new BadRequestException('Error en la solicitud:' + error.message);
   }
+}
 
 
 }

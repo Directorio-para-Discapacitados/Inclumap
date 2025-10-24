@@ -6,6 +6,7 @@ import { CreateFullBusinessDto } from './dtos/createFullBusiness.dto';
 import { UpgradeToBusinessDto } from './dtos/upgradeToBusiness.dto';
 import { User } from './decorators/user.decorator';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { usuarioEmailResetPasswordDto } from './dtos/usuario-email-resetpassword.dto';
 
 
 @Controller('auth')
@@ -31,5 +32,10 @@ export class AuthController {
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
+  }
+
+  @Post('request-reset-password')
+  async solicitarRestablecimientoPassword(@Body() user: usuarioEmailResetPasswordDto) {
+    return this.authService.solicitarRestablecimientoPassword(user);
   }
 }
