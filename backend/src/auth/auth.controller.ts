@@ -10,8 +10,9 @@ import { usuarioEmailResetPasswordDto } from './dtos/usuario-email-resetpassword
 import { ChangePasswordDto } from './dtos/change-password.dto';
 import { GoogleAuthDto } from './dtos/google-auth.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiTags } from '@nestjs/swagger';
 
-
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) { }

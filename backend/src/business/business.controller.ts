@@ -7,9 +7,10 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { User } from 'src/auth/decorators/user.decorator';
+import { ApiTags } from '@nestjs/swagger';
 
 
-
+@ApiTags('business')
 @Controller('business')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class BusinessController {
