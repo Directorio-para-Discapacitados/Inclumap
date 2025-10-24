@@ -1,81 +1,117 @@
-.registro-container {
-  max-width: 500px;
-  margin: 2rem auto;
-  background: var(--color-white);
+/* Fondo general */
+.registro-fondo {
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #f8fafc, #e0ecff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
-.tipo-switch {
+/* Contenedor del formulario */
+.registro-form {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 1.5rem;
+  box-shadow: 0 8px 25px rgba(0, 0, 50, 0.1);
+  width: 100%;
+  max-width: 420px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: fadeIn 0.5s ease;
+}
+
+.registro-form:hover {
+  transform: scale(1.02);
+  box-shadow: 0 10px 30px rgba(0, 0, 70, 0.15);
+}
+
+/* Título */
+.registro-titulo {
+  text-align: center;
+  color: #1e40af;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+/* Switch persona/local */
+.registro-switch {
   display: flex;
   justify-content: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.genero {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-input, button, textarea {
-  width: 100%;
-  margin-bottom: 0.75rem;
-  padding: 0.6rem;
-  box-sizing: border-box;
-}
-
-button:disabled {
-  background: gray;
-}
-
-.error-text {
-  color: #c62828;
-  font-size: 0.85rem;
-  margin-top: -0.25rem;
-  margin-bottom: 0.5rem;
-  display: block;
-}
-
-.preview-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  align-items: center;
   gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  color: #334155;
 }
 
-.preview {
+.registro-switch input {
+  transform: scale(1.2);
+  accent-color: #2563eb;
+}
+
+/* Inputs */
+.registro-form input,
+.registro-form textarea {
   width: 100%;
-  height: 100px;
-  object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid #e0e0e0;
+  padding: 0.6rem 0.8rem;
+  margin-bottom: 0.9rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-fieldset.accesibilidad {
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  padding: 0.75rem 1rem;
-  margin: 0.5rem 0 0.75rem;
+.registro-form input:focus,
+.registro-form textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+  outline: none;
 }
 
-.acc-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.5rem 1rem;
-  margin-top: 0.5rem;
+/* Botón */
+.registro-btn {
+  width: 100%;
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 0.7rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.25s ease, box-shadow 0.25s ease;
 }
 
-@media (min-width: 520px) {
-  .acc-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+.registro-btn:hover {
+  background-color: #1e3a8a;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.3);
+}
+
+/* Animación para los campos extra */
+.fade-in {
+  animation: fadeSlide 0.4s ease-in-out;
+}
+
+@keyframes fadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-.check {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
+/* Animación inicial */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
