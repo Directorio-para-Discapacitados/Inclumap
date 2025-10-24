@@ -17,7 +17,7 @@ export class AuthController {
   async register(@Body() createFullUserDto: CreateFullUserDto): Promise<{ message: string }> {
     return this.authService.registerFullUser(createFullUserDto);
   }
-  
+
   @Post('registerBusiness')
   async registerBusiness(@Body() createFullBusinessDto: CreateFullBusinessDto): Promise<{ message: string; token: string }> {
     return this.authService.registerFullBusiness(createFullBusinessDto);
@@ -37,5 +37,15 @@ export class AuthController {
   @Post('request-reset-password')
   async solicitarRestablecimientoPassword(@Body() user: usuarioEmailResetPasswordDto) {
     return this.authService.solicitarRestablecimientoPassword(user);
+  }
+
+  @Post('verify-reset-code')
+  async verifyResetCode(@Body() body: { code: string }) {
+    return this.authService.verificarCodigoRestablecimiento(body.code);
+  }
+
+  @Post('reset-password')
+  async resetPassword(@Body() body: { code: string; newPassword: string }) {
+    return this.authService.restablecerPassword(body.code, body.newPassword);
   }
 }
