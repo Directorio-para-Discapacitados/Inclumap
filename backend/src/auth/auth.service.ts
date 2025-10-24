@@ -547,5 +547,94 @@ export class AuthService {
       throw new InternalServerErrorException('Error al cambiar la contraseña');
     }
   }
+
+  async googleLogin(googleUser: any): Promise<{ message: string; token: string }> {
+  try {
+    const { email, firstName, lastName } = googleUser;
+
+    
+    let user = await this.userRepository.findOne({ 
+      where: { user_email: email },
+      relations: ['people', 'userroles', 'userroles.rol']
+    });
+
+    if (!user) {
+      // Crear nuevo usuario si no existe
+      user = await this.createUserFromGoogle(googleUser);
+    }
+
+    // Validar que user no sea null
+    if (!user) {
+      throw new BadRequestException('No se pudo obtener la información del usuario');
+    }
+
+    // Generar payload y token - CORREGIDO
+    const rolIds = user.userroles && user.userroles.length > 0 
+      ? user.userroles.map(ur => ur.rol.rol_id) 
+      : [2]; 
+
+    const payload = {
+      user_id: user.user_id,
+      user_email: user.user_email,
+      firstName: user.people?.firstName || firstName,
+      firstLastName: user.people?.firstLastName || lastName,
+      rolIds: rolIds, 
+    };
+
+    const token = this.jwtService.sign(payload);
+
+    return {
+      message: 'Login con Google exitoso',
+      token,
+    };
+  } catch (error) {
+    throw new BadRequestException('Error en login con Google: ' + error.message);
+  }
+}
+
+private async createUserFromGoogle(googleUser: any): Promise<UserEntity> {
+  const { email, firstName, lastName } = googleUser;
+
+  //  Crear usuario
+  const newUser = this.userRepository.create({
+    user_email: email,
+    user_password: await bcrypt.hash(Math.random().toString(36) + Date.now(), 10),
+  });
+  await this.userRepository.save(newUser);
+
+  // Crear persona - VERIFICA QUE ESTO SE EJECUTE
+  const newPeople = this.peopleRepository.create({
+    firstName: firstName || 'Usuario',
+    firstLastName: lastName || 'Google',
+    cellphone: '0000000000',
+    address: 'Dirección no especificada',
+    gender: 'No especificado',
+    user: newUser, 
+  });
+  await this.peopleRepository.save(newPeople); 
+
+  // Asignar rol
+  const defaultRol = await this.rolRepository.findOne({ where: { rol_id: 2 } });
+  if (defaultRol) {
+    const userRole = this.userRolesRepository.create({
+      user: newUser,
+      rol: defaultRol,
+    });
+    await this.userRolesRepository.save(userRole);
+  }
+
+  // Retornar usuario con relaciones
+  const savedUser = await this.userRepository.findOne({
+    where: { user_id: newUser.user_id },
+    relations: ['people', 'userroles', 'userroles.rol']
+  });
+
+  if (!savedUser) {
+    throw new Error('No se pudo crear el usuario correctamente');
+  }
+
+  return savedUser;
+}
+
 }
 
