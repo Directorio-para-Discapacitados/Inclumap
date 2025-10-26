@@ -244,7 +244,7 @@ export class AuthService {
     // Buscar el usuario en la base de datos por correo
     const user = await this.userRepository.findOne({
       where: { user_email },
-      relations: ['userroles', 'userroles.rol'],
+      relations: ['people', 'userroles', 'userroles.rol'],
     });
 
     if (!user) throw new UnauthorizedException('Usuario no registrado, verifique su correo u contraseña');
@@ -261,6 +261,8 @@ export class AuthService {
     const payload = {
       user_id: user.user_id,
       user_email: user.user_email,
+      firstName: user.people?.firstName,
+      firstLastName: user.people?.firstLastName,
       rol_id: userRole.rol.rol_id,
       rol_name: userRole.rol.rol_name,
     };
