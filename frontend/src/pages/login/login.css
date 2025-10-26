@@ -59,26 +59,38 @@ button:disabled {
 }
 
 .google-btn {
-  margin-top: 0.8rem;
+  margin-top: 1.5rem;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 6px;
+  gap: 12px;
   background-color: #fff;
   color: #444;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 0.5rem 0.8rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 24px;
+  padding: 0.8rem 1.5rem;
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 1rem;
   cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.3s ease;
   width: auto;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.google-btn img {
+  width: 24px;
+  height: 24px;
 }
 
 .google-btn:hover {
-  background-color: #f7f7f7;
+  background-color: #f8f9fa;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.google-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .login-container h2 {
@@ -88,6 +100,24 @@ button:disabled {
   font-size: 1.6rem;
   font-weight: bold;
   width: 100%;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+  margin: 1.5rem 0;
+  width: 100%;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #e0e0e0;
+  margin: 0 1rem;
 }
 
 .login-container .links {

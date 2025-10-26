@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../../config/auth";
+import { useAuth } from "../../context/AuthContext";
 import "./login.css";
 
 export default function Login() {
@@ -10,6 +11,7 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ visible: boolean; text: string }>({ visible: false, text: "" });
   const navigate = useNavigate();
+  const { login } = useAuth();
   const isValid = email && password;
 
   const decodeJwt = (token: string): any => {
@@ -45,7 +47,7 @@ export default function Login() {
               user_password: password,
             });
             if (res?.token) {
-              localStorage.setItem("token", res.token);
+              await login(res.token);
               const payload = decodeJwt(res.token);
               const firstName = payload?.firstName || "";
               const lastName = payload?.firstLastName || "";
@@ -94,9 +96,15 @@ export default function Login() {
         </div>
       )}
 
-      <button className="google-btn">
-        <img src="" alt="Google" />
-        Iniciar con Google
+      <div className="divider">O</div>
+      <button className="google-btn" onClick={() => {/* Aquí va la lógica de autenticación con Google */}}>
+        <img 
+          src="https://image.similarpng.com/file/similarpng/original-picture/2020/06/Logo-google-icon-PNG.png"
+          alt="Google"
+          width="24"
+          height="24"
+        />
+        Continuar con Google
       </button>
     </div>
   );
