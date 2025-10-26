@@ -53,10 +53,10 @@ export default function Login() {
               setToast({ visible: true, text: `Bienvenido, ${name}` });
               setTimeout(() => {
                 setToast({ visible: false, text: "" });
-                navigate("/perfil");
+                navigate("/");
               }, 1000);
             } else {
-              navigate("/perfil");
+              navigate("/");
             }
           } catch (err: any) {
             setError(err?.message || "Error al iniciar sesión");
