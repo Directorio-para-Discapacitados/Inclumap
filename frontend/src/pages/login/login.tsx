@@ -1,15 +1,70 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { loginUser } from "../../config/auth";
 import "./login.css";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ visible: boolean; text: string }>({ visible: false, text: "" });
+  const navigate = useNavigate();
   const isValid = email && password;
+
+  const decodeJwt = (token: string): any => {
+    try {
+      const base64Url = token.split(".")[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map(function (c) {
+            return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+          })
+          .join("")
+      );
+      return JSON.parse(jsonPayload);
+    } catch {
+      return null;
+    }
+  };
 
   return (
     <div className="login-container">
       <h2>Iniciar Sesión</h2>
-      <form>
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          if (!isValid || loading) return;
+          setError(null);
+          setLoading(true);
+          try {
+            const res = await loginUser({
+              user_email: email,
+              user_password: password,
+            });
+            if (res?.token) {
+              localStorage.setItem("token", res.token);
+              const payload = decodeJwt(res.token);
+              const firstName = payload?.firstName || "";
+              const lastName = payload?.firstLastName || "";
+              const name = `${firstName} ${lastName}`.trim() || email;
+              setToast({ visible: true, text: `Bienvenido, ${name}` });
+              setTimeout(() => {
+                setToast({ visible: false, text: "" });
+                navigate("/");
+              }, 1000);
+            } else {
+              navigate("/");
+            }
+          } catch (err: any) {
+            setError(err?.message || "Error al iniciar sesión");
+          } finally {
+            setLoading(false);
+          }
+        }}
+      >
         <label>Correo electrónico</label>
         <input
           type="email"
@@ -26,8 +81,18 @@ export default function Login() {
           required
         />
 
-        <button type="submit" disabled={!isValid}>Entrar</button>
+        {error && <p className="error-text">{error}</p>}
+        <button type="submit" disabled={!isValid || loading}>
+          {loading ? "Ingresando..." : "Entrar"}
+        </button>
       </form>
+
+      {toast.visible && (
+        <div className="toast toast-success">
+          <span className="toast-icon">✓</span>
+          <span>{toast.text}</span>
+        </div>
+      )}
 
       <button className="google-btn">
         <img src="" alt="Google" />
