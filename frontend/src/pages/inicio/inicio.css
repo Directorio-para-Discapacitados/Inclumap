@@ -1,0 +1,312 @@
+.inicio-root {
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  color: #222;
+}
+
+/* Topbar */
+.topbar {
+  background-color: #123252; /* dark blue */
+  color: white;
+}
+
+.topbar-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+}
+
+.logo {
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.top-search {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.top-search-wrap {
+  background: white;
+  border-radius: 999px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  width: 520px;
+  max-width: 90%;
+  gap: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.top-search-wrap:hover,
+.top-search-wrap:focus-within {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transform: translateY(-1px);
+}
+
+.top-search-input {
+  border: none;
+  background: transparent;
+  padding: 8px;
+  font-size: 1rem;
+  color: #333;
+  width: 100%;
+  outline: none;
+}
+
+.top-search-input::placeholder {
+  color: #999;
+  opacity: 0.8;
+}
+
+.top-search-btn {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #123252;
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.top-search-btn:hover {
+  background: #1a4b7c;
+  transform: translateY(-50%) scale(1.05);
+}
+
+.top-search-btn:active {
+  transform: translateY(-50%) scale(0.95);
+  font-size: 1rem;
+}
+
+.account-area {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.icon-btn {
+  background: rgba(255,255,255,0.08);
+  border: none;
+  color: white;
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.5rem;
+}
+
+/* Hero */
+.hero {
+  /* Prefer local 'inicio.jpg' (match maqueta). Fallback to /hero.jpg if missing. */
+  background: linear-gradient(180deg, rgba(26,54,93,0.6) 0%, rgba(255,255,230,0.45) 60%), url('/inicio.jpg') center top/cover no-repeat, url('/hero.jpg') center top/cover no-repeat;
+  padding: 2.5rem 1rem 4rem;
+  position: relative;
+  overflow: hidden;
+  min-height: 360px; /* fuerza una altura similar a la maqueta para que la imagen sea visible */
+  background-blend-mode: overlay, normal;
+}
+
+.hero-overlay {
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  background: linear-gradient(120deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+  padding: 2rem 2rem 3rem;
+  border-radius: 8px;
+  position: relative; /* para posicionar .hero-badge */
+}
+
+.hero-content {
+  text-align: center;
+  color: #fff;
+  padding: 1rem 1rem 2rem;
+}
+
+.hero-title {
+  font-size: 2.2rem;
+  margin: 0 0 0.5rem;
+  font-weight: 800;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.35);
+}
+
+.hero-sub {
+  margin: 0 0 1.5rem;
+  color: #e9e6d7;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Forzar estilos del botón en el hero (anular overrides globales como perfil.css) */
+.hero .btn-primary {
+  background-color: #123252 !important;
+  color: #fff !important;
+  padding: 0.6rem 1.4rem !important;
+  min-width: 160px;
+  box-shadow: 0 8px 24px rgba(18,50,82,0.18);
+}
+
+.hero .btn-outline {
+  background: rgba(255,255,255,0.95) !important;
+  color: #123252 !important;
+  border: 2px solid rgba(255,255,255,0.35) !important;
+}
+
+/* Animations for hero */
+.hero-title, .hero-sub {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeUp 700ms ease-out forwards;
+}
+.hero-sub { animation-delay: 160ms; }
+.hero .btn-primary { opacity: 0; transform: translateY(10px); animation: fadeUp 800ms ease-out forwards; animation-delay: 320ms; }
+.hero .btn-outline { opacity: 0; transform: translateY(10px); animation: fadeUp 900ms ease-out forwards; animation-delay: 380ms; }
+
+@keyframes fadeUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* NOTE: hero-badge ahora se integra como fondo en .hero-overlay::before */
+
+/* Imagen decorativa grande a la izquierda, detrás del título */
+.hero-left-image {
+  position: absolute;
+  left: 28px;
+  top: 8px;
+  width: 360px; /* más grande para cubrir la zona detrás del título */
+  height: auto;
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow: 0 12px 40px rgba(13,21,40,0.18);
+  opacity: 0.95;
+  transform-origin: center;
+  z-index: 12; /* debajo del texto (.hero-content tiene z-index mayor) */
+  filter: grayscale(20%) blur(0.6px) contrast(0.95) brightness(0.95);
+  mix-blend-mode: multiply; /* se integra con el overlay para verse como parte del fondo */
+  animation: floatSlow 6s ease-in-out infinite, fadeIn 600ms ease-out forwards;
+  transition: transform 320ms ease, opacity 300ms ease;
+}
+
+@keyframes floatSlow {
+  0% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-6px) scale(1.01); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px) scale(0.995); } to { opacity: 0.95; transform: translateY(0) scale(1); } }
+
+/* Asegurar que el contenido del hero esté por encima de la imagen */
+.hero-content { position: relative; z-index: 30; }
+
+/* Añadir un panel semitransparente detrás del texto para máxima legibilidad */
+.hero-text-panel {
+  display: inline-block;
+  background: rgba(255,255,255,0.06);
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  backdrop-filter: blur(4px) saturate(1.05);
+  box-shadow: 0 6px 18px rgba(13,21,40,0.06) inset;
+}
+
+/* En pantallas pequeñas ocultar la imagen decorativa para no romper el layout */
+@media (max-width: 900px) {
+  .hero-left-image { display: none; }
+}
+
+/* When user hovers hero, slightly lift the left image for a subtle parallax feel */
+.hero:hover .hero-left-image { transform: translateY(-6px) scale(1.01); opacity: 1; }
+
+/* Badge integrado al hero como background (usa public/hero-badge.png si está disponible; remote como fallback) */
+
+
+.hero-overlay:hover::before {
+  transform: rotate(0deg) translateY(-3px) scale(1.02);
+}
+
+.btn { 
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-block;
+}
+
+.btn-primary { background-color: #123252; color: white; border: none; box-shadow: 0 4px 12px rgba(18,50,82,0.18); }
+.btn-outline { background: white; color: #123252; border: 2px solid rgba(255,255,255,0.25); }
+
+/* Cards grid */
+.cards-section {
+  max-width: 1200px;
+  margin: 2.5rem auto;
+  padding: 2.5rem 1rem 3rem;
+  /* banda beige similar a la maqueta */
+  background: linear-gradient(180deg, rgba(247,243,234,1) 0%, rgba(253,250,244,1) 100%);
+  border-radius: 8px;
+  box-shadow: 0 2px 24px rgba(13,21,40,0.03);
+}
+
+.cards-grid {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  padding-top: 1rem;
+}
+
+/* Card entrance animation with subtle stagger */
+.card { transform: translateY(6px); opacity: 0; animation: cardIn 600ms ease-out forwards; }
+.cards-grid .card:nth-child(1) { animation-delay: 0ms; }
+.cards-grid .card:nth-child(2) { animation-delay: 60ms; }
+.cards-grid .card:nth-child(3) { animation-delay: 120ms; }
+.cards-grid .card:nth-child(4) { animation-delay: 180ms; }
+.cards-grid .card:nth-child(5) { animation-delay: 240ms; }
+.cards-grid .card:nth-child(6) { animation-delay: 300ms; }
+.cards-grid .card:nth-child(7) { animation-delay: 360ms; }
+.cards-grid .card:nth-child(8) { animation-delay: 420ms; }
+
+@keyframes cardIn {
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Hover micro-interaction */
+.card:hover { transform: translateY(-6px); box-shadow: 0 14px 40px rgba(13,21,40,0.12); }
+
+.card {
+  background: #fff;
+  padding: 1.25rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(13,21,40,0.06);
+  text-align: center;
+  transition: transform 240ms ease, box-shadow 240ms ease;
+}
+
+.card-icon { width: 64px; height: 64px; border-radius: 50%; margin: 0 auto 0.75rem; display:flex; align-items:center; justify-content:center; background: #f1f7fb; color:#0f4a73; font-size:1.3rem; }
+.card-title { margin: 0 0 0.25rem; color:#0f3a5a; font-weight:700; text-transform: none; }
+.card-desc { margin: 0; color:#6b7280; font-size:0.95rem; }
+
+@media (max-width: 1024px) {
+  .cards-grid { grid-template-columns: repeat(2, 1fr); }
+  .top-search-input { width: 70%; }
+}
+
+@media (max-width: 640px) {
+  .cards-grid { grid-template-columns: repeat(1, 1fr); }
+  .topbar-inner { padding: 0.5rem; }
+  .top-search-input { width: 100%; }
+  .hero-title { font-size: 1.4rem; }
+}
