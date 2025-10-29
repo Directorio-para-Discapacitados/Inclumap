@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./Registro.css"; // Importamos los estilos
 
-const API_URL = "http://localhost:3030";
+const API_URL = "http://localhost:9080";
 
 export default function Registro() {
   const [isBusiness, setIsBusiness] = useState(false);
