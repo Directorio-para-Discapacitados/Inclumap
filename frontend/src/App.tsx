@@ -5,6 +5,7 @@ import Login from "./pages/login/login";
 import Registro from "./pages/registro/registro";
 import Perfil from "./pages/perfil/perfil";
 import { AuthProvider } from "./context/AuthContext";
+import ChatWidget from "./Components/ChatWidget";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/perfil" element={<Perfil />} />
         </Routes>
       </main>
+      <ChatWidget />
       </Router>
     </AuthProvider>
   );
