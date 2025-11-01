@@ -13,6 +13,7 @@ import { AuthModule } from './auth/auth.module';
 import { MailsModule } from './mails/mails.module';
 import { GoogleStrategy } from './auth/strategies/google.strategy';
 import { ChatbotModule } from './chatbot/chatbot.module';
+import { RolesModule } from './roles/roles.module';
 
 
 
@@ -38,6 +39,7 @@ import { ChatbotModule } from './chatbot/chatbot.module';
       inject: [ConfigService],
     }),
     UserModule,
+    RolesModule,
     PeopleModule,
     BusinessModule,
     BusinessAccessibilityModule,
