@@ -136,7 +136,7 @@ export default function Login() {
 
             <div className="links">
               <span />
-              <a href="/register">¿No tienes cuenta? Regístrate</a>
+              <a href="/registro">¿No tienes cuenta? Regístrate</a>
             </div>
           </div>
         </section>
