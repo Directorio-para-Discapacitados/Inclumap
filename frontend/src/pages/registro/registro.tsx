@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./Registro.css";
 import { Eye, EyeOff } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const API_URL = "http://localhost:9080";
 
@@ -8,6 +9,7 @@ export default function Registro() {
   const [isBusiness, setIsBusiness] = useState(false);
   const [mostrarPassword, setMostrarPassword] = useState(false);
   const [coordinates, setCoordinates] = useState("0,0"); // Valor por defecto
+  const navigate = useNavigate(); // 👈 añadimos esto
 
   const [formData, setFormData] = useState({
     user_email: "",
@@ -31,13 +33,9 @@ export default function Registro() {
           const { latitude, longitude } = pos.coords;
           setCoordinates(`${latitude},${longitude}`);
         },
-        () => {
-          // Si el usuario niega el permiso, usamos 0,0 sin mostrar error
-          setCoordinates("0,0");
-        }
+        () => setCoordinates("0,0") // Si no autoriza
       );
     } else {
-      // Si el navegador no soporta geolocalización
       setCoordinates("0,0");
     }
   }, []);
@@ -54,11 +52,6 @@ export default function Registro() {
     });
   };
 
-  const handleCheck = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setIsBusiness(e.target.checked);
-  };
-
-  // Verificación de contraseña
   const validarPassword = (password: string): boolean => {
     const regex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
     return regex.test(password);
@@ -95,7 +88,7 @@ export default function Registro() {
           business_address: formData.business_address,
           NIT: Number(formData.NIT),
           description: formData.description,
-          coordinates, // Siempre envía algo (real o 0,0)
+          coordinates,
           rolIds: [2],
           accessibilityIds: [],
         }
@@ -125,7 +118,9 @@ export default function Registro() {
         return;
       }
 
-      alert("Registro exitoso");
+      alert("Registro exitoso ✅");
+      navigate("/login"); // 👈 redirige al login después de registrarse
+
     } catch (error) {
       console.error("Error al registrar:", error);
       alert("Error al registrar. Revisa la consola.");
@@ -139,23 +134,22 @@ export default function Registro() {
           {isBusiness ? "Registrate como Negocio" : "Registrate como Persona"}
         </h2>
 
-       <div className="registro-switch-buttons">
-  <button
-    type="button"
-    className={!isBusiness ? "activo" : ""}
-    onClick={() => setIsBusiness(false)}
-  >
-    Persona
-  </button>
-  <button
-    type="button"
-    className={isBusiness ? "activo" : ""}
-    onClick={() => setIsBusiness(true)}
-  >
-    Negocio
-  </button>
-</div>
-
+        <div className="registro-switch-buttons">
+          <button
+            type="button"
+            className={!isBusiness ? "activo" : ""}
+            onClick={() => setIsBusiness(false)}
+          >
+            Persona
+          </button>
+          <button
+            type="button"
+            className={isBusiness ? "activo" : ""}
+            onClick={() => setIsBusiness(true)}
+          >
+            Negocio
+          </button>
+        </div>
 
         <input
           name="user_email"
@@ -167,22 +161,22 @@ export default function Registro() {
         />
 
         <div className="password-container">
-  <input
-    name="user_password"
-    type={mostrarPassword ? "text" : "password"}
-    placeholder="Contraseña"
-    value={formData.user_password}
-    onChange={handleChange}
-    required
-  />
-  <button
-    type="button"
-    onClick={togglePassword}
-    className="password-toggle"
-  >
-    {mostrarPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-  </button>
-</div>
+          <input
+            name="user_password"
+            type={mostrarPassword ? "text" : "password"}
+            placeholder="Contraseña"
+            value={formData.user_password}
+            onChange={handleChange}
+            required
+          />
+          <button
+            type="button"
+            onClick={togglePassword}
+            className="password-toggle"
+          >
+            {mostrarPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+        </div>
 
         <input
           name="firstName"
@@ -269,12 +263,13 @@ export default function Registro() {
         <button type="submit" className="registro-btn">
           Registrarse
         </button>
+
         <p className="registro-login-text">
-  ¿Ya tienes una cuenta?{" "}
-  <a href="/login" className="registro-login-link">
-    Inicia sesión
-  </a>
-</p>
+          ¿Ya tienes una cuenta?{" "}
+          <a href="/login" className="registro-login-link">
+            Inicia sesión
+          </a>
+        </p>
       </form>
     </div>
   );
