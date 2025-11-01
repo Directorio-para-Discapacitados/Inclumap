@@ -2,14 +2,16 @@ import React, { useState, useEffect } from "react";
 import "./Registro.css";
 import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const API_URL = "http://localhost:9080";
 
 export default function Registro() {
   const [isBusiness, setIsBusiness] = useState(false);
   const [mostrarPassword, setMostrarPassword] = useState(false);
-  const [coordinates, setCoordinates] = useState("0,0"); // Valor por defecto
-  const navigate = useNavigate(); // 👈 añadimos esto
+  const [coordinates, setCoordinates] = useState("0,0");
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     user_email: "",
@@ -33,7 +35,7 @@ export default function Registro() {
           const { latitude, longitude } = pos.coords;
           setCoordinates(`${latitude},${longitude}`);
         },
-        () => setCoordinates("0,0") // Si no autoriza
+        () => setCoordinates("0,0")
       );
     } else {
       setCoordinates("0,0");
@@ -65,8 +67,9 @@ export default function Registro() {
     e.preventDefault();
 
     if (!validarPassword(formData.user_password)) {
-      alert(
-        "La contraseña debe tener al menos 8 caracteres, una mayúscula y un número."
+      toast.warning(
+        "⚠️ La contraseña debe tener al menos 8 caracteres, una mayúscula y un número.",
+        { position: "top-center", autoClose: 4000 }
       );
       return;
     }
@@ -114,16 +117,24 @@ export default function Registro() {
       console.log("Respuesta:", data);
 
       if (!res.ok) {
-        alert(data.message || "Error al registrar");
+        toast.error(data.message || "❌ Error al registrar", {
+          position: "top-center",
+          autoClose: 4000,
+        });
         return;
       }
 
-      alert("Registro exitoso ✅");
-      navigate("/login"); // 👈 redirige al login después de registrarse
-
+      toast.success("✅ Registro exitoso", {
+        position: "top-center",
+        autoClose: 2500,
+        onClose: () => navigate("/login"), // Redirige al login
+      });
     } catch (error) {
       console.error("Error al registrar:", error);
-      alert("Error al registrar. Revisa la consola.");
+      toast.error("❌ Error al registrar. Revisa la consola.", {
+        position: "top-center",
+        autoClose: 4000,
+      });
     }
   };
 
@@ -271,6 +282,9 @@ export default function Registro() {
           </a>
         </p>
       </form>
+
+      {/* Contenedor de notificaciones */}
+      <ToastContainer theme="colored" newestOnTop pauseOnHover />
     </div>
   );
 }
