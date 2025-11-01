@@ -15,21 +15,28 @@ import { ApiTags } from '@nestjs/swagger';
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  async register(@Body() createFullUserDto: CreateFullUserDto): Promise<{ message: string }> {
+  async register(
+    @Body() createFullUserDto: CreateFullUserDto,
+  ): Promise<{ message: string }> {
     return this.authService.registerFullUser(createFullUserDto);
   }
 
   @Post('registerBusiness')
-  async registerBusiness(@Body() createFullBusinessDto: CreateFullBusinessDto): Promise<{ message: string; token: string }> {
+  async registerBusiness(
+    @Body() createFullBusinessDto: CreateFullBusinessDto,
+  ): Promise<{ message: string; token: string }> {
     return this.authService.registerFullBusiness(createFullBusinessDto);
   }
 
   @Post('upgrade-to-business')
   @UseGuards(JwtAuthGuard)
-  upgradeToBusiness(@User() user: any, @Body() businessData: UpgradeToBusinessDto) {
+  upgradeToBusiness(
+    @User() user: any,
+    @Body() businessData: UpgradeToBusinessDto,
+  ) {
     return this.authService.upgradeToBusiness(user.user_id, businessData);
   }
 
@@ -39,7 +46,9 @@ export class AuthController {
   }
 
   @Post('request-reset-password')
-  async solicitarRestablecimientoPassword(@Body() user: usuarioEmailResetPasswordDto) {
+  async solicitarRestablecimientoPassword(
+    @Body() user: usuarioEmailResetPasswordDto,
+  ) {
     return this.authService.solicitarRestablecimientoPassword(user);
   }
 
@@ -55,23 +64,26 @@ export class AuthController {
 
   @Post('change-password')
   @UseGuards(JwtAuthGuard)
-
   async changePassword(
     @User() user: any,
-    @Body() changePasswordDto: ChangePasswordDto
+    @Body() changePasswordDto: ChangePasswordDto,
   ) {
     return this.authService.changePassword(user.user_id, changePasswordDto);
   }
 
+  // --- ENDPOINT ACTUALIZADO ---
   @Post('google')
   async googleAuth(@Body() googleAuthDto: GoogleAuthDto) {
-    return this.authService.googleLogin(googleAuthDto);
+    // Llama al nuevo método de servicio para validación de token de cliente
+    return this.authService.googleLoginClient(googleAuthDto);
   }
 
+  // --- ENDPOINT PARA CALLBACK DE SERVIDOR (YA ERA CORRECTO) ---
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Req() req) {
+    // req.user es poblado por GoogleStrategy.validate()
+    // Reutiliza la lógica central de login/registro
     return this.authService.googleLogin(req.user);
   }
-
 }

@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
@@ -13,6 +12,10 @@ import { AccessibilityModule } from './accessibility/accessibility.module';
 import { AuthModule } from './auth/auth.module';
 import { MailsModule } from './mails/mails.module';
 import { GoogleStrategy } from './auth/strategies/google.strategy';
+import { ChatbotModule } from './chatbot/chatbot.module';
+import { RolesModule } from './roles/roles.module';
+
+
 
 @Module({
   imports: [
@@ -36,12 +39,14 @@ import { GoogleStrategy } from './auth/strategies/google.strategy';
       inject: [ConfigService],
     }),
     UserModule,
+    RolesModule,
     PeopleModule,
     BusinessModule,
     BusinessAccessibilityModule,
     AccessibilityModule,
     AuthModule,
-    MailsModule
+    MailsModule,
+    ChatbotModule
   ],
   controllers: [AppController],
   providers: [AppService, GoogleStrategy],
