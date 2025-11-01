@@ -1,10 +1,18 @@
-import React, { useState } from "react";
-import "./Registro.css"; // Importamos los estilos
+import React, { useState, useEffect } from "react";
+import "./Registro.css";
+import { Eye, EyeOff } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
-const API_URL = "http://localhost:3030";
+const API_URL = "http://localhost:9080";
 
 export default function Registro() {
   const [isBusiness, setIsBusiness] = useState(false);
+  const [mostrarPassword, setMostrarPassword] = useState(false);
+  const [coordinates, setCoordinates] = useState("0,0");
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     user_email: "",
     user_password: "",
@@ -17,25 +25,54 @@ export default function Registro() {
     business_address: "",
     NIT: "",
     description: "",
-    coordinates: "",
   });
 
+  // Obtener ubicación automáticamente
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          setCoordinates(`${latitude},${longitude}`);
+        },
+        () => setCoordinates("0,0")
+      );
+    } else {
+      setCoordinates("0,0");
+    }
+  }, []);
+
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
-    const { name, value, type } = e.target as HTMLInputElement;
+    const { name, value, type } = e.target;
     setFormData({
       ...formData,
       [name]: type === "number" ? Number(value) : value,
     });
   };
 
-  const handleCheck = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setIsBusiness(e.target.checked);
+  const validarPassword = (password: string): boolean => {
+    const regex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
+    return regex.test(password);
+  };
+
+  const togglePassword = () => {
+    setMostrarPassword(!mostrarPassword);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!validarPassword(formData.user_password)) {
+      toast.warning(
+        "⚠️ La contraseña debe tener al menos 8 caracteres, una mayúscula y un número.",
+        { position: "top-center", autoClose: 4000 }
+      );
+      return;
+    }
 
     const endpoint = isBusiness
       ? `${API_URL}/auth/registerBusiness`
@@ -54,7 +91,7 @@ export default function Registro() {
           business_address: formData.business_address,
           NIT: Number(formData.NIT),
           description: formData.description,
-          coordinates: formData.coordinates,
+          coordinates,
           rolIds: [2],
           accessibilityIds: [],
         }
@@ -80,14 +117,24 @@ export default function Registro() {
       console.log("Respuesta:", data);
 
       if (!res.ok) {
-        alert(data.message || "Error al registrar");
+        toast.error(data.message || "❌ Error al registrar", {
+          position: "top-center",
+          autoClose: 4000,
+        });
         return;
       }
 
-      alert("Registro exitoso");
+      toast.success("✅ Registro exitoso", {
+        position: "top-center",
+        autoClose: 2500,
+        onClose: () => navigate("/login"), // Redirige al login
+      });
     } catch (error) {
       console.error("Error al registrar:", error);
-      alert("Error al registrar. Revisa la consola.");
+      toast.error("❌ Error al registrar. Revisa la consola.", {
+        position: "top-center",
+        autoClose: 4000,
+      });
     }
   };
 
@@ -95,17 +142,25 @@ export default function Registro() {
     <div className="registro-fondo">
       <form className="registro-form" onSubmit={handleSubmit}>
         <h2 className="registro-titulo">
-          {isBusiness ? "Registro de Local" : "Registro de Persona"}
+          {isBusiness ? "Registrate como Negocio" : "Registrate como Persona"}
         </h2>
 
-        <label className="registro-switch">
-          <input
-            type="checkbox"
-            checked={isBusiness}
-            onChange={handleCheck}
-          />
-          <span>Registrarme como local</span>
-        </label>
+        <div className="registro-switch-buttons">
+          <button
+            type="button"
+            className={!isBusiness ? "activo" : ""}
+            onClick={() => setIsBusiness(false)}
+          >
+            Persona
+          </button>
+          <button
+            type="button"
+            className={isBusiness ? "activo" : ""}
+            onClick={() => setIsBusiness(true)}
+          >
+            Negocio
+          </button>
+        </div>
 
         <input
           name="user_email"
@@ -115,14 +170,25 @@ export default function Registro() {
           onChange={handleChange}
           required
         />
-        <input
-          name="user_password"
-          type="password"
-          placeholder="Contraseña"
-          value={formData.user_password}
-          onChange={handleChange}
-          required
-        />
+
+        <div className="password-container">
+          <input
+            name="user_password"
+            type={mostrarPassword ? "text" : "password"}
+            placeholder="Contraseña"
+            value={formData.user_password}
+            onChange={handleChange}
+            required
+          />
+          <button
+            type="button"
+            onClick={togglePassword}
+            className="password-toggle"
+          >
+            {mostrarPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          </button>
+        </div>
+
         <input
           name="firstName"
           type="text"
@@ -155,14 +221,18 @@ export default function Registro() {
           onChange={handleChange}
           required
         />
-        <input
+
+        <select
           name="gender"
-          type="text"
-          placeholder="Género"
           value={formData.gender}
           onChange={handleChange}
           required
-        />
+        >
+          <option value="">Selecciona tu género</option>
+          <option value="f">Femenino</option>
+          <option value="m">Masculino</option>
+          <option value="o">Otro</option>
+        </select>
 
         {isBusiness && (
           <div className="registro-extra fade-in">
@@ -198,21 +268,23 @@ export default function Registro() {
               rows={3}
               required
             />
-            <input
-              name="coordinates"
-              type="text"
-              placeholder="Coordenadas (lat, lng)"
-              value={formData.coordinates}
-              onChange={handleChange}
-              required
-            />
           </div>
         )}
 
         <button type="submit" className="registro-btn">
-          Registrar
+          Registrarse
         </button>
+
+        <p className="registro-login-text">
+          ¿Ya tienes una cuenta?{" "}
+          <a href="/login" className="registro-login-link">
+            Inicia sesión
+          </a>
+        </p>
       </form>
+
+      {/* Contenedor de notificaciones */}
+      <ToastContainer theme="colored" newestOnTop pauseOnHover />
     </div>
   );
 }

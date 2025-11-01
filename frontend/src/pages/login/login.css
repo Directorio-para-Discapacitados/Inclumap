@@ -4,7 +4,7 @@
   width: 100vw; /* use full viewport width */
   display: grid;              /* grid centering */
   place-items: center;        /* centra vertical y horizontal */
-  background: transparent;    /* sin fondo rosado */
+  background: linear-gradient(to bottom, #5fa6ed, #e0ecff);
   margin: 0;
   padding: 0;
   box-sizing: border-box;

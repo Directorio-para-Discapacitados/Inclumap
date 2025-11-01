@@ -2,7 +2,7 @@
 .registro-fondo {
   min-height: 100vh;
   width: 100vw;              /* ocupar todo el ancho de la ventana */
-  background: linear-gradient(to bottom, #f8fafc, #e0ecff);
+  background: linear-gradient(to bottom, #5fa6ed, #e0ecff);
   display: grid;             /* centrado robusto */
   place-items: center;       /* centro vertical y horizontal */
   padding: 2rem;
@@ -22,7 +22,7 @@ body:has(.registro-fondo) #root {
   border-radius: 1.5rem;
   box-shadow: 0 8px 25px rgba(0, 0, 50, 0.1);
   width: 100%;
-  max-width: 420px;
+  max-width: 450px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   animation: fadeIn 0.5s ease;
   margin: 0 auto; /* ensure centered within its flex container */
@@ -42,16 +42,45 @@ body:has(.registro-fondo) #root {
   margin-bottom: 1rem;
 }
 
-/* Switch persona/local */
-.registro-switch {
+/* Selector Persona / Local */
+.registro-switch-buttons {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  font-weight: 500;
-  color: #334155;
+  background: #e2e8f0;
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 1.5rem;
+  width: 100%;
+  max-width: 260px;
+  margin-left: auto;
+  margin-right: auto;
 }
+
+.registro-switch-buttons button {
+  flex: 1;
+  padding: 0.5rem 0;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #475569;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.registro-switch-buttons button.activo {
+  background: #2563eb;
+  color: white;
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.3);
+}
+
+.registro-switch-buttons button:hover:not(.activo) {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
 
 .registro-switch input {
   transform: scale(1.2);
@@ -80,12 +109,13 @@ body:has(.registro-fondo) #root {
 /* Botón */
 .registro-btn {
   width: 100%;
+  margin-top: 1rem;
   background-color: #2563eb;
   color: white;
   border: none;
   padding: 0.7rem;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 1.2rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.25s ease, box-shadow 0.25s ease;
@@ -123,3 +153,67 @@ body:has(.registro-fondo) #root {
     transform: translateY(0);
   }
 }
+
+/*estilos para el genero*/
+select {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  background-color: #fff;
+  color: #334155;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+
+select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+  outline: none;
+}
+
+select:hover {
+  border-color: #94a3b8;
+}
+
+
+
+
+/* === Campo de contraseña con ícono elegante === */
+.password-container {
+  position: relative;
+  width: 100%;
+}
+
+.password-container input {
+  width: 100%;
+  padding-right: 2.2rem; /* espacio justo para el icono */
+  box-sizing: border-box;
+}
+
+/* Ícono del ojo */
+.password-toggle {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  color: #64748b;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.password-toggle:hover {
+  color: #2563eb;
+  transform: translateY(-50%) scale(1.05);
+}
+
+.password-toggle:focus {
+  outline: none;
+  box-shadow: none;
+}
+
