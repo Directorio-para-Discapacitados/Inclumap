@@ -1,4 +1,10 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { RolEntity } from 'src/roles/entity/rol.entity';
@@ -20,10 +26,14 @@ import { UpgradeToBusinessDto } from './dtos/upgradeToBusiness.dto';
 import { MailsService } from 'src/mails/mails.service';
 import { MoreThan } from 'typeorm';
 import { ChangePasswordDto } from './dtos/change-password.dto';
-
+import { OAuth2Client } from 'google-auth-library';
+import { ConfigService } from '@nestjs/config';
+import { GoogleAuthDto } from './dtos/google-auth.dto';
 
 @Injectable()
 export class AuthService {
+  private readonly googleClient: OAuth2Client;
+
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
@@ -48,11 +58,20 @@ export class AuthService {
 
     private readonly jwtService: JwtService,
     private readonly mailService: MailsService,
-  ) { }
+    private readonly configService: ConfigService,
+  ) {
+    this.googleClient = new OAuth2Client(
+      this.configService.get<string>('GOOGLE_CLIENT_ID'),
+    );
+  }
 
-  async registerFullUser(userData: CreateFullUserDto): Promise<{ message: string; token: string }> {
+  async registerFullUser(
+    userData: CreateFullUserDto,
+  ): Promise<{ message: string; token: string }> {
     // Verificar si el correo electrónico ya está registrado
-    const existingUser = await this.userRepository.findOne({ where: { user_email: userData.user_email } });
+    const existingUser = await this.userRepository.findOne({
+      where: { user_email: userData.user_email },
+    });
     if (existingUser) {
       throw new BadRequestException('El correo electrónico ya está registrado');
     }
@@ -72,9 +91,10 @@ export class AuthService {
     // Verificar si se proporcionaron roles, de lo contrario asignar un rol por defecto
     let rol;
     if (userData.rolIds && userData.rolIds.length > 0) {
-      rol = await this.rolRepository.findOne({ where: { rol_id: userData.rolIds[0] } });
+      rol = await this.rolRepository.findOne({
+        where: { rol_id: userData.rolIds[0] },
+      });
     } else {
-
       rol = await this.rolRepository.findOne({ where: { rol_id: 2 } });
     }
 
@@ -108,23 +128,27 @@ export class AuthService {
       rolIds: [rol.rol_id],
     };
 
-
-
     // Generar el token JWT
     const token = this.jwtService.sign(payload);
 
     return { message: 'Usuario registrados exitosamente', token };
   }
 
-  async registerFullBusiness(businessData: CreateFullBusinessDto): Promise<{ message: string; token: string }> {
+  async registerFullBusiness(
+    businessData: CreateFullBusinessDto,
+  ): Promise<{ message: string; token: string }> {
     // Verificar si el correo electrónico ya está registrado
-    const existingUser = await this.userRepository.findOne({ where: { user_email: businessData.user_email } });
+    const existingUser = await this.userRepository.findOne({
+      where: { user_email: businessData.user_email },
+    });
     if (existingUser) {
       throw new BadRequestException('El correo electrónico ya está registrado');
     }
 
     // Verificar si el NIT ya está registrado
-    const existingBusiness = await this.businessRepository.findOne({ where: { NIT: businessData.NIT } });
+    const existingBusiness = await this.businessRepository.findOne({
+      where: { NIT: businessData.NIT },
+    });
     if (existingBusiness) {
       throw new BadRequestException('El NIT ya está registrado');
     }
@@ -142,9 +166,10 @@ export class AuthService {
     await this.userRepository.save(newUser);
 
     // Asignar múltiples roles: Usuario (2) + Propietario/Negocio (3)
-    const rolesToAssign = businessData.rolIds && businessData.rolIds.length > 0
-      ? businessData.rolIds
-      : [2, 3]; // Por defecto: usuario + negocio
+    const rolesToAssign =
+      businessData.rolIds && businessData.rolIds.length > 0
+        ? businessData.rolIds
+        : [2, 3]; // Por defecto: usuario + negocio
 
     for (const rolId of rolesToAssign) {
       const rol = await this.rolRepository.findOne({ where: { rol_id: rolId } });
@@ -187,20 +212,26 @@ export class AuthService {
     await this.businessRepository.save(newBusiness);
 
     // Crear relaciones de accesibilidad
-    if (businessData.accessibilityIds && businessData.accessibilityIds.length > 0) {
+    if (
+      businessData.accessibilityIds &&
+      businessData.accessibilityIds.length > 0
+    ) {
       for (const accessibilityId of businessData.accessibilityIds) {
         const accessibility = await this.accessibilityRepository.findOne({
-          where: { accessibility_id: accessibilityId }
+          where: { accessibility_id: accessibilityId },
         });
 
         if (!accessibility) {
-          throw new BadRequestException(`Accesibilidad con ID ${accessibilityId} no encontrada`);
+          throw new BadRequestException(
+            `Accesibilidad con ID ${accessibilityId} no encontrada`,
+          );
         }
 
-        const businessAccessibility = this.businessAccessibilityRepository.create({
-          business: newBusiness,
-          accessibility: accessibility,
-        });
+        const businessAccessibility =
+          this.businessAccessibilityRepository.create({
+            business: newBusiness,
+            accessibility: accessibility,
+          });
 
         await this.businessAccessibilityRepository.save(businessAccessibility);
       }
@@ -209,10 +240,10 @@ export class AuthService {
     // Obtener todos los roles asignados para el payload
     const userRoles = await this.userRolesRepository.find({
       where: { user: { user_id: newUser.user_id } },
-      relations: ['rol']
+      relations: ['rol'],
     });
 
-    const rolIds = userRoles.map(ur => ur.rol.rol_id);
+    const rolIds = userRoles.map((ur) => ur.rol.rol_id);
 
     // Crear payload para el token JWT
     const payload = {
@@ -234,7 +265,8 @@ export class AuthService {
     const token = this.jwtService.sign(payload);
 
     return {
-      message: 'Negocio registrado exitosamente', token,
+      message: 'Negocio registrado exitosamente',
+      token,
     };
   }
 
@@ -247,7 +279,10 @@ export class AuthService {
       relations: ['people', 'userroles', 'userroles.rol'],
     });
 
-    if (!user) throw new UnauthorizedException('Usuario no registrado, verifique su correo u contraseña');
+    if (!user)
+      throw new UnauthorizedException(
+        'Usuario no registrado, verifique su correo u contraseña',
+      );
 
     // Comparar la contraseña ingresada con la almacenada en la base de datos
     const passwordOK = await compare(dto.user_password, user.user_password);
@@ -255,7 +290,8 @@ export class AuthService {
 
     // Obtener el rol del usuario
     const userRole = user.userroles[0];
-    if (!userRole) throw new UnauthorizedException('El usuario no tiene roles asignados');
+    if (!userRole)
+      throw new UnauthorizedException('El usuario no tiene roles asignados');
 
     // Crear el token JWT con la información del usuario
     const payload = {
@@ -270,14 +306,16 @@ export class AuthService {
     const token = this.jwtService.sign(payload);
 
     return { message: 'Usuario loguead0 exitosamente', token };
-
   }
 
-  async upgradeToBusiness(userId: number, businessData: UpgradeToBusinessDto): Promise<{ message: string; token: string }> {
+  async upgradeToBusiness(
+    userId: number,
+    businessData: UpgradeToBusinessDto,
+  ): Promise<{ message: string; token: string }> {
     // 1. Verificar que el usuario existe
     const user = await this.userRepository.findOne({
       where: { user_id: userId },
-      relations: ['people', 'business', 'userroles', 'userroles.rol']
+      relations: ['people', 'business', 'userroles', 'userroles.rol'],
     });
 
     if (!user) {
@@ -291,7 +329,7 @@ export class AuthService {
 
     // Verificar si el NIT ya está registrado
     const existingBusiness = await this.businessRepository.findOne({
-      where: { NIT: businessData.NIT }
+      where: { NIT: businessData.NIT },
     });
 
     if (existingBusiness) {
@@ -299,12 +337,12 @@ export class AuthService {
     }
 
     // Verificar si ya tiene rol de negocio
-    const hasBusinessRole = user.userroles.some(ur => ur.rol.rol_id === 3);
+    const hasBusinessRole = user.userroles.some((ur) => ur.rol.rol_id === 3);
 
     // Agregar rol de negocio si no lo tiene
     if (!hasBusinessRole) {
       const businessRole = await this.rolRepository.findOne({
-        where: { rol_id: 3 }
+        where: { rol_id: 3 },
       });
 
       if (!businessRole) {
@@ -332,17 +370,21 @@ export class AuthService {
     await this.businessRepository.save(newBusiness);
 
     // Crear relaciones de accesibilidad
-    if (businessData.accessibilityIds && businessData.accessibilityIds.length > 0) {
+    if (
+      businessData.accessibilityIds &&
+      businessData.accessibilityIds.length > 0
+    ) {
       for (const accessibilityId of businessData.accessibilityIds) {
         const accessibility = await this.accessibilityRepository.findOne({
-          where: { accessibility_id: accessibilityId }
+          where: { accessibility_id: accessibilityId },
         });
 
         if (accessibility) {
-          const businessAccessibility = this.businessAccessibilityRepository.create({
-            business: newBusiness,
-            accessibility: accessibility,
-          });
+          const businessAccessibility =
+            this.businessAccessibilityRepository.create({
+              business: newBusiness,
+              accessibility: accessibility,
+            });
           await this.businessAccessibilityRepository.save(businessAccessibility);
         }
       }
@@ -351,7 +393,7 @@ export class AuthService {
     // Obtener usuario actualizado con todos los roles
     const updatedUser = await this.userRepository.findOne({
       where: { user_id: userId },
-      relations: ['people', 'userroles', 'userroles.rol', 'business']
+      relations: ['people', 'userroles', 'userroles.rol', 'business'],
     });
 
     // Verificar que updatedUser no sea null
@@ -364,7 +406,7 @@ export class AuthService {
       throw new BadRequestException('Datos de persona no encontrados');
     }
 
-    const rolIds = updatedUser.userroles.map(ur => ur.rol.rol_id);
+    const rolIds = updatedUser.userroles.map((ur) => ur.rol.rol_id);
 
     // Generar nuevo token con la información actualizada
     const payload = {
@@ -392,7 +434,6 @@ export class AuthService {
 
   //Metodo refrescarToken
   async refreshToken(dto: TokenDto): Promise<any> {
-
     const usuario = await this.jwtService.decode(dto.token);
 
     const payload = {
@@ -400,7 +441,7 @@ export class AuthService {
       user_email: usuario['user_email'],
       rol_id: usuario['rol_id'],
       rol_name: usuario['rol_name'],
-    }
+    };
     const token = this.jwtService.sign(payload);
 
     return token;
@@ -413,12 +454,17 @@ export class AuthService {
   }
 
   //Solicitar restablecimiento de contraseña
-  async solicitarRestablecimientoPassword(userdto: usuarioEmailResetPasswordDto): Promise<{ message: string }> {
+  async solicitarRestablecimientoPassword(
+    userdto: usuarioEmailResetPasswordDto,
+  ): Promise<{ message: string }> {
     //extraer el correo electrónico del DTO
     const { user_email } = userdto;
 
     try {
-      const user = await this.userRepository.findOne({ where: { user_email }, relations: ['people'] });
+      const user = await this.userRepository.findOne({
+        where: { user_email },
+        relations: ['people'],
+      });
 
       if (!user) {
         throw new UnauthorizedException('El correo electrónico no está registrado');
@@ -438,7 +484,10 @@ export class AuthService {
       };
 
       //enviar correo electrónico al usuario con el código de restablecimiento
-      await this.mailService.sendUserrequestPassword(usuarioMail, resetPasswordCode);
+      await this.mailService.sendUserrequestPassword(
+        usuarioMail,
+        resetPasswordCode,
+      );
 
       //Elimincacion del código de restablecimiento después de 10 minutos
       setTimeout(async () => {
@@ -448,33 +497,37 @@ export class AuthService {
       }, 10 * 60 * 1000);
 
       // Mensaje de éxito
-      return { message: 'Su solicitud se completó correctamente. Revise su correo electrónico.' };
-
+      return {
+        message:
+          'Su solicitud se completó correctamente. Revise su correo electrónico.',
+      };
     } catch (error) {
       throw new BadRequestException('Error en la solicitud:' + error.message);
     }
   }
-  async verificarCodigoRestablecimiento(codigo: string): Promise<{ isValid: boolean; message: string; user_email?: string }> {
+  async verificarCodigoRestablecimiento(
+    codigo: string,
+  ): Promise<{ isValid: boolean; message: string; user_email?: string }> {
     try {
       const user = await this.userRepository.findOne({
         where: {
           resetpassword_token: codigo,
-          resetpassword_token_expiration: MoreThan(new Date())
+          resetpassword_token_expiration: MoreThan(new Date()),
         },
-        relations: ['people']
+        relations: ['people'],
       });
 
       if (!user) {
         return {
           isValid: false,
-          message: 'Código inválido o expirado'
+          message: 'Código inválido o expirado',
         };
       }
 
       return {
         isValid: true,
         message: 'Código válido',
-        user_email: user.user_email
+        user_email: user.user_email,
       };
     } catch (error) {
       throw new BadRequestException('Error verificando el código');
@@ -482,13 +535,16 @@ export class AuthService {
   }
 
   // Restablecer contraseña
-  async restablecerPassword(codigo: string, newPassword: string): Promise<{ message: string }> {
+  async restablecerPassword(
+    codigo: string,
+    newPassword: string,
+  ): Promise<{ message: string }> {
     try {
       const user = await this.userRepository.findOne({
         where: {
           resetpassword_token: codigo,
-          resetpassword_token_expiration: MoreThan(new Date())
-        }
+          resetpassword_token_expiration: MoreThan(new Date()),
+        },
       });
 
       if (!user) {
@@ -496,7 +552,9 @@ export class AuthService {
       }
 
       if (newPassword.length < 6) {
-        throw new BadRequestException('La contraseña debe tener al menos 6 caracteres');
+        throw new BadRequestException(
+          'La contraseña debe tener al menos 6 caracteres',
+        );
       }
 
       // Hash de la nueva contraseña
@@ -515,128 +573,174 @@ export class AuthService {
     }
   }
 
-  async changePassword(user_id: number, changePasswordDto: ChangePasswordDto): Promise<{ message: string }> {
+  async changePassword(
+    user_id: number,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<{ message: string }> {
     try {
       // Buscar usuario
       const user = await this.userRepository.findOne({ where: { user_id } });
       if (!user) {
         throw new NotFoundException('Usuario no encontrado');
       }
-  
+
       // Verificar contraseña actual
-      const isCurrentPasswordValid = await bcrypt.compare(changePasswordDto.currentPassword, user.user_password);
+      const isCurrentPasswordValid = await bcrypt.compare(
+        changePasswordDto.currentPassword,
+        user.user_password,
+      );
       if (!isCurrentPasswordValid) {
         throw new BadRequestException('La contraseña actual es incorrecta');
       }
-  
+
       // Verificar que la nueva contraseña sea diferente
-      const isSamePassword = await bcrypt.compare(changePasswordDto.newPassword, user.user_password);
+      const isSamePassword = await bcrypt.compare(
+        changePasswordDto.newPassword,
+        user.user_password,
+      );
       if (isSamePassword) {
-        throw new BadRequestException('La nueva contraseña debe ser diferente a la actual');
+        throw new BadRequestException(
+          'La nueva contraseña debe ser diferente a la actual',
+        );
       }
-  
+
       // Hash de la nueva contraseña
       const salt = await bcrypt.genSalt(10);
       user.user_password = await bcrypt.hash(changePasswordDto.newPassword, salt);
-  
+
       await this.userRepository.save(user);
-  
+
       return { message: 'Contraseña cambiada exitosamente' };
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
       throw new InternalServerErrorException('Error al cambiar la contraseña');
     }
   }
 
-  async googleLogin(googleUser: any): Promise<{ message: string; token: string }> {
-  try {
-    const { email, firstName, lastName } = googleUser;
+  
+  async googleLoginClient(
+    googleAuthDto: GoogleAuthDto,
+  ): Promise<{ message: string; token: string }> {
+    const { idToken } = googleAuthDto;
+
+    if (!idToken) {
+      throw new BadRequestException('Google ID Token no proporcionado');
+    }
+
+    try {
+      // Verificar el ID token con Google
+      const ticket = await this.googleClient.verifyIdToken({
+        idToken,
+        audience: this.configService.get<string>('GOOGLE_CLIENT_ID'),
+      });
+
+      const payload = ticket.getPayload();
+
+      if (!payload) {
+        throw new UnauthorizedException('Token de Google inválido');
+      }
+
+      // Adaptar el payload de Google a la estructura que espera nuestro servicio
+      const googleUser = {
+        email: payload.email,
+        firstName: payload.given_name,
+        lastName: payload.family_name,
+        picture: payload.picture,
+      };
+
+      if (!googleUser.email) {
+        throw new BadRequestException(
+          'No se pudo obtener el email de Google. Asegúrate de que el scope "email" esté solicitado.',
+        );
+      }
 
     
-    let user = await this.userRepository.findOne({ 
-      where: { user_email: email },
-      relations: ['people', 'userroles', 'userroles.rol']
-    });
-
-    if (!user) {
-      // Crear nuevo usuario si no existe
-      user = await this.createUserFromGoogle(googleUser);
+      return this.googleLogin(googleUser);
+    } catch (error) {
+      console.error('Error verifying Google ID token:', error);
+      throw new UnauthorizedException(
+        'Error al validar el token de Google: ' + error.message,
+      );
     }
+  }
 
-    // Validar que user no sea null
-    if (!user) {
-      throw new BadRequestException('No se pudo obtener la información del usuario');
+  
+  async googleLogin(googleUser: any): Promise<{ message: string; token: string }> {
+    try {
+      const { email } = googleUser;
+
+      if (!email) {
+        throw new BadRequestException(
+          'El perfil de Google no incluye un correo electrónico.',
+        );
+      }
+
+      // BUSCAR AL USUARIO POR EMAIL
+      const user = await this.userRepository.findOne({
+        where: { user_email: email },
+        relations: ['people', 'userroles', 'userroles.rol', 'business'],
+      });
+
+    
+      
+      if (!user) {
+        throw new UnauthorizedException(
+          'Usuario no registrado. Por favor, regístrese primero con correo y contraseña antes de usar Google.',
+        );
+      }
+
+      
+      if (!user.people) {
+        
+        throw new InternalServerErrorException(
+          'Datos de persona no encontrados para este usuario. Contacte a soporte.',
+        );
+      }
+
+      //  GENERAR EL PAYLOAD CON LOS DATOS COMPLETOS DE LA BD
+      const rolIds =
+        user.userroles && user.userroles.length > 0
+          ? user.userroles.map((ur) => ur.rol.rol_id)
+          : [2]; 
+
+      // El payload prioriza los datos de la BD
+      const payload = {
+        user_id: user.user_id,
+        user_email: user.user_email,
+        firstName: user.people.firstName, 
+        firstLastName: user.people.firstLastName, 
+        cellphone: user.people.cellphone, 
+        address: user.people.address, 
+        rolIds: rolIds,
+        business_id: user.business?.business_id || null,
+        business_name: user.business?.business_name || null,
+      };
+
+      const token = this.jwtService.sign(payload);
+
+      return {
+        message: 'Login con Google exitoso',
+        token,
+      };
+    } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof InternalServerErrorException ||
+        error instanceof UnauthorizedException 
+      ) {
+        throw error;
+      }
+      console.error('Error en googleLogin:', error);
+      throw new InternalServerErrorException(
+        'Error en login con Google: ' + error.message,
+      );
     }
-
-    // Generar payload y token - CORREGIDO
-    const rolIds = user.userroles && user.userroles.length > 0 
-      ? user.userroles.map(ur => ur.rol.rol_id) 
-      : [2]; 
-
-    const payload = {
-      user_id: user.user_id,
-      user_email: user.user_email,
-      firstName: user.people?.firstName || firstName,
-      firstLastName: user.people?.firstLastName || lastName,
-      rolIds: rolIds, 
-    };
-
-    const token = this.jwtService.sign(payload);
-
-    return {
-      message: 'Login con Google exitoso',
-      token,
-    };
-  } catch (error) {
-    throw new BadRequestException('Error en login con Google: ' + error.message);
-  }
-}
-
-private async createUserFromGoogle(googleUser: any): Promise<UserEntity> {
-  const { email, firstName, lastName } = googleUser;
-
-  //  Crear usuario
-  const newUser = this.userRepository.create({
-    user_email: email,
-    user_password: await bcrypt.hash(Math.random().toString(36) + Date.now(), 10),
-  });
-  await this.userRepository.save(newUser);
-
-  // Crear persona - VERIFICA QUE ESTO SE EJECUTE
-  const newPeople = this.peopleRepository.create({
-    firstName: firstName || 'Usuario',
-    firstLastName: lastName || 'Google',
-    cellphone: '0000000000',
-    address: 'Dirección no especificada',
-    gender: 'No especificado',
-    user: newUser, 
-  });
-  await this.peopleRepository.save(newPeople); 
-
-  // Asignar rol
-  const defaultRol = await this.rolRepository.findOne({ where: { rol_id: 2 } });
-  if (defaultRol) {
-    const userRole = this.userRolesRepository.create({
-      user: newUser,
-      rol: defaultRol,
-    });
-    await this.userRolesRepository.save(userRole);
   }
 
-  // Retornar usuario con relaciones
-  const savedUser = await this.userRepository.findOne({
-    where: { user_id: newUser.user_id },
-    relations: ['people', 'userroles', 'userroles.rol']
-  });
-
-  if (!savedUser) {
-    throw new Error('No se pudo crear el usuario correctamente');
-  }
-
-  return savedUser;
-}
 
 }
-
