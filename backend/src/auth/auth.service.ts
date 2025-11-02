@@ -1,3 +1,5 @@
+// backend/src/auth/auth.service.ts (Código Completo)
+
 import {
   BadRequestException,
   Injectable,
@@ -270,13 +272,15 @@ export class AuthService {
     };
   }
 
+  // --- INICIO DE LA CORRECCIÓN FUNCIÓN LOGIN ---
   async login(dto: LoginDto): Promise<any> {
     const { user_email, user_password } = dto;
 
     // Buscar el usuario en la base de datos por correo
+    // AÑADIDO 'business' a las relaciones
     const user = await this.userRepository.findOne({
       where: { user_email },
-      relations: ['people', 'userroles', 'userroles.rol'],
+      relations: ['people', 'userroles', 'userroles.rol', 'business'],
     });
 
     if (!user)
@@ -288,10 +292,11 @@ export class AuthService {
     const passwordOK = await compare(dto.user_password, user.user_password);
     if (!passwordOK) throw new UnauthorizedException('Contraseña incorrecta');
 
-    // Obtener el rol del usuario
-    const userRole = user.userroles[0];
-    if (!userRole)
+    // Obtener TODOS los roles del usuario
+    if (!user.userroles || user.userroles.length === 0)
       throw new UnauthorizedException('El usuario no tiene roles asignados');
+
+    const rolIds = user.userroles.map((ur) => ur.rol.rol_id);
 
     // Crear el token JWT con la información del usuario
     const payload = {
@@ -299,14 +304,22 @@ export class AuthService {
       user_email: user.user_email,
       firstName: user.people?.firstName,
       firstLastName: user.people?.firstLastName,
-      rol_id: userRole.rol.rol_id,
-      rol_name: userRole.rol.rol_name,
+      cellphone: user.people?.cellphone, // Añadido para consistencia
+      address: user.people?.address,     // Añadido para consistencia
+      rolIds: rolIds, // CORREGIDO: Se envía el array de roles
+      
+      // Añadido: Incluir info del negocio (será null si no tiene)
+      business_id: user.business?.business_id || null,
+      business_name: user.business?.business_name || null,
     };
 
     const token = this.jwtService.sign(payload);
 
-    return { message: 'Usuario loguead0 exitosamente', token };
+    // CORREGIDO: Mensaje de éxito
+    return { message: 'Usuario logueado exitosamente', token };
   }
+  // --- FIN DE LA CORRECCIÓN FUNCIÓN LOGIN ---
+
 
   async upgradeToBusiness(
     userId: number,
@@ -436,11 +449,17 @@ export class AuthService {
   async refreshToken(dto: TokenDto): Promise<any> {
     const usuario = await this.jwtService.decode(dto.token);
 
+    // CORREGIDO: Esta función también debe usar rolIds
     const payload = {
       user_id: usuario['user_id'],
       user_email: usuario['user_email'],
-      rol_id: usuario['rol_id'],
-      rol_name: usuario['rol_name'],
+      firstName: usuario['firstName'],
+      firstLastName: usuario['firstLastName'],
+      cellphone: usuario['cellphone'],
+      address: usuario['address'],
+      rolIds: usuario['rolIds'], // Asegúrate de que el payload original tenga 'rolIds'
+      business_id: usuario['business_id'],
+      business_name: usuario['business_name'],
     };
     const token = this.jwtService.sign(payload);
 

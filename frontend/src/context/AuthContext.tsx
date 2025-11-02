@@ -1,14 +1,18 @@
+// frontend/src/context/AuthContext.tsx (Código Completo)
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { API_URL } from '../config/api';
 
+// --- CORRECCIÓN INTERFAZ ---
 interface User {
   user_id?: number;
-  name?: string;
+  displayName?: string;     // <-- 'name' cambiado por 'displayName'
+  roleDescription?: string; // <-- AÑADIDO: para el texto del rol
   email?: string;
-  rol_name?: string;
   rolIds?: number[];
   avatar?: string;
 }
+// --- FIN CORRECCIÓN ---
 
 interface AuthContextType {
   user: User | null;
@@ -49,41 +53,79 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // --- INICIO CORRECCIÓN LÓGICA DE NOMBRES ---
+  
+  // Función helper para obtener el nombre del rol (según tu BD)
+  const getRoleDescription = (rolIds: number[]): string | undefined => {
+    // La prioridad es Propietario, luego Admin, luego Usuario
+    if (rolIds.includes(3)) {
+      return "Propietario";
+    }
+    if (rolIds.includes(1)) {
+      return "Administrador";
+    }
+    if (rolIds.includes(2)) {
+      return "Usuario";
+    }
+    return undefined;
+  };
+
+  // Esta función se usa como fallback si el servidor no responde
   const applyUserFromToken = (token: string): boolean => {
     const decoded = parseJwt(token);
     if (!decoded) return false;
+
+    const rolIds: number[] = decoded.rolIds || (decoded.rol_id ? [decoded.rol_id] : []);
+    let mainName: string | undefined;
+    let roleDesc: string | undefined;
+
+    // Si tiene rol 3 (Propietario) Y existe 'business_name', usarlo
+    if (rolIds.includes(3) && decoded.business_name) {
+      mainName = decoded.business_name;
+      roleDesc = "Propietario";
+    } else {
+      // Si no, construir nombre + rol
+      mainName = `${decoded.firstName || ''} ${decoded.firstLastName || ''}`.trim() || undefined;
+      roleDesc = getRoleDescription(rolIds);
+    }
+
     setUser({
-      user_id: decoded.user_id || decoded.user_id,
-      name: `${decoded.firstName || ''} ${decoded.firstLastName || ''}`.trim() || undefined,
+      user_id: decoded.user_id,
+      displayName: mainName,
+      roleDescription: roleDesc,
       email: decoded.user_email || decoded.email,
-      rolIds: decoded.rolIds || (decoded.rol_id ? [decoded.rol_id] : []),
+      rolIds: rolIds,
+      avatar: decoded.avatar, // Asumiendo que el avatar puede estar en el token
     });
     setIsAuthenticated(true);
     return true;
   };
 
+
+  // Esta es la función principal que trae datos del servidor
   const fetchUserFromServer = async (token: string) => {
     try {
-      console.log('Fetching /user/profile with token');
-      const resp = await fetch(`${API_URL}/user/profile`, {
+      // CORREGIDO: URL apuntando a /auth/profile
+      console.log('Fetching /auth/profile with token');
+      const resp = await fetch(`${API_URL}/auth/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
       if (!resp.ok) {
-        console.log('Fetch /user/profile not ok:', resp.status);
-        // If unauthorized or forbidden -> remove token and clear
+        console.log('Fetch /auth/profile not ok:', resp.status);
         if (resp.status === 401 || resp.status === 403) {
           localStorage.removeItem('token');
           setUser(null);
           setIsAuthenticated(false);
           return false;
         }
-        // For server errors (5xx) or other statuses, fallback to parsing token locally
+        
+        // Si el servidor falla (500, etc.), intenta leer el token
         const applied = applyUserFromToken(token);
         if (applied) return true;
-        // if parsing fails, clear token
+        
         localStorage.removeItem('token');
         setUser(null);
         setIsAuthenticated(false);
@@ -91,27 +133,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const data = await resp.json();
-      // data: { user_id, user_email, firstName, firstLastName, rolIds, business_id, business_name }
+      
+      const rolIds: number[] = data.rolIds || (data.rol_id ? [data.rol_id] : []);
+      let mainName: string | undefined;
+      let roleDesc: string | undefined;
+      
+      // Si tiene rol 3 (Propietario) Y 'business_name' no es null, usarlo
+      if (rolIds.includes(3) && data.business_name) {
+        mainName = data.business_name;
+        roleDesc = "Propietario";
+      } else {
+        // Si no, construir nombre + rol
+        mainName = `${data.firstName || ''} ${data.firstLastName || ''}`.trim() || undefined;
+        roleDesc = getRoleDescription(rolIds);
+      }
+
       setUser({
         user_id: data.user_id,
-        name: `${data.firstName || ''} ${data.firstLastName || ''}`.trim() || undefined,
+        displayName: mainName,
+        roleDescription: roleDesc,
         email: data.user_email,
-        rolIds: data.rolIds || [],
+        rolIds: rolIds,
         avatar: data.avatar,
       });
       setIsAuthenticated(true);
       return true;
     } catch (err) {
       console.error('Error fetching user from server:', err);
-      // Network or unexpected error: try fallback to token parse
+      // Si hay error de red, intenta leer el token
       const tokenApplied = applyUserFromToken(token);
       if (tokenApplied) return true;
+
       localStorage.removeItem('token');
       setUser(null);
       setIsAuthenticated(false);
       return false;
     }
   };
+  // --- FIN CORRECCIÓN LÓGICA DE NOMBRES ---
+
 
   useEffect(() => {
     const token = localStorage.getItem('token');
