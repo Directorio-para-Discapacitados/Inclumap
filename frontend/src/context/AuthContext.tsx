@@ -24,17 +24,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      localStorage.removeItem('token');
-      setUser(null);
-      setIsAuthenticated(false);
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, []);
-
   const parseJwt = (token: string) => {
     try {
       const base64Url = token.split('.')[1];
@@ -76,6 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // If unauthorized or forbidden -> remove token and clear
         if (resp.status === 401 || resp.status === 403) {
           localStorage.removeItem('token');
+          sessionStorage.removeItem('token');
           setUser(null);
           setIsAuthenticated(false);
           return false;
@@ -85,6 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (applied) return true;
         // if parsing fails, clear token
         localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
         setUser(null);
         setIsAuthenticated(false);
         return false;
