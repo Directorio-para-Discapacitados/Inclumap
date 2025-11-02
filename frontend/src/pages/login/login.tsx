@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../../config/auth";
 import { useAuth } from "../../context/AuthContext";
@@ -7,12 +8,29 @@ import "./login.css";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [mostrarPassword, setMostrarPassword] = useState(false);
+  const [rememberPassword, setRememberPassword] = useState(false);
+  const [savedCreds, setSavedCreds] = useState<Record<string, string>>(() => {
+    try {
+      const raw = localStorage.getItem("savedCreds");
+      return raw ? JSON.parse(raw) : {};
+    } catch {
+      return {};
+    }
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ visible: boolean; text: string }>({ visible: false, text: "" });
   const navigate = useNavigate();
   const { login } = useAuth();
   const isValid = email && password;
+
+  const togglePassword = () => setMostrarPassword((v) => !v);
+
+  const tryAutofillPassword = (e: string) => {
+    const pw = savedCreds[e];
+    if (pw) setPassword(pw);
+  };
 
   const decodeJwt = (token: string): any => {
     try {
@@ -62,6 +80,7 @@ export default function Login() {
 
           <div className="login-container">
             <form
+              autoComplete="on"
               onSubmit={async (e) => {
                 e.preventDefault();
                 if (!isValid || loading) return;
@@ -74,6 +93,11 @@ export default function Login() {
                   });
                   if (res?.token) {
                     await login(res.token);
+                    if (rememberPassword && email) {
+                      const next = { ...savedCreds, [email]: password };
+                      setSavedCreds(next);
+                      try { localStorage.setItem("savedCreds", JSON.stringify(next)); } catch {}
+                    }
                     const payload = decodeJwt(res.token);
                     const firstName = payload?.firstName || "";
                     const lastName = payload?.firstLastName || "";
@@ -96,23 +120,55 @@ export default function Login() {
               <label>Correo electrónico</label>
               <input
                 type="email"
+                name="username"
+                autoComplete="username"
+                list="saved-emails"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setEmail(v);
+                  tryAutofillPassword(v);
+                }}
+                onBlur={() => {
+                  if (email) tryAutofillPassword(email);
+                }}
                 required
               />
+              <datalist id="saved-emails">
+                {Object.keys(savedCreds).map((em) => (
+                  <option key={em} value={em} />
+                ))}
+              </datalist>
 
               <label>Contraseña</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="password-container">
+                <input
+                  type={mostrarPassword ? "text" : "password"}
+                  name="current-password"
+                  autoComplete="current-password"
+                  placeholder="Contraseña"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={togglePassword}
+                  className="password-toggle"
+                  aria-label={mostrarPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                >
+                  {mostrarPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
 
               <div className="login-row">
                 <label className="remember-me">
-                  <input type="checkbox" />
-                  Recordarme
+                  <input
+                    type="checkbox"
+                    checked={rememberPassword}
+                    onChange={(e) => setRememberPassword(e.target.checked)}
+                  />
+                  Recordar contraseña
                 </label>
                 <Link className="link subtle" to="/forgot-password">¿Olvidaste tu contraseña?</Link>
               </div>

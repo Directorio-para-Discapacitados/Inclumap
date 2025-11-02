@@ -112,14 +112,32 @@ body:has(.login-page) #root {
   box-shadow: none; /* sin relieve */
 }
 
+/* Campo de contraseña con icono dentro */
+.password-container { position: relative; }
+.password-container input { padding-right: 2.2rem; }
+.password-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  width: auto;
+  height: auto;
+  color: #666;
+}
+.password-toggle:hover { color: #333; }
+
 .login-container input:focus {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(77, 121, 255, 0.15);
   outline: none;
 }
 
-.login-container button,
-.login-form-panel button {
+.login-container button:not(.password-toggle),
+.login-form-panel button:not(.password-toggle) {
   width: 100%;
   padding: 0.72rem;
   background-color: var(--color-primary);
@@ -134,14 +152,14 @@ body:has(.login-page) #root {
   box-shadow: none; /* sin relieve */
 }
 
-.login-container button:hover:not(:disabled),
-.login-form-panel button:hover:not(:disabled) {
+.login-container button:not(.password-toggle):hover:not(:disabled),
+.login-form-panel button:not(.password-toggle):hover:not(:disabled) {
   background-color: #3366ff;
   transform: translateY(-2px);
 }
 
-.login-container button:disabled,
-.login-form-panel button:disabled {
+.login-container button:not(.password-toggle):disabled,
+.login-form-panel button:not(.password-toggle):disabled {
   background-color: #aaa;
   cursor: not-allowed;
 }
