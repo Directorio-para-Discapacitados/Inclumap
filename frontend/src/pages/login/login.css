@@ -1,24 +1,24 @@
-/* Page background and layout */
+
 .login-page {
   min-height: 100vh;
-  width: 100vw; /* use full viewport width */
-  display: grid;              /* grid centering */
-  place-items: center;        /* centra vertical y horizontal */
+  width: 100vw; 
+  display: grid;              
+  place-items: center;        
   background: linear-gradient(to bottom, #5fa6ed, #e0ecff);
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* Neutralize #root constraints only on the login route */
+
 body:has(.login-page) #root {
   max-width: none;
   padding: 0;
 }
 
-/* Centering handled above */
 
-/* Card with two panels */
+
+
 .login-card {
   width: 100%;
   max-width: clamp(620px, 58vw, 720px);
@@ -28,7 +28,7 @@ body:has(.login-page) #root {
   box-shadow: 0 20px 40px rgba(0,0,0,0.12);
   display: grid;
   grid-template-columns: 1fr 1fr;
-  margin: 0 auto !important; /* force center card */
+  margin: 0 auto !important; 
   position: relative;
 }
 
@@ -42,15 +42,15 @@ body:has(.login-page) #root {
   background: #e8dfcf;
 }
 
-/* Left illustration panel */
+
 .login-illustration {
   background: #f6efe4;
   padding: 48px 40px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center; /* center illustration content */
-  text-align: center;  /* center copy */
+  align-items: center; 
+  text-align: center;  
   gap: 20px;
 }
 
@@ -69,14 +69,14 @@ body:has(.login-page) #root {
   max-width: 280px;
 }
 
-/* Right form panel */
+
 .login-form-panel {
   background: #fcfaf4;
   padding: 22px 20px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center; /* center inner content */
+  align-items: center; 
 }
 
 .brand h2 {
@@ -94,7 +94,7 @@ body:has(.login-page) #root {
 .login-container {
   max-width: 300px;
   width: 100%;
-  margin: 0 auto; /* ensure form block is centered */
+  margin: 0 auto; 
 }
 
 
@@ -109,7 +109,7 @@ body:has(.login-page) #root {
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
   box-sizing: border-box;
   background: #ffffff;
-  box-shadow: none; /* sin relieve */
+  box-shadow: none; 
 }
 
 /* Campo de contraseña con icono dentro */
@@ -149,7 +149,7 @@ body:has(.login-page) #root {
   cursor: pointer;
   transition: background-color 0.3s ease, transform 0.2s ease;
   box-sizing: border-box;
-  box-shadow: none; /* sin relieve */
+  box-shadow: none;
 }
 
 .login-container button:not(.password-toggle):hover:not(:disabled),
@@ -180,7 +180,7 @@ body:has(.login-page) #root {
   cursor: pointer;
   transition: all 0.3s ease;
   width: auto;
-  box-shadow: none; /* sin relieve */
+  box-shadow: none; 
 }
 
 .google-btn img {
@@ -201,7 +201,7 @@ body:has(.login-page) #root {
 
 
 
-/* Inline row (remember + link) */
+
 .login-row {
   display: flex;
   align-items: center;
@@ -264,7 +264,6 @@ body:has(.login-page) #root {
   text-decoration: underline;
 }
 
-/* Scoped styles only; no global body overrides here to avoid layout shifts on other pages */
 
 /* Responsive */
 @media (max-width: 1024px) {
@@ -318,4 +317,200 @@ body:has(.login-page) #root {
 
 @keyframes fadeOut {
   to { opacity: 0; transform: translateY(-6px); }
+}
+
+/* Estilos para el modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 0;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  animation: modal-appear 0.3s ease-out;
+}
+
+@keyframes modal-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Estilos para el modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 0;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  animation: modal-appear 0.3s ease-out;
+}
+
+@keyframes modal-appear {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 0;
+  border-bottom: none;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-align: center;
+  flex: 1;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  position: absolute;
+  right: 16px;
+  top: 16px;
+}
+
+.modal-close:hover {
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+.modal-body {
+  padding: 24px;
+  text-align: center;
+}
+
+.modal-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.modal-body p {
+  margin: 0;
+  color: #666;
+  line-height: 1.5;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  padding: 0 24px 24px;
+}
+
+.btn-secondary, .btn-primary {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  min-width: 100px;
+}
+
+.btn-secondary {
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+.btn-secondary:hover {
+  background-color: #e0e0e0;
+}
+
+.btn-primary {
+  background-color: #1976d2;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #1565c0;
+}
+
+
+@media (max-width: 480px) {
+  .modal-content {
+    width: 95%;
+    margin: 20px;
+  }
+  
+  .modal-footer {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .btn-secondary, .btn-primary {
+    width: 100%;
+    max-width: 200px;
+  }
+}
+
+
+.google-btn-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 300px; 
+  margin-top: 1.2rem;
+}
+
+.google-btn {
+  display: none;
 }

@@ -1,36 +1,20 @@
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { loginUser } from "../../config/auth";
+import { loginUser, loginWithGoogle } from "../../config/auth";
+import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { useAuth } from "../../context/AuthContext";
 import "./login.css";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [mostrarPassword, setMostrarPassword] = useState(false);
-  const [rememberPassword, setRememberPassword] = useState(false);
-  const [savedCreds, setSavedCreds] = useState<Record<string, string>>(() => {
-    try {
-      const raw = localStorage.getItem("savedCreds");
-      return raw ? JSON.parse(raw) : {};
-    } catch {
-      return {};
-    }
-  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ visible: boolean; text: string }>({ visible: false, text: "" });
+  const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
   const isValid = email && password;
-
-  const togglePassword = () => setMostrarPassword((v) => !v);
-
-  const tryAutofillPassword = (e: string) => {
-    const pw = savedCreds[e];
-    if (pw) setPassword(pw);
-  };
 
   const decodeJwt = (token: string): any => {
     try {
@@ -50,12 +34,121 @@ export default function Login() {
     }
   };
 
+  const handleEmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isValid || loading) return;
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await loginUser({
+        user_email: email,
+        user_password: password,
+      });
+      if (res?.token) {
+        await login(res.token);
+        const payload = decodeJwt(res.token);
+        const firstName = payload?.firstName || "";
+        const lastName = payload?.firstLastName || "";
+        const name = `${firstName} ${lastName}`.trim() || email;
+        setToast({ visible: true, text: `Bienvenido, ${name}` });
+        setTimeout(() => {
+          setToast({ visible: false, text: "" });
+          navigate("/");
+        }, 1000);
+      } else {
+        navigate("/");
+      }
+    } catch (err: any) {
+      setError(err?.message || "Error al iniciar sesión");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+    setError(null);
+    setLoading(true);
+
+    const idToken = credentialResponse.credential;
+    if (!idToken) {
+      setError("No se recibió el token de Google.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const res = await loginWithGoogle(idToken);
+
+      if (res?.token) {
+        await login(res.token);
+        const payload = decodeJwt(res.token);
+        const name = `${payload?.firstName || ''} ${payload?.firstLastName || ''}`.trim() || payload?.user_email || 'Usuario';
+
+        setToast({ visible: true, text: `Bienvenido, ${name}` });
+
+        setTimeout(() => {
+          setToast({ visible: false, text: "" });
+          navigate("/", { replace: true });
+        }, 1000);
+      } else {
+        setError("Respuesta inesperada del servidor tras login con Google.");
+      }
+    } catch (err: any) {
+      // Verificar si es el error de usuario no registrado
+      if (err?.message?.includes('Usuario no registrado')) {
+        setShowRegistrationModal(true);
+      } else {
+        setError(err?.message || "Error al iniciar sesión con Google");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleError = () => {
+    setError("Error al autenticar con Google. Inténtalo de nuevo.");
+  };
+
+  const handleModalClose = () => {
+    setShowRegistrationModal(false);
+  };
+
+  const handleNavigateToRegister = () => {
+    setShowRegistrationModal(false);
+    navigate("/registro");
+  };
+
   return (
     <div className="login-page">
       {toast.visible && (
         <div className="toast toast-success" role="status" aria-live="polite">
           <span className="toast-icon">✓</span>
           <span>{toast.text}</span>
+        </div>
+      )}
+
+      {showRegistrationModal && (
+        <div className="modal-overlay" onClick={handleModalClose}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Registro Requerido</h3>
+              <button className="modal-close" onClick={handleModalClose}>
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="modal-icon">⚠️</div>
+              <p>Usuario no registrado, Porfavor primero debes registrarte con correo y contraseña.</p>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={handleModalClose}>
+                Entendido
+              </button>
+              <button className="btn-primary" onClick={handleNavigateToRegister}>
+                Ir a Registro
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -79,116 +172,56 @@ export default function Login() {
           </div>
 
           <div className="login-container">
-            <form
-              autoComplete="on"
-              onSubmit={async (e) => {
-                e.preventDefault();
-                if (!isValid || loading) return;
-                setError(null);
-                setLoading(true);
-                try {
-                  const res = await loginUser({
-                    user_email: email,
-                    user_password: password,
-                  });
-                  if (res?.token) {
-                    await login(res.token);
-                    if (rememberPassword && email) {
-                      const next = { ...savedCreds, [email]: password };
-                      setSavedCreds(next);
-                      try { localStorage.setItem("savedCreds", JSON.stringify(next)); } catch {}
-                    }
-                    const payload = decodeJwt(res.token);
-                    const firstName = payload?.firstName || "";
-                    const lastName = payload?.firstLastName || "";
-                    const name = `${firstName} ${lastName}`.trim() || email;
-                    setToast({ visible: true, text: `Bienvenido, ${name}` });
-                    setTimeout(() => {
-                      setToast({ visible: false, text: "" });
-                      navigate("/");
-                    }, 1000);
-                  } else {
-                    navigate("/");
-                  }
-                } catch (err: any) {
-                  setError(err?.message || "Error al iniciar sesión");
-                } finally {
-                  setLoading(false);
-                }
-              }}
-            >
+            <form onSubmit={handleEmailLogin}>
               <label>Correo electrónico</label>
               <input
                 type="email"
-                name="username"
-                autoComplete="username"
-                list="saved-emails"
                 value={email}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setEmail(v);
-                  tryAutofillPassword(v);
-                }}
-                onBlur={() => {
-                  if (email) tryAutofillPassword(email);
-                }}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
-              <datalist id="saved-emails">
-                {Object.keys(savedCreds).map((em) => (
-                  <option key={em} value={em} />
-                ))}
-              </datalist>
 
               <label>Contraseña</label>
-              <div className="password-container">
-                <input
-                  type={mostrarPassword ? "text" : "password"}
-                  name="current-password"
-                  autoComplete="current-password"
-                  placeholder="Contraseña"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={togglePassword}
-                  className="password-toggle"
-                  aria-label={mostrarPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                >
-                  {mostrarPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
-              </div>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
 
               <div className="login-row">
                 <label className="remember-me">
-                  <input
-                    type="checkbox"
-                    checked={rememberPassword}
-                    onChange={(e) => setRememberPassword(e.target.checked)}
-                  />
-                  Recordar contraseña
+                  <input type="checkbox" />
+                  Recordarme
                 </label>
                 <Link className="link subtle" to="/forgot-password">¿Olvidaste tu contraseña?</Link>
               </div>
 
               {error && <p className="error-text" role="alert">{error}</p>}
+
               <button type="submit" disabled={!isValid || loading}>
                 {loading ? "Ingresando..." : "Iniciar sesión"}
               </button>
             </form>
 
             <div className="divider">O</div>
-            <button className="google-btn" onClick={() => { /* lógica Google */ }}>
-              <img
-                src="https://image.similarpng.com/file/similarpng/original-picture/2020/06/Logo-google-icon-PNG.png"
-                alt="Google"
-                width="24"
-                height="24"
-              />
-              Continuar con Google
-            </button>
+
+            <div className="google-btn-container">
+              {loading ? (
+                <p>Cargando...</p>
+              ) : (
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  useOneTap={false}
+                  shape="pill"
+                  width="300px"
+                  theme="outline"
+                  text="continue_with"
+                  locale="es"
+                />
+              )}
+            </div>
 
             <div className="links">
               <span />
