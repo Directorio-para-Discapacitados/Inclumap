@@ -4,7 +4,7 @@ export const API_URL = 'http://localhost:9080';
 
 const apiClient = axios.create({
   baseURL: API_URL, 
-  timeout: 1000,
+  timeout: 10000,
   headers: { 'Content-Type': 'application/json' }
 });
 
