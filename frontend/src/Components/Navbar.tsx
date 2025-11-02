@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import "./Navbar.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { FaMoon, FaSun } from "react-icons/fa";
 
@@ -8,20 +8,34 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [darkMode, setDarkMode] = useState(() => {
-    // Recuperar el estado guardado en localStorage
     return localStorage.getItem("darkMode") === "true";
   });
 
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
+  const profileMenuRef = useRef<HTMLLIElement | null>(null); 
 
   useEffect(() => {
     document.body.classList.toggle("dark-mode", darkMode);
     localStorage.setItem("darkMode", darkMode.toString());
   }, [darkMode]);
 
-  const toggleTheme = () => setDarkMode(!darkMode);
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(event.target as Node)
+      ) {
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [profileMenuRef]);
 
+  const toggleTheme = () => setDarkMode(!darkMode);
   const handleProfileClick = () => setIsMenuOpen(!isMenuOpen);
 
   const handleLogout = () => {
@@ -36,12 +50,18 @@ export default function Navbar() {
     }
   };
 
+  // ===== CAMBIO: Función para limpiar la búsqueda =====
+  const clearSearch = () => {
+    setSearchQuery("");
+  };
+  // ===== FIN DEL CAMBIO =====
+
   return (
     <nav className={`navbar ${darkMode ? "dark" : ""}`}>
       <div className="navbar-inner">
         {/* Logo */}
         <div className="logo-box">
-          <img src="/inclumap.jpg" alt="Logo Inclumap" className="logo-img" />
+          <img src="/inclumap.svg" alt="Logo Inclumap" className="logo-img" />
         </div>
 
         {/* Barra de búsqueda */}
@@ -54,13 +74,21 @@ export default function Navbar() {
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={handleSearch}
           />
+
+          {/* ===== CAMBIO: Icono de 'X' para limpiar (aparece si hay texto) ===== */}
+          {searchQuery && (
+            <span className="clear-icon" onClick={clearSearch}>
+              &times;
+            </span>
+          )}
+          {/* ===== FIN DEL CAMBIO ===== */}
+
           <span className="search-icon">🔍</span>
         </div>
 
         {/* Links a la derecha */}
         <ul className="nav-links">
           <li><Link to="/">Inicio</Link></li>
-          <li><Link to="/nosotros">Sobre nosotros</Link></li>
 
           {!isAuthenticated && (
             <>
@@ -70,7 +98,7 @@ export default function Navbar() {
           )}
 
           {isAuthenticated && (
-            <li className="profile-container">
+            <li className="profile-container" ref={profileMenuRef}>
               <div onClick={handleProfileClick} className="profile-trigger">
                 <img
                   src={
@@ -118,6 +146,17 @@ export default function Navbar() {
                     >
                       👤 Mi Perfil
                     </button>
+                    
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        navigate("/guardados");
+                      }}
+                      className="menu-item"
+                    >
+                      📍 Lugares Guardados
+                    </button>
+
                     <button
                       onClick={() => {
                         setIsMenuOpen(false);
