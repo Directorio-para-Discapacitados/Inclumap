@@ -126,12 +126,18 @@ export default function Navbar() {
                       className="profile-menu-image"
                     />
                     <div className="profile-details">
-                      <p className="profile-name">{user?.name || "Usuario"}</p>
+                      {/* ===== CAMBIO AQUÍ ===== */}
+                      {/* Antes decía user.name */}
+                      <p className="profile-name">{user?.displayName || "Usuario"}</p>
+                      
                       <p className="profile-email">
                         {user?.email || "No disponible"}
                       </p>
+                      
+                      {/* ===== CAMBIO AQUÍ ===== */}
+                      {/* Antes decía user.rol_name */}
                       <p className="profile-role">
-                        {user?.rol_name || "Usuario"}
+                        {user?.roleDescription || "Usuario"}
                       </p>
                     </div>
                   </div>

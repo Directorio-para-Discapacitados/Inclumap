@@ -1,3 +1,5 @@
+// frontend/src/pages/registro/registro.tsx (Código Completo)
+
 import React, { useState, useEffect } from "react";
 import "./Registro.css";
 import { Eye, EyeOff } from "lucide-react";
@@ -78,6 +80,7 @@ export default function Registro() {
       ? `${API_URL}/auth/registerBusiness`
       : `${API_URL}/auth/register`;
 
+    // --- CORRECCIÓN DE ROLES ENVIADOS ---
     const payload = isBusiness
       ? {
           user_email: formData.user_email,
@@ -92,7 +95,7 @@ export default function Registro() {
           NIT: Number(formData.NIT),
           description: formData.description,
           coordinates,
-          rolIds: [2],
+          rolIds: [2, 3], // CORREGIDO: Rol Usuario (2) y Negocio (3)
           accessibilityIds: [],
         }
       : {
@@ -103,8 +106,9 @@ export default function Registro() {
           cellphone: formData.cellphone,
           address: formData.address,
           gender: formData.gender,
-          rolIds: [1],
+          rolIds: [2], // CORREGIDO: Rol Usuario (2)
         };
+    // --- FIN DE LA CORRECCIÓN ---
 
     try {
       const res = await fetch(endpoint, {
