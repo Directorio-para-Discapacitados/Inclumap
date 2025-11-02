@@ -1,4 +1,4 @@
-// src/api/auth.ts
+
 import { API_URL } from '../config/api';
 
 interface RegisterData {
@@ -24,7 +24,7 @@ export const registerUser = async (data: RegisterData) => {
   return response.json();
 };
 
-// Login with email/password
+
 export const loginUser = async (data: { user_email: string; user_password: string }) => {
   const response = await fetch(`${API_URL}/auth/login`, {
     method: 'POST',
@@ -38,5 +38,24 @@ export const loginUser = async (data: { user_email: string; user_password: strin
   if (!response.ok) {
     throw new Error(json?.message || 'Error al iniciar sesión');
   }
-  return json; // { message, token }
+  return json; 
+};
+
+
+
+export const loginWithGoogle = async (idToken: string) => {
+  const response = await fetch(`${API_URL}/auth/google`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    
+    body: JSON.stringify({ idToken }),
+  });
+
+  const json = await response.json();
+  if (!response.ok) {
+    throw new Error(json?.message || 'Error al autenticar con Google');
+  }
+  return json; 
 };
