@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { api } from '../config/api';
+import { api } from '../../config/api'; 
+import './ForgotPassword.css';
+
 interface ForgotPasswordProps {
   onCodeSent: (email: string) => void;
 }
@@ -42,12 +44,13 @@ export const ForgotPassword = ({ onCodeSent }: ForgotPasswordProps) => {
   };
 
   return (
-    <div>
+    <div className="form-container">
       <h2>Restablecer Contraseña</h2>
-      <p>Ingresa tu correo electrónico para enviarte un código de seguridad.</p>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="email-forgot">Email:</label>
+      <p className="form-description">Ingresa tu correo electrónico para enviarte un código de seguridad.</p>
+      
+      <form onSubmit={handleSubmit} className="auth-form">
+        <div className="form-group">
+          <label htmlFor="email-forgot">Email</label>
           <input
             id="email-forgot"
             type="email"
@@ -58,12 +61,21 @@ export const ForgotPassword = ({ onCodeSent }: ForgotPasswordProps) => {
           />
         </div>
 
-        <button type="submit" disabled={loading}>
-          {loading ? 'Enviando...' : 'Enviar Código'}
+        <button 
+          type="submit" 
+          disabled={loading}
+          className={`submit-btn ${loading ? 'loading' : ''}`}
+        >
+          {loading ? (
+            <>
+              <span className="spinner"></span>
+              Enviando...
+            </>
+          ) : 'Enviar Código'}
         </button>
 
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        {success && <p style={{ color: 'green' }}>{success}</p>}
+        {error && <div className="message error">{error}</div>}
+        {success && <div className="message success">{success}</div>}
       </form>
     </div>
   );
