@@ -7,6 +7,8 @@ import Perfil from "./pages/perfil/perfil";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import ChatWidget from "./Components/ChatWidget"; 
+import ForgotPasswordPage from "./pages/reseteoPassword/ForgotPasswordPage";
+
 
 function App() {
   return (
@@ -19,6 +21,8 @@ function App() {
             <Route path="/" element={<Inicio />} />
             <Route path="/login" element={<Login />} />
             <Route path="/registro" element={<Registro />} />
+
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             
             <Route element={<ProtectedRoute />}>
               <Route path="/perfil" element={<Perfil />} />
