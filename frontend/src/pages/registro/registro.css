@@ -18,7 +18,7 @@ body:has(.registro-fondo) #root {
 /* Contenedor del formulario */
 .registro-form {
   background: white;
-  padding: 2.5rem;
+  padding: 4rem;
   border-radius: 1.5rem;
   box-shadow: 0 8px 25px rgba(0, 0, 50, 0.1);
   width: 100%;
@@ -108,7 +108,7 @@ body:has(.registro-fondo) #root {
 
 /* Botón */
 .registro-btn {
-  width: 100%;
+  width: 106%;
   margin-top: 1rem;
   background-color: #2563eb;
   color: white;
@@ -156,8 +156,8 @@ body:has(.registro-fondo) #root {
 
 /*estilos para el genero*/
 select {
-  width: 100%;
-  padding: 0.6rem 0.8rem;
+  width: 106%;
+  padding: 1rem;
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   font-size: 0.95rem;
@@ -184,7 +184,7 @@ select:hover {
 /* === Campo de contraseña con ícono elegante === */
 .password-container {
   position: relative;
-  width: 100%;
+  width: 106%;
 }
 
 .password-container input {
@@ -196,19 +196,19 @@ select:hover {
 /* Ícono del ojo */
 .password-toggle {
   position: absolute;
-  right: 0.75rem;
-  top: 50%;
+  right: 0.70rem;
+  top: 43%;
   transform: translateY(-50%);
-  background: transparent;
+  background: none;
   border: none;
   cursor: pointer;
   padding: 0;
-  color: #64748b;
-  transition: color 0.2s ease, transform 0.2s ease;
+  color: #070606;
+
 }
 
 .password-toggle:hover {
-  color: #2563eb;
+  color: #ffffff;
   transform: translateY(-50%) scale(1.05);
 }
 
@@ -217,3 +217,155 @@ select:hover {
   box-shadow: none;
 }
 
+/* === ACCESIBILIDADES === */
+.accesibilidad-titulo {
+  font-weight: 600;
+  color: #5877db;
+  text-align: center;
+  margin: 1rem 0;
+}
+
+/* grid de 3 columnas */
+.accesibilidad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.8rem;
+  margin-top: 0.5rem;
+}
+
+/* cada botón accesible */
+.accesibilidad-boton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f8fafc;
+  border-radius: 10px;
+  padding: 0.8rem 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  border: 2px solid transparent;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.accesibilidad-boton:hover {
+  background-color: #e0f2fe;
+  border-color: #38bdf8;
+  transform: translateY(-2px);
+}
+
+.accesibilidad-boton.seleccionado {
+  border-color: #2563eb;
+  background-color: #e7f1ff;
+}
+
+/* nombre */
+.accesibilidad-nombre {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #334155;
+}
+
+/* tooltip */
+.tooltip-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.help-icon {
+  color: #64748b;
+  cursor: help;
+  transition: color 0.2s ease;
+}
+
+.help-icon:hover {
+  color: #2563eb;
+}
+
+.tooltip-text {
+  visibility: hidden;
+  opacity: 0;
+  width: 200px;
+  background-color: #1e3a8a;
+  color: #fff;
+  text-align: center;
+  border-radius: 8px;
+  padding: 6px;
+  position: absolute;
+  z-index: 10;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  transition: opacity 0.3s ease;
+}
+
+.tooltip-wrapper:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* responsive */
+@media (max-width: 768px) {
+  .accesibilidad-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .accesibilidad-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* botones de pasos */
+.registro-step-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.registro-btn {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  background: #1e7eeb;
+  color: #ffffff;
+  letter-spacing: 0.3px;
+}
+
+.registro-btn:hover {
+  background: #77ec28;
+  transform: translateY(-1px);
+}
+
+/* botón "atrás" con estilo secundario */
+.registro-btn.secondary {
+  background: transparent;
+  border: 1px solid #999;
+  color: #555;
+}
+
+.registro-btn.secondary:hover {
+  border-color: #333;
+  color: #000;
+  background: #f5f5f5;
+  transform: translateY(-1px);
+}
+
+/* animación de fade para cambio de pasos */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
