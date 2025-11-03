@@ -1,3 +1,5 @@
+// frontend/src/Components/Navbar.tsx (Corregido)
+
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import "./Navbar.css";
 import { useState, useEffect, useRef } from "react";
@@ -52,11 +54,9 @@ export default function Navbar() {
     }
   };
 
-  // ===== CAMBIO: Función para limpiar la búsqueda =====
   const clearSearch = () => {
     setSearchQuery("");
   };
-  // ===== FIN DEL CAMBIO =====
 
   return (
     <nav className={`navbar ${darkMode ? "dark" : ""}`}>
@@ -78,13 +78,11 @@ export default function Navbar() {
               onKeyDown={handleSearch}
             />
 
-            {/* ===== CAMBIO: Icono de 'X' para limpiar (aparece si hay texto) ===== */}
-            {searchQuery && (
-              <span className="clear-icon" onClick={clearSearch}>
-                &times;
-              </span>
-            )}
-            {/* ===== FIN DEL CAMBIO ===== */}
+          {searchQuery && (
+            <span className="clear-icon" onClick={clearSearch}>
+              &times;
+            </span>
+          )}
 
             <span className="search-icon">🔍</span>
           </div>
@@ -130,22 +128,20 @@ export default function Navbar() {
                       className="profile-menu-image"
                     />
                     <div className="profile-details">
-                      {/* ===== CAMBIO AQUÍ ===== */}
-                      {/* Antes decía user.name */}
                       <p className="profile-name">{user?.displayName || "Usuario"}</p>
                       
                       <p className="profile-email">
                         {user?.email || "No disponible"}
                       </p>
                       
-                      {/* ===== CAMBIO AQUÍ ===== */}
-                      {/* Antes decía user.rol_name */}
                       <p className="profile-role">
                         {user?.roleDescription || "Usuario"}
                       </p>
                     </div>
                   </div>
 
+                  {/* --- INICIO DE LA MODIFICACIÓN --- */}
+                  {/* --- INICIO DE LA MODIFICACIÓN --- */}
                   <div className="profile-menu-items">
                     <button
                       onClick={() => {
@@ -157,15 +153,34 @@ export default function Navbar() {
                       👤 Mi Perfil
                     </button>
                     
-                    <button
-                      onClick={() => {
-                        setIsMenuOpen(false);
-                        navigate("/guardados");
-                      }}
-                      className="menu-item"
-                    >
-                      📍 Lugares Guardados
-                    </button>
+                    {/* Este botón solo se mostrará si la descripción del rol
+                      es "Usuario". No aparecerá para "Administrador" o "Propietario".
+                    */}
+                    {user?.roleDescription === "Usuario" && (
+                      <button
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          navigate("/guardados");
+                        }}
+                        className="menu-item"
+                      >
+                        📍 Lugares Guardados
+                      </button>
+                    )}
+                    {/* Este botón solo se mostrará si la descripción del rol
+                      es "Usuario". No aparecerá para "Administrador" o "Propietario".
+                    */}
+                    {user?.roleDescription === "Usuario" && (
+                      <button
+                        onClick={() => {
+                          setIsMenuOpen(false);
+                          navigate("/guardados");
+                        }}
+                        className="menu-item"
+                      >
+                        📍 Lugares Guardados
+                      </button>
+                    )}
 
                     <button
                       onClick={() => {
@@ -180,6 +195,10 @@ export default function Navbar() {
                       🚪 Cerrar sesión
                     </button>
                   </div>
+                  {/* --- FIN DE LA MODIFICACIÓN --- */}
+
+                  {/* --- FIN DE LA MODIFICACIÓN --- */}
+
                 </div>
               )}
             </li>

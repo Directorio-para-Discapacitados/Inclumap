@@ -8,7 +8,8 @@ import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import ChatWidget from "./Components/ChatWidget"; 
 import ForgotPasswordPage from "./pages/reseteoPassword/ForgotPasswordPage";
-
+import AjustesPage from "./pages/ajustes/Ajustes";
+import AdminLoginPage from './pages/adminLogin/AdminLogin';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
             <Route path="/" element={<Inicio />} />
             <Route path="/login" element={<Login />} />
             <Route path="/registro" element={<Registro />} />
+            <Route path="/admin" element={<AdminLoginPage />} />
 
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             
@@ -36,15 +38,14 @@ function App() {
                   </div>
                 }
               />
+             {/* --- 2. AQUÍ ESTÁ LA CORRECCIÓN --- */}
+              {/* Reemplazamos el 'div' de ejemplo por tu nuevo componente 'AjustesPage' */}
               <Route
                 path="/ajustes"
-                element={
-                  <div style={{ padding: '2rem' }}>
-                    <h2>⚙️ Ajustes</h2>
-                    <p>Aquí podrás configurar tu cuenta.</p>
-                  </div>
-                }
+                element={<AjustesPage />}
               />
+              {/* --- FIN DE LA CORRECCIÓN --- */}
+
             </Route>
           </Routes>
         </main>

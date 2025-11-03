@@ -1,0 +1,249 @@
+/* frontend/src/Components/AdminRolePanel/AdminRolePanel.css (MODIFICADO) */
+
+.admin-panel h2 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+.admin-panel p {
+  font-size: 1rem;
+  color: var(--color-text-muted, #666);
+  margin-bottom: 1.5rem;
+}
+
+/* --- ESTILOS DE MENSAJES --- */
+.message {
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  border: 1px solid transparent;
+  line-height: 1.6;
+}
+.success-message {
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+}
+.error-message {
+  background-color: #f8d7da;
+  border-color: #f5c6cb;
+  color: #721c24;
+}
+.info-message {
+  background-color: #d1ecf1;
+  border-color: #bee5eb;
+  color: #0c5460;
+}
+.info-message p {
+  margin: 0;
+  color: #0c5460;
+}
+
+/* --- (NUEVO) ESTILOS DE PESTAÑAS (TABS) --- */
+.admin-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  border-bottom: 2px solid var(--color-border, #e0e0e0);
+}
+.tab-btn {
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  background-color: transparent;
+  cursor: pointer;
+  color: var(--color-text-muted, #666);
+  border-bottom: 3px solid transparent;
+  transform: translateY(2px); /* Se alinea con el borde inferior */
+}
+.tab-btn.active {
+  color: var(--color-primary, #007bff);
+  border-bottom-color: var(--color-primary, #007bff);
+}
+/* --- FIN ESTILOS PESTAÑAS --- */
+
+
+/* --- ESTILOS DE TABLA --- */
+.table-container {
+  overflow-x: auto;
+  border: 1px solid var(--color-border, #e0e0e0);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background-color: var(--color-surface, #fff);
+}
+.role-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.role-table th,
+.role-table td {
+  padding: 1rem 1.25rem;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border, #e0e0e0);
+}
+.role-table th {
+  background-color: #f8f9fa;
+  color: var(--color-text-muted, #666);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+.role-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.role-table tbody tr:hover {
+  background-color: #f1f3f5;
+}
+
+/* --- ESTILOS DE BADGE DE ROL --- */
+.role-badge {
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #fff;
+  text-transform: capitalize;
+}
+.role-badge.usuario {
+  background-color: #17a2b8; /* Cyan */
+}
+.role-badge.propietario {
+  background-color: #ffc107; /* Amarillo */
+  color: #333;
+}
+.role-badge.administrador {
+  background-color: #dc3545; /* Rojo */
+}
+.role-badge.desconocido {
+  background-color: #6c757d; /* Gris */
+}
+
+/* Botones de acción */
+.action-btn {
+  background: none;
+  border: 1px solid #ccc;
+  padding: 0.5rem 0.8rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.action-btn.edit { color: #007bff; border-color: #007bff; }
+.action-btn.edit:hover:not(:disabled) { background-color: #e6f2ff; }
+
+/* (NUEVO) Estilo para botón de eliminar */
+.action-btn.delete { color: #dc3545; border-color: #dc3545; }
+.action-btn.delete:hover:not(:disabled) { background-color: #fbebee; }
+
+
+/* --- ESTILOS DE MODAL (sin cambios) --- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.modal-content {
+  background: var(--color-surface, white);
+  border-radius: 12px;
+  padding: 0;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  animation: modal-appear 0.3s ease-out;
+}
+@keyframes modal-appear {
+  from { opacity: 0; transform: scale(0.9) translateY(-10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid var(--color-border, #e0e0e0);
+}
+.modal-header h3 { margin: 0; font-size: 1.25rem; }
+.modal-close {
+  background: none; border: none; font-size: 24px;
+  cursor: pointer; color: #888; padding: 0.5rem;
+}
+.modal-close:hover { color: #333; }
+.modal-body {
+  padding: 2rem;
+  line-height: 1.6;
+}
+.modal-body p {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: var(--color-text-muted, #666);
+}
+.modal-body p strong {
+  color: var(--color-text, #333);
+}
+.modal-footer {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  padding: 1.5rem 2rem;
+  background-color: #f8f9fa;
+  border-top: 1px solid var(--color-border, #e0e0e0);
+  border-radius: 0 0 12px 12px;
+}
+.btn-secondary, .btn-primary {
+  padding: 0.6rem 1.2rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+.btn-secondary {
+  background-color: #f8f9fa;
+  color: #333;
+  border-color: #ccc;
+}
+.btn-secondary:hover:not(:disabled) { background-color: #e2e6ea; }
+.btn-primary {
+  background-color: var(--color-primary, #007bff);
+  color: white;
+  border-color: var(--color-primary, #007bff);
+}
+.btn-primary:hover:not(:disabled) { background-color: #0056b3; }
+.btn-primary:disabled, .btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-group {
+  margin-top: 1.5rem;
+}
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: var(--color-background, #fff);
+  color: var(--color-text, #000);
+}
