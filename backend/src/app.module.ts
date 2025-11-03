@@ -15,6 +15,7 @@ import { GoogleStrategy } from './auth/strategies/google.strategy';
 import { ChatbotModule } from './chatbot/chatbot.module';
 import { RolesModule } from './roles/roles.module';
 import { LocalRecognitionModule } from './local-recognition/local-recognition.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 
 
@@ -48,7 +49,8 @@ import { LocalRecognitionModule } from './local-recognition/local-recognition.mo
     AuthModule,
     MailsModule,
     ChatbotModule,
-    LocalRecognitionModule
+    LocalRecognitionModule,
+    CloudinaryModule
   ],
   controllers: [AppController],
   providers: [AppService, GoogleStrategy],
