@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { loginUser, loginWithGoogle } from "../../config/auth";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { useAuth } from "../../context/AuthContext";
+import { Eye, EyeOff } from "lucide-react";
 import "./login.css";
 
 export default function Login() {
@@ -12,9 +13,19 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ visible: boolean; text: string }>({ visible: false, text: "" });
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [savedAccounts, setSavedAccounts] = useState<Array<{ email: string; password: string }>>([]);
+  const [mostrarPassword, setMostrarPassword] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
   const isValid = email && password;
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("savedAccounts");
+      if (raw) setSavedAccounts(JSON.parse(raw));
+    } catch {}
+  }, []);
 
   const decodeJwt = (token: string): any => {
     try {
@@ -50,6 +61,17 @@ export default function Login() {
         const firstName = payload?.firstName || "";
         const lastName = payload?.firstLastName || "";
         const name = `${firstName} ${lastName}`.trim() || email;
+
+        if (rememberMe) {
+          const updated = [
+            ...savedAccounts.filter((a) => a.email !== email),
+            { email, password },
+          ];
+          setSavedAccounts(updated);
+          try {
+            localStorage.setItem("savedAccounts", JSON.stringify(updated));
+          } catch {}
+        }
         setToast({ visible: true, text: `Bienvenido, ${name}` });
         setTimeout(() => {
           setToast({ visible: false, text: "" });
@@ -177,21 +199,41 @@ export default function Login() {
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                list="saved-emails"
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setEmail(v);
+                  const acc = savedAccounts.find((a) => a.email === v);
+                  if (acc) setPassword(acc.password);
+                }}
                 required
               />
+              <datalist id="saved-emails">
+                {savedAccounts.map((a) => (
+                  <option key={a.email} value={a.email} />
+                ))}
+              </datalist>
 
               <label>Contraseña</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <div className="password-container">
+                <input
+                  type={mostrarPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setMostrarPassword(!mostrarPassword)}
+                  className="password-toggle"
+                >
+                  {mostrarPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
 
               <div className="login-row">
                 <label className="remember-me">
-                  <input type="checkbox" />
+                  <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
                   Recordarme
                 </label>
                 <Link className="link subtle" to="/forgot-password">¿Olvidaste tu contraseña?</Link>

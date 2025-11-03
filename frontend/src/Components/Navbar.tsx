@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import "./Navbar.css";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
@@ -10,6 +10,8 @@ export default function Navbar() {
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem("darkMode") === "true";
   });
+  const location = useLocation();
+  const showSearch = location.pathname === "/";
 
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
@@ -64,27 +66,29 @@ export default function Navbar() {
           <img src="/inclumap.svg" alt="Logo Inclumap" className="logo-img" />
         </div>
 
-        {/* Barra de búsqueda */}
-        <div className="search-container">
-          <input
-            type="text"
-            placeholder="Buscar lugares accesibles..."
-            className="search-input"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={handleSearch}
-          />
+        {/* Barra de búsqueda solo en Inicio */}
+        {showSearch && (
+          <div className="search-container">
+            <input
+              type="text"
+              placeholder="Buscar lugares accesibles..."
+              className="search-input"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearch}
+            />
 
-          {/* ===== CAMBIO: Icono de 'X' para limpiar (aparece si hay texto) ===== */}
-          {searchQuery && (
-            <span className="clear-icon" onClick={clearSearch}>
-              &times;
-            </span>
-          )}
-          {/* ===== FIN DEL CAMBIO ===== */}
+            {/* ===== CAMBIO: Icono de 'X' para limpiar (aparece si hay texto) ===== */}
+            {searchQuery && (
+              <span className="clear-icon" onClick={clearSearch}>
+                &times;
+              </span>
+            )}
+            {/* ===== FIN DEL CAMBIO ===== */}
 
-          <span className="search-icon">🔍</span>
-        </div>
+            <span className="search-icon">🔍</span>
+          </div>
+        )}
 
         {/* Links a la derecha */}
         <ul className="nav-links">
