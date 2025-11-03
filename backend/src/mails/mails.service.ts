@@ -26,7 +26,7 @@ export class MailsService {
             
             attachments: [
                 {
-                    filename: 'logo-inclumap.jpeg',
+                    filename: 'logo-inclumap.png',
                     path: logoPath,
                     cid: 'logo-inclumap' 
                 }
