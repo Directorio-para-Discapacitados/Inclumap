@@ -336,13 +336,13 @@ select:hover {
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.25s ease;
-  background: #2f2f2f;
+  background: #1e7eeb;
   color: #ffffff;
   letter-spacing: 0.3px;
 }
 
 .registro-btn:hover {
-  background: #000000;
+  background: #77ec28;
   transform: translateY(-1px);
 }
 
