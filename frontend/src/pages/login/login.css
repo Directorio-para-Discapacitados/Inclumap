@@ -1,9 +1,8 @@
-
 .login-page {
   min-height: 100vh;
   width: 100vw; 
   display: grid;              
-  place-items: center;        
+  place-items: start center;        
   background: linear-gradient(to bottom, #5fa6ed, #e0ecff);
   margin: 0;
   padding: 0;
@@ -30,6 +29,7 @@ body:has(.login-page) #root {
   grid-template-columns: 1fr 1fr;
   margin: 0 auto !important; 
   position: relative;
+  transition: transform 180ms ease, box-shadow 180ms ease;
 }
 
 .login-card::after {
@@ -40,6 +40,14 @@ body:has(.login-page) #root {
   left: 50%;
   width: 1px;
   background: #e8dfcf;
+}
+
+/* Hover effect for the login card */
+@media (hover: hover) and (pointer: fine) {
+  .login-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 28px 60px rgba(0,0,0,0.18);
+  }
 }
 
 
@@ -272,6 +280,8 @@ body:has(.login-page) #root {
   .login-form-panel { padding: 28px 24px; }
   .login-card::after { display: none; }
 }
+
+/* (Reverted) Removed height-based compact rules to restore original layout */
 
 /* Toast styles */
 .toast {
