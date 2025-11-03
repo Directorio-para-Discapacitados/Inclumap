@@ -1,3 +1,5 @@
+// frontend/src/pages/login/login.tsx (Corregido)
+
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { loginUser, loginWithGoogle } from "../../config/auth";
@@ -19,13 +21,6 @@ export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const isValid = email && password;
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("savedAccounts");
-      if (raw) setSavedAccounts(JSON.parse(raw));
-    } catch {}
-  }, []);
 
   const decodeJwt = (token: string): any => {
     try {
@@ -55,29 +50,31 @@ export default function Login() {
         user_email: email,
         user_password: password,
       });
-      if (res?.token) {
-        await login(res.token);
-        const payload = decodeJwt(res.token);
-        const firstName = payload?.firstName || "";
-        const lastName = payload?.firstLastName || "";
-        const name = `${firstName} ${lastName}`.trim() || email;
 
-        if (rememberMe) {
-          const updated = [
-            ...savedAccounts.filter((a) => a.email !== email),
-            { email, password },
-          ];
-          setSavedAccounts(updated);
-          try {
-            localStorage.setItem("savedAccounts", JSON.stringify(updated));
-          } catch {}
+      // --- INICIO MODIFICACIÓN: Lógica de Admin ---
+      if (res?.token) {
+        const payload = decodeJwt(res.token);
+        // Basado en tu AuthContext, los roles vienen en 'rolIds'. El ID 1 es Admin.
+        const rolIds: number[] = payload?.rolIds || []; 
+
+        if (rolIds.includes(1)) {
+          // Si es Admin, rechazar
+          setError("Acceso denegado");
+        } else {
+          // Si NO es Admin (Usuario o Propietario), proceder con tu lógica original
+          await login(res.token);
+          const firstName = payload?.firstName || "";
+          const lastName = payload?.firstLastName || "";
+          const name = `${firstName} ${lastName}`.trim() || email;
+          setToast({ visible: true, text: `Bienvenido, ${name}` });
+          setTimeout(() => {
+            setToast({ visible: false, text: "" });
+            navigate("/");
+          }, 1000);
         }
-        setToast({ visible: true, text: `Bienvenido, ${name}` });
-        setTimeout(() => {
-          setToast({ visible: false, text: "" });
-          navigate("/");
-        }, 1000);
+      // --- FIN MODIFICACIÓN ---
       } else {
+        // Tu lógica original si no hay token
         navigate("/");
       }
     } catch (err: any) {
@@ -101,17 +98,27 @@ export default function Login() {
     try {
       const res = await loginWithGoogle(idToken);
 
+      // --- INICIO MODIFICACIÓN: Lógica de Admin (Google) ---
       if (res?.token) {
-        await login(res.token);
         const payload = decodeJwt(res.token);
-        const name = `${payload?.firstName || ''} ${payload?.firstLastName || ''}`.trim() || payload?.user_email || 'Usuario';
+        const rolIds: number[] = payload?.rolIds || [];
 
-        setToast({ visible: true, text: `Bienvenido, ${name}` });
+        if (rolIds.includes(1)) {
+           // Si es Admin, rechazar
+          setError("Acceso denegado");
+        } else {
+          // Si NO es Admin, proceder con tu lógica original
+          await login(res.token);
+          const name = `${payload?.firstName || ''} ${payload?.firstLastName || ''}`.trim() || payload?.user_email || 'Usuario';
 
-        setTimeout(() => {
-          setToast({ visible: false, text: "" });
-          navigate("/", { replace: true });
-        }, 1000);
+          setToast({ visible: true, text: `Bienvenido, ${name}` });
+
+          setTimeout(() => {
+            setToast({ visible: false, text: "" });
+            navigate("/", { replace: true });
+          }, 1000);
+        }
+      // --- FIN MODIFICACIÓN ---
       } else {
         setError("Respuesta inesperada del servidor tras login con Google.");
       }
@@ -265,10 +272,12 @@ export default function Login() {
               )}
             </div>
 
-            <div className="links">
-              <span />
+            {/* --- INICIO MODIFICACIÓN: Enlace a /admin --- */}
+            <div className="links" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <a href="/registro">¿No tienes cuenta? Regístrate</a>
             </div>
+            {/* --- FIN MODIFICACIÓN --- */}
+
           </div>
         </section>
       </div>

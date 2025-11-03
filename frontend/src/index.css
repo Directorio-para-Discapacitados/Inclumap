@@ -1,115 +1,82 @@
+/* frontend/src/index.css (CORREGIDO) */
+
+/* --- INICIO DE LA MODIFICACIÓN: Arreglo de Scroll Horizontal --- */
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  /* ... (tus variables :root existentes) ... */
+  --navbar-height: 60px; /* Definimos la altura del navbar aquí */
+}
 
-
-  --color-background-gradient: linear-gradient(to bottom, #e6f0ff, #ffffff); 
-  --color-text: #1a1a2e;       
-  --color-primary: #4d79ff;    
-  --color-primary-hover: #3366ff; 
-  --color-link: #3366ff;       
-  --color-link-hover: #0033cc; 
-  --color-button-text: #ffffff; 
+/* Reseteo básico */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  margin: 0;
-  /*display: flex;
-  place-items: center;*/
-  min-width: 320px;
-  min-height: 100vh;
-  background: var(--color-background-gradient);
+  font-family: 'Inter', sans-serif;
+  background-color: var(--color-background);
   color: var(--color-text);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  line-height: 1.6;
 }
 
-h1 {
-  font-size: 3em;
-  line-height: 1.1;
-  color: var(--color-text);
-}
-
-/* Links */
-a {
-  font-weight: 500;
-  color: var(--color-link);
-  text-decoration: none;
-}
-a:hover {
-  color: var(--color-link-hover);
-  text-decoration: underline;
-}
-
-/* Botones */
-button {
-  border-radius: 8px;
-  border: none;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: var(--color-primary);
-  color: var(--color-button-text);
-  cursor: pointer;
-  transition: background-color 0.25s, transform 0.2s;
-}
-button:hover {
-  background-color: var(--color-primary-hover);
-  transform: translateY(-1px);
-}
-button:focus,
-button:focus-visible {
-  outline: 3px solid var(--color-link);
-  outline-offset: 2px;
-}
-
-/* Formularios e inputs */
-input {
+/* --- ESTA ES LA REGLA CORREGIDA --- */
+/*
+  En lugar de un 'padding' fijo que causa desbordamiento, 
+  usamos 'max-width' con márgenes automáticos para centrar el contenido.
+  El 'padding' solo se aplicará DENTRO del 'max-width'.
+*/
+#root {
+  max-width: 1400px; /* Ancho máximo de tu contenido */
+  margin: 0 auto;    /* Centra el contenido automáticamente */
+  
+  /* Añadimos padding solo a los lados, pero no causará scroll */
+  padding: 0 1rem; 
+  
+  /* Asegura que el #root ocupe al menos toda la pantalla menos el navbar */
+  min-height: calc(100vh - var(--navbar-height));
+  
+  /* Asegura que no haya desbordamiento horizontal */
   width: 100%;
-  padding: 0.75rem 1rem;
-  margin-bottom: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  overflow-x: hidden;
 }
 
-input:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 5px rgba(77, 121, 255, 0.3);
-  outline: none;
-}
+/*
+  Las páginas especiales como Login/Admin que necesitan la pantalla 
+  completa anularán este padding con sus propias reglas 
+  (ej. 'body:has(.login-page) #root')
+*/
 
-/* Botón secundario tipo Google */
-.google-btn {
-  margin-top: 1rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-  background-color: #fff;
-  color: var(--color-text);
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 0.7rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.google-btn:hover {
-  background-color: #e6f0ff;
-  box-shadow: 0 4px 12px rgba(77, 121, 255, 0.2);
-}
+/* --- FIN DE LA MODIFICACIÓN --- */
 
 
-@media (prefers-color-scheme: light) {
-  :root {
-    --color-background-gradient: linear-gradient(to bottom, #ffffff, #e6f0ff);
-    --color-text: #1a1a2e;
-  }
+/* Estilos del Modo Oscuro */
+body.dark-mode {
+  --color-background: #1a1a1a;
+  --color-surface: #2a2a2a;
+  --color-text: #f0f0f0;
+  --color-text-muted: #888;
+  --color-border: #3a3a3a;
+  --color-primary-hover: #5a7dff;
 }
+
+/* Estilos de scrollbar (si los tenías) */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-background);
+}
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+body.dark-mode ::-webkit-scrollbar-thumb {
+  background: #555;
+}
+
+/* ... (Cualquier otro estilo global que tengas) ... */

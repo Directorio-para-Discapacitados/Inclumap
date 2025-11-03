@@ -1,0 +1,263 @@
+/* frontend/src/pages/adminLogin/AdminLogin.css (CORREGIDO Y LIMPIO) */
+
+/* Tu diseño de página (no se ha modificado) */
+.login-page {
+  min-height: 100vh;
+  width: 100vw;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(to bottom, #5fa6ed, #e0ecff);
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body:has(.login-page) #root {
+  max-width: none;
+  padding: 0;
+}
+
+.login-card {
+  width: 100%;
+  max-width: clamp(620px, 58vw, 720px);
+  background: #f8f3e8;
+  border-radius: 32px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 0 auto !important;
+  position: relative;
+}
+
+.login-card::after {
+  content: "";
+  position: absolute;
+  top: 24px;
+  bottom: 24px;
+  left: 50%;
+  width: 1px;
+  background: #e8dfcf;
+}
+
+.login-illustration {
+  background: #f6efe4;
+  padding: 48px 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 20px;
+}
+
+.login-illustration-copy h1 {
+  color: #5b4230;
+  font-size: 24px;
+  line-height: 1.2;
+  margin: 0 0 8px 0;
+}
+
+.login-illustration-img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 16px;
+  max-width: 280px;
+}
+
+.login-form-panel {
+  background: #fcfaf4;
+  padding: 22px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.brand h2 {
+  margin: 0;
+  color: #3d3a2f;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.brand p {
+  margin: 4px 0 12px 0;
+  color: #7a7362;
+}
+
+.login-container {
+  max-width: 300px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.login-container input {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  margin-bottom: 1rem;
+  border: 1px solid #e3e2dc;
+  border-radius: 9999px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  box-sizing: border-box;
+  background: #ffffff;
+  box-shadow: none;
+  color: #333; /* Añadido para arreglar bug de modo oscuro */
+}
+
+/* Regla para las etiquetas (label) que faltaba */
+.login-container label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #333; /* Añadido para arreglar bug de modo oscuro */
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.password-container {
+  position: relative;
+}
+.password-container input {
+  padding-right: 2.2rem;
+}
+.password-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  width: auto;
+  height: auto;
+  color: #666;
+}
+.password-toggle:hover {
+  color: #333;
+}
+
+.login-container input:focus {
+  border-color: #5fa6ed; /* Color fijo */
+  box-shadow: 0 0 0 3px rgba(95, 166, 237, 0.15);
+  outline: none;
+}
+
+/* --- ¡AQUÍ ESTÁ LA CORRECCIÓN DEL BOTÓN! --- */
+.login-container button:not(.password-toggle),
+.login-form-panel button:not(.password-toggle) {
+  width: 100%;
+  padding: 0.72rem;
+  /* Se cambió 'var(--color-primary)' por un color fijo */
+  background-color: #5fa6ed;
+  color: white;
+  font-weight: 600;
+  font-size: 1rem;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  box-sizing: border-box;
+  box-shadow: none;
+}
+/* ------------------------------------------- */
+
+.login-container button:not(.password-toggle):hover:not(:disabled),
+.login-form-panel button:not(.password-toggle):hover:not(:disabled) {
+  background-color: #3366ff;
+  transform: translateY(-2px);
+}
+
+.login-container button:not(.password-toggle):disabled,
+.login-form-panel button:not(.password-toggle):disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+}
+
+/* Estilo para el texto de error (usado en tu TSX) */
+.error-text {
+  color: #d9534f;
+  background-color: #f2dede;
+  border: 1px solid #ebccd1;
+  padding: 0.8rem;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+  margin: 0.7rem 0;
+  width: 100%;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #e0e0e0;
+  margin: 0 1rem;
+}
+
+.login-container .links {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  margin-top: 0.8rem;
+  width: 100%;
+  padding: 0 0.5rem;
+  box-sizing: border-box;
+}
+
+.login-container .links a {
+  color: #5fa6ed; /* Color fijo (igual al botón) */
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.login-container .links a:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+/* Responsive (no se ha modificado) */
+@media (max-width: 1024px) {
+  .login-card {
+    grid-template-columns: 1fr;
+  }
+  .login-illustration {
+    order: -1;
+    padding: 28px 24px;
+  }
+  .login-form-panel {
+    padding: 28px 24px;
+  }
+  .login-card::after {
+    display: none;
+  }
+}
+
+.google-btn-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 300px;
+  margin-top: 1.2rem;
+}
+
+.google-btn {
+  display: none;
+}
+
+/* --- CÓDIGO ELIMINADO --- */
+/* Se quitaron las clases .login-row, .remember-me, .link.subtle,
+   .toast, .modal y todas sus clases relacionadas porque
+   no se usan en tu archivo AdminLogin.tsx. */
