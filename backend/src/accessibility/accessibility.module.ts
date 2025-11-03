@@ -1,9 +1,21 @@
-import { Module } from '@nestjs/common';
-import { AccessibilityService } from './accessibility.service';
+import { Module, OnApplicationBootstrap } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AccessibilityController } from './accessibility.controller';
+import { AccessibilityService } from './accessibility.service';
+import { AccessibilityEntity } from './entity/accesibility.entity';
+import { AccessibilitySeed } from './seed/seed.service';
 
 @Module({
-  providers: [AccessibilityService],
-  controllers: [AccessibilityController]
+  imports: [TypeOrmModule.forFeature([AccessibilityEntity])],
+  controllers: [AccessibilityController],
+  providers: [AccessibilityService, AccessibilitySeed], 
+  exports: [AccessibilityService],
 })
-export class AccessibilityModule {}
+export class AccessibilityModule implements OnApplicationBootstrap {
+  
+  constructor(private readonly accessibilitySeed: AccessibilitySeed) {}
+
+  async onApplicationBootstrap() {
+    await this.accessibilitySeed.seed();
+  }
+}
