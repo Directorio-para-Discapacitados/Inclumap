@@ -86,4 +86,11 @@ export class AuthController {
     // Reutiliza la lógica central de login/registro
     return this.authService.googleLogin(req.user);
   }
+
+  // Estado post-login: advertencias de perfil/negocio incompleto
+  @Get('post-login/status')
+  @UseGuards(JwtAuthGuard)
+  async postLoginStatus(@User() user: any) {
+    return this.authService.getPostLoginStatus(user.user_id);
+  }
 }

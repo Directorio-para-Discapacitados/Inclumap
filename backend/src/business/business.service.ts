@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { BusinessEntity } from './entity/business.entity';
 import { CreateBusinessDto } from './dto/create-business.dto';
 import { UpdateBusinessDto } from './dto/update-business.dto';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
   
   @Injectable()
@@ -11,6 +12,7 @@ import { UpdateBusinessDto } from './dto/update-business.dto';
     constructor(
       @InjectRepository(BusinessEntity)
       private readonly _businessRepository: Repository<BusinessEntity>,
+      private readonly cloudinaryService: CloudinaryService,
     ) {}
   
     //  Crear un nuevo negocio
@@ -167,4 +169,29 @@ import { UpdateBusinessDto } from './dto/update-business.dto';
         throw new InternalServerErrorException('Error al intentar eliminar el negocio');
       }
     }
+
+    async saveLogo(user: any, fileBuffer: Buffer) {
+    const business = await this._businessRepository.findOne({
+      where: { user: { user_id: user.user_id } },
+    });
+
+    if (!business) {
+      throw new NotFoundException(
+        'No se encontró un local asociado a este usuario.',
+      );
+    }
+
+    const uploadResult = await this.cloudinaryService.uploadImage(
+      fileBuffer,
+      'inclumap_logos',
+    );
+
+    business.logo_url = uploadResult.secure_url;
+    await this._businessRepository.save(business);
+
+    return {
+      message: 'Logo subido y guardado exitosamente.',
+      logo_url: business.logo_url,
+    };
+  }
   }

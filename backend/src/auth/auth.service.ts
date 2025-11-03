@@ -31,6 +31,7 @@ import { ChangePasswordDto } from './dtos/change-password.dto';
 import { OAuth2Client } from 'google-auth-library';
 import { ConfigService } from '@nestjs/config';
 import { GoogleAuthDto } from './dtos/google-auth.dto';
+import { FindOneOptions } from 'typeorm';
 
 @Injectable()
 export class AuthService {
@@ -639,6 +640,47 @@ export class AuthService {
       }
       throw new InternalServerErrorException('Error al cambiar la contraseña');
     }
+  }
+
+  /**
+   * Devuelve el estado post-login para mostrar advertencias en el frontend
+   * - Si el usuario tiene negocio asociado: verifica logo_url y coordinates
+   * - Si no tiene negocio: sugiere completar registro de negocio
+   */
+  async getPostLoginStatus(userId: number): Promise<{
+    hasBusiness: boolean;
+    businessId: number | null;
+    missing: { logo: boolean; location: boolean };
+    warnings: string[];
+  }> {
+    const warnings: string[] = [];
+    const options: FindOneOptions<BusinessEntity> = {
+      where: { user: { user_id: userId } },
+    };
+    const business = await this.businessRepository.findOne(options);
+
+    if (!business) {
+      warnings.push('Completa el registro de negocio y sube la imagen del local.');
+      return {
+        hasBusiness: false,
+        businessId: null,
+        missing: { logo: true, location: true },
+        warnings,
+      };
+    }
+
+    const missingLogo = !business.logo_url || business.logo_url.trim().length === 0;
+    const missingLocation = !business.coordinates || business.coordinates.trim().length === 0;
+
+    if (missingLogo) warnings.push('Te falta subir la imagen (logo/fachada) del local.');
+    if (missingLocation) warnings.push('Te falta establecer la ubicación exacta del local.');
+
+    return {
+      hasBusiness: true,
+      businessId: business.business_id,
+      missing: { logo: missingLogo, location: missingLocation },
+      warnings,
+    };
   }
 
   
