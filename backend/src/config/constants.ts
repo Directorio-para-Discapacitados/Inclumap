@@ -7,6 +7,8 @@ export const DB_PASSWORD = 'DB_PASSWORD';
 export const DB_DATABASE = 'DB_DATABASE';
 export const SERVER_PORT = 'SERVER_PORT';
 
+// ... otras constantes
+export const GOOGLE_APPLICATION_CREDENTIALS_PATH = 'GOOGLE_APPLICATION_CREDENTIALS_PATH';
 
 export const JWT_SECRET = 'JWT_SECRET'; 
 

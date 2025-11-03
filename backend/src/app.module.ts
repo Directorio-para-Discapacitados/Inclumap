@@ -14,6 +14,7 @@ import { MailsModule } from './mails/mails.module';
 import { GoogleStrategy } from './auth/strategies/google.strategy';
 import { ChatbotModule } from './chatbot/chatbot.module';
 import { RolesModule } from './roles/roles.module';
+import { LocalRecognitionModule } from './local-recognition/local-recognition.module';
 
 
 
@@ -46,7 +47,8 @@ import { RolesModule } from './roles/roles.module';
     AccessibilityModule,
     AuthModule,
     MailsModule,
-    ChatbotModule
+    ChatbotModule,
+    LocalRecognitionModule
   ],
   controllers: [AppController],
   providers: [AppService, GoogleStrategy],

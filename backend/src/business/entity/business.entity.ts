@@ -16,6 +16,9 @@ export class BusinessEntity {
     @Column({type: 'varchar', length: 255})
     NIT: number;
 
+    @Column({ type: 'varchar', length: 255, nullable: true })
+    logo_url: string | null;
+
     @Column({type: 'varchar', length: 255})
     description: string;
 
