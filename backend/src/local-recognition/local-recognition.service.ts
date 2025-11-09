@@ -1,4 +1,4 @@
-// backend/src/localRecognition/local-recognition.service.ts
+// backend/src/local-recognition/local-recognition.service.ts
 import {
   Injectable,
   Inject,
@@ -12,13 +12,14 @@ import { ImageAnnotatorClient } from '@google-cloud/vision';
 import { GOOGLE_VISION_CLIENT } from './google-vision.provider';
 import { BusinessEntity } from 'src/business/entity/business.entity';
 import { UserEntity } from 'src/user/entity/user.entity';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service'; 
 
-// Interfaz para la respuesta estructurada (Checklist #6)
 export interface RecognitionResponse {
-  local_id: string; // ID del local verificado
-  confidence: number; // Nivel de confianza (0.0 a 1.0)
-  details: string[]; // Detalles de lo que se encontró (logos, texto)
-  match: boolean; // ¿Hubo coincidencia?
+  local_id: string; 
+  confidence: number; 
+  details: string[]; 
+  match: boolean; 
+  verification_url?: string; 
 }
 
 @Injectable()
@@ -31,6 +32,10 @@ export class LocalRecognitionService {
     // 5. Comparar con registros existentes
     @InjectRepository(BusinessEntity)
     private readonly businessRepository: Repository<BusinessEntity>,
+
+    // --- SERVICIO AÑADIDO ---
+    private readonly cloudinaryService: CloudinaryService,
+    // --- FIN ---
   ) {}
 
   async validateBusinessImage(
@@ -38,7 +43,6 @@ export class LocalRecognitionService {
     imageBuffer: Buffer,
   ): Promise<RecognitionResponse> {
     // 5.1. Encontrar el local asociado al usuario
-    // (Basado en tu 'user.entity.ts', la relación User -> Business existe)
     const business = await this.businessRepository.findOne({
       where: { user: { user_id: user.user_id } },
     });
@@ -56,17 +60,17 @@ export class LocalRecognitionService {
 
       const logos = logoResult.logoAnnotations ?? [];
       const texts = textResult.textAnnotations ?? [];
-      const details: string[] = []; // Para la respuesta
+      const details: string[] = [];
 
       let confidence = 0.0;
       let match = false;
+      let verification_url: string | undefined = undefined; // <-- AÑADIDO
 
       // 5.2. Preparar datos para comparar
       const businessName = (business.business_name || '').toLowerCase().trim();
-      // Palabras clave: el nombre completo y cada palabra por separado
       const keywordsToCompare = [
         businessName,
-        ...businessName.split(' ').filter((w) => w.length > 2), // Ignorar palabras cortas
+        ...businessName.split(' ').filter((w) => w.length > 2),
       ];
 
       // 5.3. Comparar Logos
@@ -74,8 +78,12 @@ export class LocalRecognitionService {
         logos.forEach((logo) => {
           const desc = (logo.description ?? '').toLowerCase();
           const score = logo.score ?? 0;
-          details.push(`Logo detectado: ${logo.description ?? 'N/A'} (Confianza: ${score.toFixed(2)})`);
-          
+          details.push(
+            `Logo detectado: ${
+              logo.description ?? 'N/A'
+            } (Confianza: ${score.toFixed(2)})`,
+          );
+
           if (keywordsToCompare.some((keyword) => desc.includes(keyword))) {
             confidence = Math.max(confidence, score);
             match = true;
@@ -83,13 +91,12 @@ export class LocalRecognitionService {
         });
       }
 
+      // 5.4. Comparar Textos
       if (texts.length > 0) {
-        // El primer resultado (texts[0]) suele ser el texto completo
         const fullText = (texts[0].description ?? '').toLowerCase();
         details.push(`Texto detectado: ${fullText.replace(/\n/g, ' ')}`);
 
         if (keywordsToCompare.some((keyword) => fullText.includes(keyword))) {
-          // Si el texto coincide, asignamos una confianza alta (ej. 0.9)
           confidence = Math.max(confidence, 0.9);
           match = true;
         }
@@ -99,11 +106,32 @@ export class LocalRecognitionService {
       if (!match && logos.length === 0 && texts.length === 0) {
         details.push('No se detectaron logos ni texto relevante.');
       }
-      
+
       if (!match) {
-         details.push(`La imagen no parece coincidir con el nombre del local: "${business.business_name}"`);
-         // Opcional: lanzar error si no hay match
-         // throw new BadRequestException('La imagen no coincide con el local.');
+        details.push(
+          `La imagen no parece coincidir con el nombre del local: "${business.business_name}"`,
+        );
+      }
+
+      if (match) {
+        try {
+          const uploadResult = await this.cloudinaryService.uploadImage(
+            imageBuffer,
+            'business_verifications', // Carpeta en Cloudinary
+          );
+
+          verification_url = uploadResult.secure_url;
+
+          business.verification_image_url = verification_url;
+          await this.businessRepository.save(business);
+
+          details.push(`Imagen de verificación guardada: ${verification_url}`);
+        } catch (uploadError) {
+          console.error('Error al subir imagen a Cloudinary:', uploadError);
+          details.push(
+            'La verificación fue exitosa, pero hubo un error al guardar la imagen de prueba.',
+          );
+        }
       }
 
       return {
@@ -111,9 +139,9 @@ export class LocalRecognitionService {
         confidence: parseFloat(confidence.toFixed(2)),
         details,
         match,
+        verification_url, 
       };
     } catch (error) {
-      // 7. Manejo de errores (Checklist #7)
       console.error('Error en Google Vision Service:', error);
       throw new InternalServerErrorException(
         'Error al analizar la imagen.',

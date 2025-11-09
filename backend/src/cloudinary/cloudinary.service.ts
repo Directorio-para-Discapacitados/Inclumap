@@ -1,3 +1,4 @@
+// backend/src/cloudinary/cloudinary.service.ts
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
@@ -22,10 +23,15 @@ export class CloudinaryService {
         { folder: folder },
         (error, result) => {
           if (error) {
+    
+
             return reject(
-              new InternalServerErrorException('Error al subir la imagen.'),
+              new InternalServerErrorException(
+                `Error de Cloudinary: ${error.message || 'Error desconocido'}`,
+              ),
             );
           }
+
           if (!result) {
             return reject(
               new InternalServerErrorException('No se recibió respuesta de Cloudinary.'),
