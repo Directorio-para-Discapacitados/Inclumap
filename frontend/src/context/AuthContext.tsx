@@ -28,17 +28,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      localStorage.removeItem('token');
-      setUser(null);
-      setIsAuthenticated(false);
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, []);
-
   const parseJwt = (token: string) => {
     try {
       const base64Url = token.split('.')[1];
@@ -53,9 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // --- INICIO CORRECCIÓN LÓGICA DE NOMBRES ---
   
-  // Función helper para obtener el nombre del rol (según tu BD)
   const getRoleDescription = (rolIds: number[]): string | undefined => {
     // La prioridad es Propietario, luego Admin, luego Usuario
     if (rolIds.includes(3)) {
