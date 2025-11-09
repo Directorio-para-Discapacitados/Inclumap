@@ -21,6 +21,9 @@ export class UserEntity {
     @Column({ type: 'timestamp', nullable: true, name: 'resetpassword_token_expiration' })
     resetpassword_token_expiration: Date | null;
 
+    @Column({ type: 'varchar', length: 500, nullable: true, name: 'avatar_url' })
+    avatar_url: string | null;
+
 
     @OneToOne(() => PeopleEntity, (people) => people.user, { cascade: true, onDelete: 'CASCADE' })
     people: PeopleEntity;

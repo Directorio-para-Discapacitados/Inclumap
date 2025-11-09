@@ -6,6 +6,7 @@ import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { UserRolesEntity } from 'src/user_rol/entity/user_rol.entity';
 import { RolEntity } from 'src/roles/entity/rol.entity';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 
 @Injectable()
@@ -19,6 +20,8 @@ export class UserService {
 
     @InjectRepository(RolEntity)
     private readonly _rolRepository: Repository<RolEntity>,
+
+    private readonly cloudinaryService: CloudinaryService,
   ) { }
 
 
@@ -226,6 +229,106 @@ export class UserService {
     } catch (error) {
       console.error('Error al eliminar usuario:', error);
       throw new InternalServerErrorException('Error al intentar eliminar el usuario');
+    }
+  }
+
+  // Métodos para gestión de avatar
+  async updateAvatar(
+    userId: number,
+    file: Express.Multer.File,
+  ): Promise<{ message: string; avatar_url: string }> {
+    try {
+      // Buscar el usuario
+      const user = await this._userRepository.findOne({
+        where: { user_id: userId },
+      });
+
+      if (!user) {
+        throw new NotFoundException('Usuario no encontrado');
+      }
+
+      // Eliminar avatar anterior si existe
+      if (user.avatar_url) {
+        try {
+          const publicId = this.cloudinaryService.extractPublicIdFromUrl(user.avatar_url);
+          if (publicId) {
+            await this.cloudinaryService.deleteImage(publicId);
+          }
+        } catch (error) {
+          console.warn('No se pudo eliminar la imagen anterior:', error.message);
+        }
+      }
+
+      // Subir nueva imagen a Cloudinary
+      const uploadResult = await this.cloudinaryService.uploadImage(
+        file.buffer,
+        'inclumap/avatars',
+        `user_${userId}`,
+      );
+
+      // Actualizar la URL del avatar en la base de datos
+      user.avatar_url = uploadResult.secure_url;
+      await this._userRepository.save(user);
+
+      return {
+        message: 'Avatar actualizado exitosamente',
+        avatar_url: uploadResult.secure_url,
+      };
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        `Error al actualizar avatar: ${error.message}`,
+      );
+    }
+  }
+
+  async deleteAvatar(userId: number): Promise<{ message: string }> {
+    try {
+      // Buscar el usuario
+      const user = await this._userRepository.findOne({
+        where: { user_id: userId },
+      });
+
+      if (!user) {
+        throw new NotFoundException('Usuario no encontrado');
+      }
+
+      if (!user.avatar_url) {
+        throw new BadRequestException('El usuario no tiene avatar para eliminar');
+      }
+
+      // Eliminar imagen de Cloudinary
+      try {
+        const publicId = this.cloudinaryService.extractPublicIdFromUrl(user.avatar_url);
+        if (publicId) {
+          await this.cloudinaryService.deleteImage(publicId);
+        }
+      } catch (error) {
+        console.warn('No se pudo eliminar la imagen de Cloudinary:', error.message);
+      }
+
+      // Limpiar la URL del avatar en la base de datos
+      user.avatar_url = null;
+      await this._userRepository.save(user);
+
+      return {
+        message: 'Avatar eliminado exitosamente',
+      };
+    } catch (error) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        `Error al eliminar avatar: ${error.message}`,
+      );
     }
   }
 }

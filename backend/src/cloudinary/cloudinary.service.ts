@@ -17,14 +17,23 @@ export class CloudinaryService {
   uploadImage(
     fileBuffer: Buffer,
     folder: string,
+    publicId?: string,
   ): Promise<UploadApiResponse> {
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
-        { folder: folder },
+        { 
+          folder: folder,
+          public_id: publicId,
+          transformation: [
+            { width: 300, height: 300, crop: 'fill', gravity: 'face' },
+            { quality: 'auto' },
+            { format: 'webp' },
+          ],
+          overwrite: true,
+          invalidate: true,
+        },
         (error, result) => {
           if (error) {
-    
-
             return reject(
               new InternalServerErrorException(
                 `Error de Cloudinary: ${error.message || 'Error desconocido'}`,
@@ -43,5 +52,25 @@ export class CloudinaryService {
 
       streamifier.createReadStream(fileBuffer).pipe(uploadStream);
     });
+  }
+
+  async deleteImage(publicId: string): Promise<any> {
+    try {
+      const result = await cloudinary.uploader.destroy(publicId);
+      return result;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        `Error al eliminar imagen: ${error.message}`,
+      );
+    }
+  }
+
+  extractPublicIdFromUrl(url: string): string | null {
+    if (!url) return null;
+    
+    // Extraer public_id de una URL de Cloudinary
+    // Ejemplo: https://res.cloudinary.com/demo/image/upload/v1234567890/inclumap/avatars/user_123.webp
+    const match = url.match(/\/([^\/]+\/[^\/]+\/[^\.]+)\.[^\.]+$/);
+    return match ? match[1] : null;
   }
 }
