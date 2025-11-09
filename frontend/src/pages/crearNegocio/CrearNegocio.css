@@ -1,0 +1,330 @@
+/* Fondo general */
+.crear-negocio-fondo {
+  min-height: 100vh;
+  width: 100vw;
+  background: linear-gradient(to bottom, #5fa6ed, #e0ecff);
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+/* Neutralizar restricciones de #root solo en crear negocio */
+body:has(.crear-negocio-fondo) #root {
+  max-width: none;
+  padding: 0;
+}
+
+/* Contenedor del formulario */
+.crear-negocio-form {
+  background: white;
+  padding: 4rem;
+  border-radius: 1.5rem;
+  box-shadow: 0 8px 25px rgba(0, 0, 50, 0.1);
+  width: 100%;
+  max-width: 550px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: fadeIn 0.5s ease;
+  margin: 0 auto;
+}
+
+.crear-negocio-form:hover {
+  transform: scale(1.02);
+  box-shadow: 0 10px 30px rgba(0, 0, 70, 0.15);
+}
+
+/* Título */
+.crear-negocio-titulo {
+  text-align: center;
+  color: #1e40af;
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.crear-negocio-subtitulo {
+  text-align: center;
+  color: #64748b;
+  font-size: 0.9rem;
+  margin-bottom: 2rem;
+  line-height: 1.4;
+}
+
+/* Inputs */
+.crear-negocio-form input,
+.crear-negocio-form textarea {
+  width: 100%;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+
+.crear-negocio-form input:focus,
+.crear-negocio-form textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.crear-negocio-form textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Información de coordenadas */
+.coordenadas-info {
+  background: #f1f5f9;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.coordenadas-info p {
+  margin: 0 0 0.25rem 0;
+  color: #374151;
+  font-weight: 500;
+}
+
+.coordenadas-info small {
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+/* Botones principales */
+.crear-negocio-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 1rem;
+}
+
+.crear-negocio-btn:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.crear-negocio-btn:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.crear-negocio-btn.secondary {
+  background: #6b7280;
+  color: white;
+}
+
+.crear-negocio-btn.secondary:hover:not(:disabled) {
+  background: #4b5563;
+}
+
+/* Botones de navegación */
+.crear-negocio-step-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.crear-negocio-step-buttons .crear-negocio-btn {
+  margin-bottom: 0;
+}
+
+/* Título de accesibilidad */
+.accesibilidad-titulo {
+  color: #1e40af;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.accesibilidad-subtitulo {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* Grid de accesibilidades */
+.accesibilidad-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+/* Botones de accesibilidad */
+.accesibilidad-boton {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+  position: relative;
+}
+
+.accesibilidad-boton:hover {
+  border-color: #3b82f6;
+  background: #f8fafc;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.accesibilidad-boton.seleccionado {
+  border-color: #2563eb;
+  background: #dbeafe;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.accesibilidad-nombre {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.9rem;
+  flex: 1;
+}
+
+/* Tooltip */
+.tooltip-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.help-icon {
+  color: #6b7280;
+  cursor: help;
+  transition: color 0.2s;
+}
+
+.help-icon:hover {
+  color: #3b82f6;
+}
+
+.tooltip-text {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  bottom: 125%;
+  right: 0;
+  background: #1f2937;
+  color: white;
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  z-index: 10;
+  transition: opacity 0.2s;
+  max-width: 200px;
+  white-space: normal;
+  line-height: 1.3;
+}
+
+.tooltip-text::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  right: 10px;
+  border: 5px solid transparent;
+  border-top-color: #1f2937;
+}
+
+.tooltip-wrapper:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Cancelar */
+.crear-negocio-cancel {
+  text-align: center;
+  margin-top: 1rem;
+}
+
+.cancel-link {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 0.9rem;
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+
+.cancel-link:hover {
+  color: #374151;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .crear-negocio-fondo {
+    padding: 1rem;
+  }
+
+  .crear-negocio-form {
+    padding: 2rem;
+    max-width: 100%;
+  }
+
+  .crear-negocio-titulo {
+    font-size: 1.5rem;
+  }
+
+  .accesibilidad-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .crear-negocio-step-buttons {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .crear-negocio-form {
+    padding: 1.5rem;
+  }
+
+  .crear-negocio-titulo {
+    font-size: 1.3rem;
+  }
+
+  .accesibilidad-boton {
+    padding: 0.6rem 0.8rem;
+  }
+
+  .accesibilidad-nombre {
+    font-size: 0.85rem;
+  }
+}
