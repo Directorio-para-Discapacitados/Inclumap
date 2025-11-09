@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, FileTypeValidator, Get, MaxFileSizeValidator, Param, ParseFilePipe, Post, Put, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, FileTypeValidator, Get, MaxFileSizeValidator, Param, ParseFilePipe, Patch, Post, Put, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { BusinessService } from './business.service';
 import { BusinessEntity } from './entity/business.entity';
 import { CreateBusinessDto } from './dto/create-business.dto';
@@ -53,26 +53,24 @@ export class BusinessController {
         return await this._businessService.eliminarNegocio(id);
     }
 
-    @Post('upload-logo')
-  @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('image'))
-  async uploadLogo(
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 5 }),
-          new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
-        ],
-      }),
-    )
-    file: Express.Multer.File,
-    @User() user: UserEntity,
-  ) {
-    if (!file) {
-      throw new BadRequestException('No se proporcionó ningún archivo.');
+    @Patch('logo')
+    @UseGuards(JwtAuthGuard) 
+    @UseInterceptors(FileInterceptor('logo')) 
+    async uploadBusinessLogo(
+      @UploadedFile(
+        new ParseFilePipe({
+          validators: [
+            new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 5 }), // 5 MB
+            new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
+          ],
+        }),
+      )
+      file: Express.Multer.File,
+      @User() user: UserEntity, 
+    ) {
+      if (!file) {
+        throw new BadRequestException('No se proporcionó ningún archivo de logo.');
+      }
+        return this._businessService.updateBusinessLogo(user, file.buffer);
     }
-    return this._businessService.saveLogo(user, file.buffer);
   }
-}
-
-    

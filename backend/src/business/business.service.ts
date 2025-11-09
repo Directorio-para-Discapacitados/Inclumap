@@ -5,6 +5,7 @@ import { BusinessEntity } from './entity/business.entity';
 import { CreateBusinessDto } from './dto/create-business.dto';
 import { UpdateBusinessDto } from './dto/update-business.dto';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { UserEntity } from 'src/user/entity/user.entity';
 
   
   @Injectable()
@@ -169,29 +170,30 @@ import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
         throw new InternalServerErrorException('Error al intentar eliminar el negocio');
       }
     }
-
-    async saveLogo(user: any, fileBuffer: Buffer) {
-    const business = await this._businessRepository.findOne({
-      where: { user: { user_id: user.user_id } },
-    });
-
-    if (!business) {
-      throw new NotFoundException(
-        'No se encontró un local asociado a este usuario.',
-      );
+    async updateBusinessLogo(user: UserEntity,imageBuffer: Buffer,): Promise<{ logo_url: string }> {
+      const business = await this._businessRepository.findOne({
+        where: { user: { user_id: user.user_id } },
+      });
+  
+      if (!business) {
+        throw new NotFoundException(
+          'No se encontró un local asociado a este usuario.',
+        );
+      }
+  
+      try {
+        const uploadResult = await this.cloudinaryService.uploadImage(
+          imageBuffer,
+          'business_logos', 
+        );
+  
+        business.logo_url = uploadResult.secure_url;
+        await this._businessRepository.save(business);
+  
+        return { logo_url: uploadResult.secure_url };
+      } catch (error) {
+        console.error('Error al subir el logo:', error);
+        throw new InternalServerErrorException('Error al procesar la imagen del logo.');
+      }
     }
-
-    const uploadResult = await this.cloudinaryService.uploadImage(
-      fileBuffer,
-      'inclumap_logos',
-    );
-
-    business.logo_url = uploadResult.secure_url;
-    await this._businessRepository.save(business);
-
-    return {
-      message: 'Logo subido y guardado exitosamente.',
-      logo_url: business.logo_url,
-    };
-  }
   }
