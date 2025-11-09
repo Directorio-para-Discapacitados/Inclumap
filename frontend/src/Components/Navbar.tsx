@@ -5,6 +5,7 @@ import "./Navbar.css";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { FaMoon, FaSun } from "react-icons/fa";
+import Avatar from "./Avatar/Avatar";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -102,29 +103,21 @@ export default function Navbar() {
           {isAuthenticated && (
             <li className="profile-container" ref={profileMenuRef}>
               <div onClick={handleProfileClick} className="profile-trigger">
-                <img
-                  src={
-                    user?.avatar ||
-                    "https://cdn-icons-png.flaticon.com/512/711/711769.png"
-                  }
+                <Avatar
+                  src={user?.avatar}
                   alt="Perfil"
+                  size="small"
                   className="profile-image"
-                  onError={(e) =>
-                    (e.currentTarget.src =
-                      "https://cdn-icons-png.flaticon.com/512/711/711769.png")
-                  }
                 />
               </div>
 
               {isMenuOpen && (
                 <div className="profile-menu">
                   <div className="profile-info">
-                    <img
-                      src={
-                        user?.avatar ||
-                        "https://cdn-icons-png.flaticon.com/512/711/711769.png"
-                      }
+                    <Avatar
+                      src={user?.avatar}
                       alt="Perfil"
+                      size="medium"
                       className="profile-menu-image"
                     />
                     <div className="profile-details">
