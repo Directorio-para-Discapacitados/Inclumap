@@ -121,27 +121,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const data = await resp.json();
       
-      const rolIds: number[] = data.rolIds || (data.rol_id ? [data.rol_id] : []);
-      let mainName: string | undefined;
-      let roleDesc: string | undefined;
-      
-      // Si tiene rol 3 (Propietario) Y 'business_name' no es null, usarlo
-      if (rolIds.includes(3) && data.business_name) {
-        mainName = data.business_name;
-        roleDesc = "Propietario";
-      } else {
-        // Si no, construir nombre + rol
-        mainName = `${data.firstName || ''} ${data.firstLastName || ''}`.trim() || undefined;
-        roleDesc = getRoleDescription(rolIds);
-      }
-
+      // Usar los datos que vienen directamente del backend
       setUser({
         user_id: data.user_id,
-        displayName: mainName,
-        roleDescription: roleDesc,
-        email: data.user_email,
-        rolIds: rolIds,
-        avatar: data.avatar,
+        displayName: data.displayName,
+        roleDescription: data.roleDescription,
+        email: data.email,
+        rolIds: data.rolIds,
+        avatar: data.avatar, // ¡IMPORTANTE! Este es el avatar que se actualiza
       });
       setIsAuthenticated(true);
       return true;

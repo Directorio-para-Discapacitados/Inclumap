@@ -1,6 +1,8 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import AvatarModal from "../../Components/AvatarModal/AvatarModal";
+import Avatar from "../../Components/Avatar/Avatar";
 import "./perfil.css";
 import { API_URL } from "../../config/api";
 
@@ -26,7 +28,7 @@ export default function Perfil() {
   const [editedProfile, setEditedProfile] = useState<Profile>({});
   const [feedback, setFeedback] = useState<FeedbackMessage>(null);
   const [saving, setSaving] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const navigate = useNavigate();
   const { user, refreshUser } = useAuth();
 
@@ -100,21 +102,21 @@ export default function Perfil() {
   };
 
   const handleAvatarClick = () => {
-    fileInputRef.current?.click();
+    setIsAvatarModalOpen(true);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setEditedProfile(prev => ({
-          ...prev,
-          avatar: reader.result as string
-        }));
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleAvatarUpdate = (newAvatarUrl: string) => {
+    // Actualizar el perfil local con la nueva URL del avatar
+    setProfile(prev => prev ? { ...prev, avatar: newAvatarUrl } : null);
+    setEditedProfile(prev => ({ ...prev, avatar: newAvatarUrl }));
+    
+    // El refreshUser() ya se llama desde el AvatarModal
+    // Esto actualizará el AuthContext automáticamente
+  };
+
+  const handleFileChange = () => {
+    // Esta función ya no se usa, pero la mantenemos para evitar errores
+    // La funcionalidad se maneja en el AvatarModal
   };
 
   const handleSave = async () => {
@@ -183,25 +185,18 @@ export default function Perfil() {
 
   return (
     <div className="perfil-container">
-  <div className="perfil-header">
-        <div className="perfil-avatar" onClick={editMode ? handleAvatarClick : undefined}>
-          {editedProfile.avatar ? (
-            <img src={editedProfile.avatar} alt="Avatar" />
-          ) : (
-              <img src="https://cdn-icons-png.flaticon.com/512/711/711769.png" alt="Avatar por defecto" />
-          )}
-          {editMode && (
-            <div className="avatar-overlay">
-              Cambiar foto
-            </div>
-          )}
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept="image/*"
-            style={{ display: "none" }}
+      <div className="perfil-header">
+        <div className="perfil-avatar-container">
+          <Avatar
+            src={user?.avatar || profile.avatar}
+            alt="Avatar"
+            size="large"
+            className="perfil-avatar"
+            onClick={handleAvatarClick}
           />
+          <div className="avatar-overlay">
+            📷 Cambiar foto
+          </div>
         </div>
         <div className="perfil-info">
           <h2>Mi Perfil</h2>
@@ -317,6 +312,14 @@ export default function Perfil() {
           {feedback.text}
         </div>
       )}
+
+      {/* Modal de cambio de avatar */}
+      <AvatarModal
+        isOpen={isAvatarModalOpen}
+        onClose={() => setIsAvatarModalOpen(false)}
+        currentAvatar={user?.avatar || profile?.avatar}
+        onAvatarUpdate={handleAvatarUpdate}
+      />
     </div>
   );
 }
