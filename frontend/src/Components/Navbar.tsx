@@ -153,20 +153,19 @@ export default function Navbar() {
                       👤 Mi Perfil
                     </button>
                     
-                    {/* Este botón solo se mostrará si la descripción del rol
-                      es "Usuario". No aparecerá para "Administrador" o "Propietario".
-                    */}
+                    {/* Crear Negocio - Solo para usuarios normales */}
                     {user?.roleDescription === "Usuario" && (
                       <button
                         onClick={() => {
                           setIsMenuOpen(false);
-                          navigate("/guardados");
+                          navigate("/crear-negocio");
                         }}
                         className="menu-item"
                       >
-                        📍 Lugares Guardados
+                        🏪 Crear Negocio
                       </button>
                     )}
+                    
                     {/* Este botón solo se mostrará si la descripción del rol
                       es "Usuario". No aparecerá para "Administrador" o "Propietario".
                     */}

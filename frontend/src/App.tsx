@@ -10,6 +10,9 @@ import ChatWidget from "./Components/ChatWidget";
 import ForgotPasswordPage from "./pages/reseteoPassword/ForgotPasswordPage";
 import AjustesPage from "./pages/ajustes/Ajustes";
 import AdminLoginPage from './pages/adminLogin/AdminLogin';
+import CrearNegocio from "./pages/crearNegocio/CrearNegocio";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   return (
@@ -46,10 +49,28 @@ function App() {
               />
               {/* --- FIN DE LA CORRECCIÓN --- */}
 
+              {/* Nueva ruta para crear negocio */}
+              <Route
+                path="/crear-negocio"
+                element={<CrearNegocio />}
+              />
+
             </Route>
           </Routes>
         </main>
         <ChatWidget />
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="colored"
+        />
       </Router>
     </AuthProvider>
   );
