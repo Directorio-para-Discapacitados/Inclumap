@@ -8,7 +8,7 @@ export class BusinessAccessibilityEntity {
     business_accessibility_id: number;
 
 
-    @ManyToOne(() => BusinessEntity, (business) => business.business_accessibility)
+    @ManyToOne(() => BusinessEntity, (business) => business.business_accessibility, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'business_id' })
     business: BusinessEntity;
 

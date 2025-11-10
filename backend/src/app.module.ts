@@ -16,6 +16,7 @@ import { ChatbotModule } from './chatbot/chatbot.module';
 import { RolesModule } from './roles/roles.module';
 import { LocalRecognitionModule } from './local-recognition/local-recognition.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { UserRolModule } from './user_rol/user_rol.module';
 
 
 
@@ -42,6 +43,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     }),
     UserModule,
     RolesModule,
+    UserRolModule,
     PeopleModule,
     BusinessModule,
     BusinessAccessibilityModule,

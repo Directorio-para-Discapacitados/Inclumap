@@ -1,0 +1,270 @@
+/* Estilos para el Modal de Edición de Información Personal */
+
+.edit-owner-personal-modal {
+  background: white;
+  border-radius: 16px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.edit-owner-personal-modal .modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2rem 2rem 1rem 2rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.edit-owner-personal-modal .modal-header h2 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.edit-owner-personal-modal .close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.edit-owner-personal-modal .close-button:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.edit-owner-personal-modal .modal-body {
+  padding: 2rem;
+}
+
+.edit-owner-personal-modal .loading-message {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #667eea;
+}
+
+.edit-owner-personal-modal .loading-spinner {
+  width: 40px;
+  height: 40px;
+  margin: 0 auto 1rem auto;
+  border: 3px solid #e5e7eb;
+  border-top: 3px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.edit-owner-personal-modal .error-message {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.edit-owner-personal-modal .error-message span {
+  font-size: 1.2rem;
+}
+
+.edit-owner-personal-modal .error-message p {
+  margin: 0;
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.edit-owner-personal-modal .form-section {
+  margin-bottom: 2rem;
+}
+
+.edit-owner-personal-modal .form-section h3 {
+  margin: 0 0 1.5rem 0;
+  color: #374151;
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.edit-owner-personal-modal .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.edit-owner-personal-modal .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.edit-owner-personal-modal .form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #374151;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.edit-owner-personal-modal .form-group input,
+.edit-owner-personal-modal .form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+  background: white;
+}
+
+.edit-owner-personal-modal .form-group input:focus,
+.edit-owner-personal-modal .form-group select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.edit-owner-personal-modal .form-group input:invalid {
+  border-color: #ef4444;
+}
+
+.edit-owner-personal-modal .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem 0;
+}
+
+.edit-owner-personal-modal .checkbox-label input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
+.edit-owner-personal-modal .checkbox-label span {
+  font-weight: 500;
+  color: #374151;
+}
+
+.edit-owner-personal-modal .password-section {
+  background: #f8fafc;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+  margin-top: 1rem;
+}
+
+.edit-owner-personal-modal .form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.edit-owner-personal-modal .btn-cancel {
+  padding: 0.75rem 1.5rem;
+  background: #6b7280;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.edit-owner-personal-modal .btn-cancel:hover:not(:disabled) {
+  background: #4b5563;
+}
+
+.edit-owner-personal-modal .btn-save {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.edit-owner-personal-modal .btn-save:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.edit-owner-personal-modal .btn-cancel:disabled,
+.edit-owner-personal-modal .btn-save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.edit-owner-personal-modal .btn-switch {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.edit-owner-personal-modal .btn-switch:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.edit-owner-personal-modal .btn-switch:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .edit-owner-personal-modal {
+    width: 95%;
+    max-height: 95vh;
+  }
+  
+  .edit-owner-personal-modal .modal-header,
+  .edit-owner-personal-modal .modal-body {
+    padding: 1.5rem;
+  }
+  
+  .edit-owner-personal-modal .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .edit-owner-personal-modal .form-actions {
+    flex-direction: column;
+  }
+  
+  .edit-owner-personal-modal .btn-cancel,
+  .edit-owner-personal-modal .btn-save {
+    width: 100%;
+  }
+}

@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsString, IsNumber, IsOptional, IsArray } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateBusinessDto {
@@ -26,4 +26,14 @@ export class CreateBusinessDto {
   @IsNotEmpty()
   @IsString()
   coordinates: string;
+
+  @ApiProperty({ description: 'ID del usuario propietario del negocio' })
+  @IsNotEmpty()
+  @IsNumber()
+  user_id: number;
+
+  @ApiProperty({ description: 'IDs de las características de accesibilidad del negocio', isArray: true })
+  @IsOptional()
+  @IsArray()
+  accessibilityIds?: number[];
 }

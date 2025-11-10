@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Delete, FileTypeValidator, Get, MaxFileSizeValidator, Param, ParseFilePipe, Patch, Post, Put, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, FileTypeValidator, Get, MaxFileSizeValidator, Param, ParseFilePipe, Patch, Post, Put, Query, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { BusinessService } from './business.service';
 import { BusinessEntity } from './entity/business.entity';
 import { CreateBusinessDto } from './dto/create-business.dto';
@@ -19,7 +19,7 @@ export class BusinessController {
     constructor(private readonly _businessService: BusinessService) { }
 
     @Post()
-    @Roles(3)
+    @Roles(1, 3) // Admin (1) y Propietario (3) pueden crear negocios
     async crearNegocio(@User() user: any, @Body() createBusinessDto: CreateBusinessDto): Promise<string> {
         return await this._businessService.create(createBusinessDto);
     }
@@ -47,6 +47,29 @@ export class BusinessController {
         return await this._businessService.actualizarNegocio(id, updateBusinessDto, user);
     }
 
+  @Delete(':id/complete')
+  @Roles(1) // Solo administradores pueden eliminar negocios completamente
+  async eliminarNegocioCompleto(
+    @Param('id') id: string,
+    @Query('deleteOwner') deleteOwner?: string, // Query param opcional
+  ): Promise<{ message: string }> {
+    const businessId = parseInt(id, 10);
+    
+    if (isNaN(businessId)) {
+      throw new BadRequestException('ID de negocio inválido');
+    }
+    
+    const shouldDeleteOwner = deleteOwner === 'true';
+    console.log(`🗑️ Eliminando negocio ${businessId} completamente. Eliminar propietario: ${shouldDeleteOwner}`);
+    
+    try {
+      return await this._businessService.eliminarNegocioCompleto(businessId, shouldDeleteOwner);
+    } catch (error) {
+      console.error('Error al eliminar negocio completo:', error);
+      throw error;
+    }
+  }
+
     @Delete(':id')
     @Roles(1, 3)
     async eliminarNegocio(@Param('id') id: number): Promise<string> {
@@ -73,4 +96,69 @@ export class BusinessController {
       }
         return this._businessService.updateBusinessLogo(user, file.buffer);
     }
+
+  @Patch(':id/remove-owner')
+  @Roles(1) // Solo administradores pueden remover propietarios
+  async removerPropietario(@Param('id') id: string): Promise<{ message: string }> {
+    const businessId = parseInt(id, 10);
+    if (isNaN(businessId)) {
+      throw new BadRequestException('ID de negocio inválido');
+    }
+    return await this._businessService.removerPropietario(businessId);
   }
+
+  @Patch(':id/clear-owner')
+  @Roles(1) // Solo administradores pueden limpiar propietarios
+  async limpiarPropietario(@Param('id') id: string): Promise<{ message: string }> {
+    const businessId = parseInt(id, 10);
+    if (isNaN(businessId)) {
+      throw new BadRequestException('ID de negocio inválido');
+    }
+    
+    console.log(`🔄 Administrador limpiando propietario del negocio ${businessId}`);
+    
+    try {
+      // Buscar el negocio
+      const negocio = await this._businessService.obtenerNegocioPorId(businessId);
+      
+      // Limpiar la relación directamente
+      await this._businessService.limpiarPropietario(businessId);
+      
+      return {
+        message: `Propietario removido del negocio "${negocio.business_name}" exitosamente`
+      };
+    } catch (error) {
+      console.error('Error al limpiar propietario:', error);
+      throw error;
+    }
+  }
+
+  @Get('available/unowned')
+  @Roles(1) // Solo administradores pueden ver negocios sin propietario
+  async obtenerNegociosSinPropietario(): Promise<BusinessEntity[]> {
+    return await this._businessService.obtenerNegociosSinPropietario();
+  }
+
+  @Patch(':id/assign-owner/:userId')
+  @Roles(1) // Solo administradores pueden asignar propietarios
+  async asignarPropietario(
+    @Param('id') id: string,
+    @Param('userId') userId: string,
+  ): Promise<{ message: string }> {
+    const businessId = parseInt(id, 10);
+    const newOwnerId = parseInt(userId, 10);
+    
+    if (isNaN(businessId) || isNaN(newOwnerId)) {
+      throw new BadRequestException('ID de negocio o usuario inválido');
+    }
+    
+    console.log(`🔄 Asignando usuario ${newOwnerId} como propietario del negocio ${businessId}`);
+    
+    try {
+      return await this._businessService.asignarPropietario(businessId, newOwnerId);
+    } catch (error) {
+      console.error('Error al asignar propietario:', error);
+      throw error;
+    }
+  }
+}

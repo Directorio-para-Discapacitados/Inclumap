@@ -49,6 +49,12 @@ export class UserController {
         return await this._userService.obtenerUsuarioPorId(id, currentUser);
     }
 
+    @Get(":id/complete")
+    @Roles(1) // Solo admin puede obtener información completa
+    async obtenerUsuarioCompleto(@Param('id') id: number): Promise<any> {
+        return await this._userService.obtenerUsuarioCompleto(id);
+    }
+
 
     @Put(":id")
     @Roles(1, 2, 3)

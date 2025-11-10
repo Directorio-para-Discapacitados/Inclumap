@@ -7,6 +7,8 @@ import { UpdateUserDto } from './dtos/update-user.dto';
 import { UserRolesEntity } from 'src/user_rol/entity/user_rol.entity';
 import { RolEntity } from 'src/roles/entity/rol.entity';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { PeopleEntity } from '../people/entity/people.entity';
+import { BusinessEntity } from '../business/entity/business.entity';
 
 
 @Injectable()
@@ -21,7 +23,12 @@ export class UserService {
     @InjectRepository(RolEntity)
     private readonly _rolRepository: Repository<RolEntity>,
 
+    @InjectRepository(PeopleEntity)
+    private readonly _peopleRepository: Repository<PeopleEntity>,
     private readonly cloudinaryService: CloudinaryService,
+
+    @InjectRepository(BusinessEntity)
+    private readonly _businessRepository: Repository<BusinessEntity>,
   ) { }
 
 
@@ -209,13 +216,14 @@ export class UserService {
 
 
   async eliminarUsuario(user_id: number): Promise<string> {
+    console.log(`🗑️ Iniciando eliminación del usuario ID: ${user_id}`);
+    
     const usuario = await this._userRepository.findOne({
       where: { user_id },
       relations: [
         'userroles',
         'people',
-        'businesses'
-
+        'business'
       ],
     });
 
@@ -224,111 +232,212 @@ export class UserService {
     }
 
     try {
+      // Paso 1: Verificar que no tenga negocios asignados
+      if (usuario.business) {
+        throw new BadRequestException(
+          'No se puede eliminar el usuario porque tiene un negocio asignado. ' +
+          'Primero elimine o reasigne el negocio.'
+        );
+      }
+
+      // Paso 2: Eliminar todos los roles del usuario (tabla user_roles)
+      if (usuario.userroles && usuario.userroles.length > 0) {
+        console.log(`📋 Eliminando ${usuario.userroles.length} roles del usuario...`);
+        
+        for (const userRole of usuario.userroles) {
+          await this._userRolesRepository.remove(userRole);
+        }
+        
+        console.log('✅ Todos los roles eliminados exitosamente');
+      }
+
+      // Paso 3: Eliminar datos de people si existen
+      if (usuario.people) {
+        console.log('📋 Eliminando datos personales del usuario...');
+        await this._peopleRepository.remove(usuario.people);
+        console.log('✅ Datos personales eliminados exitosamente');
+      }
+
+      // Paso 4: Finalmente eliminar el usuario
+      console.log('📋 Eliminando usuario de la tabla users...');
       await this._userRepository.remove(usuario);
+      
+      console.log('✅ Usuario eliminado completamente del sistema');
       return 'Usuario eliminado correctamente';
     } catch (error) {
-      console.error('Error al eliminar usuario:', error);
-      throw new InternalServerErrorException('Error al intentar eliminar el usuario');
+      console.error('❌ Error al eliminar usuario:', error);
+      
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      
+      throw new InternalServerErrorException(
+        `Error al intentar eliminar el usuario: ${error.message || 'Error desconocido'}`
+      );
     }
   }
 
-  // Métodos para gestión de avatar
-  async updateAvatar(
-    userId: number,
-    file: Express.Multer.File,
-  ): Promise<{ message: string; avatar_url: string }> {
+  async obtenerUsuarioCompleto(user_id: number): Promise<any> {
     try {
-      // Buscar el usuario
-      const user = await this._userRepository.findOne({
-        where: { user_id: userId },
+      console.log('🔍 Obteniendo información completa para usuario ID:', user_id);
+      
+      // Obtener información del usuario con roles
+      const usuario = await this._userRepository.findOne({
+        where: { user_id },
+        relations: ['userroles', 'userroles.rol'],
       });
 
-      if (!user) {
+      if (!usuario) {
         throw new NotFoundException('Usuario no encontrado');
       }
 
-      // Eliminar avatar anterior si existe
-      if (user.avatar_url) {
-        try {
-          const publicId = this.cloudinaryService.extractPublicIdFromUrl(user.avatar_url);
-          if (publicId) {
-            await this.cloudinaryService.deleteImage(publicId);
-          }
-        } catch (error) {
-          console.warn('No se pudo eliminar la imagen anterior:', error.message);
-        }
+      // Obtener información personal del usuario
+      const people = await this._peopleRepository.findOne({
+        where: { user: { user_id } },
+      });
+
+      // Obtener negocios del usuario
+      const businesses = await this._businessRepository.find({
+        where: { user: { user_id } },
+        relations: ['business_accessibility', 'business_accessibility.accessibility'],
+      });
+
+      const result = {
+        user: {
+          user_id: usuario.user_id,
+          user_email: usuario.user_email,
+          roles: usuario.userroles.map(ur => ({
+            rol_id: ur.rol.rol_id,
+            rol_name: ur.rol.rol_name
+          }))
+        },
+        people: people ? {
+          people_id: people.people_id,
+          firstName: people.firstName,
+          firstLastName: people.firstLastName,
+          cellphone: people.cellphone,
+          address: people.address,
+          gender: people.gender
+        } : null,
+        businesses: businesses.map(business => ({
+          business_id: business.business_id,
+          business_name: business.business_name,
+          NIT: business.NIT,
+          address: business.address,
+          description: business.description,
+          coordinates: business.coordinates,
+          accessibilities: business.business_accessibility?.map(ba => ba.accessibility.accessibility_id) || []
+        }))
+      };
+
+      console.log('✅ Información completa obtenida:', result);
+      return result;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      console.error('❌ Error al obtener información completa:', error);
+      throw new InternalServerErrorException('Error al obtener información completa del usuario');
+    }
+  }
+
+  /**
+   * Actualizar avatar del usuario
+   */
+  async updateAvatar(userId: number, file: Express.Multer.File): Promise<{ message: string; avatar_url: string }> {
+    try {
+      console.log(`📸 Actualizando avatar del usuario ${userId}...`);
+
+      // Buscar el usuario
+      const usuario = await this._userRepository.findOne({
+        where: { user_id: userId },
+      });
+
+      if (!usuario) {
+        throw new NotFoundException('Usuario no encontrado');
       }
 
-      // Subir nueva imagen a Cloudinary
+      // Buscar los datos personales del usuario
+      const people = await this._peopleRepository.findOne({
+        where: { user: { user_id: userId } },
+      });
+
+      if (!people) {
+        throw new NotFoundException('No se encontraron datos personales del usuario');
+      }
+
+      // Subir imagen a Cloudinary
       const uploadResult = await this.cloudinaryService.uploadImage(
         file.buffer,
         'inclumap/avatars',
-        `user_${userId}`,
+        `user_${userId}`
       );
+      
+      // Actualizar la URL del avatar
+      people.avatar = uploadResult.secure_url;
+      await this._peopleRepository.save(people);
 
-      // Actualizar la URL del avatar en la base de datos
-      user.avatar_url = uploadResult.secure_url;
-      await this._userRepository.save(user);
-
+      console.log('✅ Avatar actualizado exitosamente');
       return {
-        message: 'Avatar actualizado exitosamente',
-        avatar_url: uploadResult.secure_url,
+        message: 'Avatar actualizado correctamente',
+        avatar_url: uploadResult.secure_url
       };
     } catch (error) {
-      if (
-        error instanceof NotFoundException ||
-        error instanceof BadRequestException
-      ) {
+      console.error('❌ Error al actualizar avatar:', error);
+      
+      if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new InternalServerErrorException(
-        `Error al actualizar avatar: ${error.message}`,
-      );
+      
+      throw new InternalServerErrorException('Error al actualizar el avatar');
     }
   }
 
+  /**
+   * Eliminar avatar del usuario
+   */
   async deleteAvatar(userId: number): Promise<{ message: string }> {
     try {
+      console.log(`🗑️ Eliminando avatar del usuario ${userId}...`);
+
       // Buscar el usuario
-      const user = await this._userRepository.findOne({
+      const usuario = await this._userRepository.findOne({
         where: { user_id: userId },
       });
 
-      if (!user) {
+      if (!usuario) {
         throw new NotFoundException('Usuario no encontrado');
       }
 
-      if (!user.avatar_url) {
-        throw new BadRequestException('El usuario no tiene avatar para eliminar');
+      // Buscar los datos personales del usuario
+      const people = await this._peopleRepository.findOne({
+        where: { user: { user_id: userId } },
+      });
+
+      if (!people) {
+        throw new NotFoundException('No se encontraron datos personales del usuario');
       }
 
-      // Eliminar imagen de Cloudinary
-      try {
-        const publicId = this.cloudinaryService.extractPublicIdFromUrl(user.avatar_url);
-        if (publicId) {
-          await this.cloudinaryService.deleteImage(publicId);
-        }
-      } catch (error) {
-        console.warn('No se pudo eliminar la imagen de Cloudinary:', error.message);
+      // Eliminar la URL del avatar (solo si existe)
+      if (people.avatar) {
+        // Opcional: eliminar de Cloudinary si se desea
+        // const publicId = this.cloudinaryService.extractPublicIdFromUrl(people.avatar);
+        // await this.cloudinaryService.deleteImage(publicId);
       }
+      
+      people.avatar = null;
+      await this._peopleRepository.save(people);
 
-      // Limpiar la URL del avatar en la base de datos
-      user.avatar_url = null;
-      await this._userRepository.save(user);
-
-      return {
-        message: 'Avatar eliminado exitosamente',
-      };
+      console.log('✅ Avatar eliminado exitosamente');
+      return { message: 'Avatar eliminado correctamente' };
     } catch (error) {
-      if (
-        error instanceof NotFoundException ||
-        error instanceof BadRequestException
-      ) {
+      console.error('❌ Error al eliminar avatar:', error);
+      
+      if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new InternalServerErrorException(
-        `Error al eliminar avatar: ${error.message}`,
-      );
+      
+      throw new InternalServerErrorException('Error al eliminar el avatar');
     }
   }
 }

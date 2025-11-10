@@ -134,7 +134,6 @@ export default function Navbar() {
                   </div>
 
                   {/* --- INICIO DE LA MODIFICACIÓN --- */}
-                  {/* --- INICIO DE LA MODIFICACIÓN --- */}
                   <div className="profile-menu-items">
                     <button
                       onClick={() => {
@@ -158,7 +157,6 @@ export default function Navbar() {
                         🏪 Crear Negocio
                       </button>
                     )}
-                    
                     {/* Este botón solo se mostrará si la descripción del rol
                       es "Usuario". No aparecerá para "Administrador" o "Propietario".
                     */}
