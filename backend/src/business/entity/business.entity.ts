@@ -28,12 +28,12 @@ export class BusinessEntity {
     @Column({type: 'varchar', length: 255})
     coordinates: string;
 
-    @OneToMany(() => BusinessAccessibilityEntity, (businessAccessibility) => businessAccessibility.business)
+    @OneToMany(() => BusinessAccessibilityEntity, (businessAccessibility) => businessAccessibility.business, { cascade: true })
     business_accessibility: BusinessAccessibilityEntity[];
 
-    @OneToOne(() => UserEntity, (user) => user.business, { onDelete: 'CASCADE' })
+    @OneToOne(() => UserEntity, (user) => user.business, { onDelete: 'SET NULL', nullable: true })
     @JoinColumn({ name: 'user_id' })
-    user: UserEntity;
+    user: UserEntity | null;
 
 
 }

@@ -26,4 +26,8 @@ export class UpdateBusinessDto {
   @IsOptional()
   @IsString()
   coordinates?: string;
+
+  @ApiPropertyOptional({ description: 'ID del usuario propietario (null para remover propietario)' })
+  @IsOptional()
+  user_id?: number | null;
 }

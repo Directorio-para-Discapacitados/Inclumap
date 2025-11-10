@@ -21,6 +21,9 @@ export class PeopleEntity {
     @Column({type: 'varchar', length: 255})
     gender: string;
 
+    @Column({type: 'varchar', length: 500, nullable: true})
+    avatar: string | null;
+
     @OneToOne(() => UserEntity, (user) => user.people, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'user_id' })
     user: UserEntity;

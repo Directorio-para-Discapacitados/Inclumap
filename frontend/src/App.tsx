@@ -10,6 +10,8 @@ import ChatWidget from "./Components/ChatWidget";
 import ForgotPasswordPage from "./pages/reseteoPassword/ForgotPasswordPage";
 import AjustesPage from "./pages/ajustes/Ajustes";
 import AdminLoginPage from './pages/adminLogin/AdminLogin';
+import GestionUsuarios from "./pages/admin/gestion-roles/usuarios/GestionUsuarios";
+import GestionPropietarios from "./pages/admin/gestion-roles/propietarios/GestionPropietarios";
 import CrearNegocio from "./pages/crearNegocio/CrearNegocio";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -19,7 +21,7 @@ function App() {
     <AuthProvider>
       <Router>
         <Navbar />
-        <main>
+        <main style={{ paddingTop: '70px' }}>
           <Routes>
             
             <Route path="/" element={<Inicio />} />
@@ -41,12 +43,12 @@ function App() {
                   </div>
                 }
               />
-             {/* --- 2. AQUÍ ESTÁ LA CORRECCIÓN --- */}
-              {/* Reemplazamos el 'div' de ejemplo por tu nuevo componente 'AjustesPage' */}
               <Route
                 path="/ajustes"
                 element={<AjustesPage />}
               />
+              <Route path="/admin/gestion-usuarios" element={<GestionUsuarios />} />
+              <Route path="/admin/gestion-propietarios" element={<GestionPropietarios />} />
               {/* --- FIN DE LA CORRECCIÓN --- */}
 
               {/* Nueva ruta para crear negocio */}
