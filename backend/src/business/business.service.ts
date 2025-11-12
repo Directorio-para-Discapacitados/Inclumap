@@ -5,6 +5,7 @@ import { BusinessEntity } from './entity/business.entity';
 import { CreateBusinessDto } from './dto/create-business.dto';
 import { UpdateBusinessDto } from './dto/update-business.dto';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { MapsService } from 'src/maps/maps.service';
 import { UserEntity } from 'src/user/entity/user.entity';
 import { UserRolesEntity } from 'src/user_rol/entity/user_rol.entity';
 import { RolEntity } from 'src/roles/entity/rol.entity';
@@ -22,59 +23,73 @@ import { RolEntity } from 'src/roles/entity/rol.entity';
       @InjectRepository(RolEntity)
       private readonly _rolRepository: Repository<RolEntity>,
       private readonly cloudinaryService: CloudinaryService,
+      private readonly mapsService: MapsService,
     ) {}
   
-    //  Crear un nuevo negocio
-    async create(createBusinessDto: CreateBusinessDto): Promise<string> {
-      const { business_name, NIT, user_id } = createBusinessDto;
-  
-      try {
-        // Verificar si ya existe un negocio con el mismo NIT
-        const negocioExistente = await this._businessRepository.findOne({
-          where: { NIT },
-        });
-  
-        if (negocioExistente) {
-          throw new BadRequestException('El NIT ya está registrado en otro negocio');
-        }
+  //  Crear un nuevo negocio
+  async create(createBusinessDto: CreateBusinessDto): Promise<string> {
+    const { business_name, NIT, user_id, address } = createBusinessDto;
 
-        // Verificar que el usuario existe
-        const usuario = await this._userRepository.findOne({
-          where: { user_id },
-        });
+    try {
+      // Verificar si ya existe un negocio con el mismo NIT
+      const negocioExistente = await this._businessRepository.findOne({
+        where: { NIT },
+      });
 
-        if (!usuario) {
-          throw new NotFoundException('Usuario no encontrado');
-        }
-  
-        // Crear y guardar el nuevo negocio
-        console.log('Datos para crear negocio:', createBusinessDto);
-        console.log('Usuario encontrado:', usuario);
-        
-        const nuevoNegocio = this._businessRepository.create({
-          ...createBusinessDto,
-          user: usuario, // Establecer la relación con el usuario
-        });
-        
-        console.log('Negocio creado (antes de save):', nuevoNegocio);
-        const savedBusiness = await this._businessRepository.save(nuevoNegocio);
-        console.log('Negocio guardado exitosamente:', savedBusiness);
-  
-        return 'Negocio creado correctamente';
-      } catch (error) {
-        if (error instanceof BadRequestException || error instanceof NotFoundException) {
-          throw error;
-        }
-        console.error('Error al crear negocio:', error);
-        throw new InternalServerErrorException('Error al crear el negocio');
+      if (negocioExistente) {
+        throw new BadRequestException('El NIT ya está registrado en otro negocio');
       }
+
+      // Verificar que el usuario existe
+      const usuario = await this._userRepository.findOne({
+        where: { user_id },
+      });
+
+      if (!usuario) {
+        throw new NotFoundException('Usuario no encontrado');
+      }
+
+      // Geocodificar la dirección para obtener coordenadas
+      let coordinates: { lat: number; lon: number } | null = null;
+      let coordinatesString = '';
+
+      if (address && address.trim().length > 0) {
+        try {
+          coordinates = await this.mapsService.getCoordinates(address);
+          
+          if (coordinates) {
+            coordinatesString = this.mapsService.formatCoordinatesForStorage(coordinates);
+          }
+        } catch (error) {
+          // Continuamos con el proceso aunque falle la geocodificación
+          // El negocio se puede crear sin coordenadas
+        }
+      }
+
+      // Crear y guardar el nuevo negocio
+      const nuevoNegocio = this._businessRepository.create({
+        ...createBusinessDto,
+        coordinates: coordinatesString,
+        latitude: coordinates?.lat || null,
+        longitude: coordinates?.lon || null,
+        user: usuario, // Establecer la relación con el usuario
+      });
+      
+      console.log('Negocio creado (antes de save):', nuevoNegocio);
+      const savedBusiness = await this._businessRepository.save(nuevoNegocio);
+      return 'Negocio creado correctamente';
+    } catch (error) {
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al crear el negocio');
     }
+  }
   
-    //  Obtener todos los negocios
-    async obtenerNegocios(): Promise<any[]> {
-      try {
-        console.log('Obteniendo negocios desde la base de datos...');
-        const negocios = await this._businessRepository.find({
+  //  Obtener todos los negocios
+  async obtenerNegocios(): Promise<any[]> {
+    try {
+      const negocios = await this._businessRepository.find({
           relations: [
             'user', 
             'user.userroles', 
@@ -83,9 +98,6 @@ import { RolEntity } from 'src/roles/entity/rol.entity';
           ],
         });
         
-        console.log('Negocios encontrados en BD:', negocios.length);
-        console.log('Detalles de negocios:', negocios);
-  
         if (!negocios.length) {
           throw new NotFoundException('No hay negocios registrados');
         }
@@ -107,6 +119,11 @@ import { RolEntity } from 'src/roles/entity/rol.entity';
             NIT: negocio.NIT,
             description: negocio.description,
             coordinates: negocio.coordinates,
+            latitude: negocio.latitude,
+            longitude: negocio.longitude,
+            average_rating: negocio.average_rating,
+            logo_url: negocio.logo_url,
+            verification_image_url: negocio.verification_image_url,
             user: userWithRoles, // Usuario con roles transformados
             business_accessibility: negocio.business_accessibility, // Incluir accesibilidades si están disponibles
           };
@@ -188,15 +205,10 @@ import { RolEntity } from 'src/roles/entity/rol.entity';
         Object.assign(negocio, dto);
         
         // Manejar especialmente el user_id si es null
-        console.log('🔄 Procesando user_id en DTO:', dto.user_id);
-        console.log('🔄 Tipo de user_id:', typeof dto.user_id);
-        console.log('🔄 DTO completo:', JSON.stringify(dto, null, 2));
         
         if (dto.user_id === null) {
-          console.log('✅ Limpiando user_id - poniendo en null');
           negocio.user = null;
         } else if (dto.user_id !== undefined) {
-          console.log('🔄 Actualizando user_id a:', dto.user_id);
           // Verificar que el usuario existe si se proporciona un ID
           const usuario = await this._userRepository.findOne({
             where: { user_id: dto.user_id }
@@ -205,8 +217,6 @@ import { RolEntity } from 'src/roles/entity/rol.entity';
             throw new BadRequestException('Usuario no encontrado');
           }
           negocio.user = usuario;
-        } else {
-          console.log('ℹ️ user_id no definido en DTO, no se actualiza');
         }
         
         await this._businessRepository.save(negocio);
@@ -568,6 +578,123 @@ import { RolEntity } from 'src/roles/entity/rol.entity';
       }
       
       throw new InternalServerErrorException('Error al actualizar el logo del negocio');
+    }
+  }
+
+  /**
+   * Re-geocodificar todos los negocios que no tienen coordenadas
+   * Útil para migrar negocios existentes
+   */
+  async regeocodeBusinessesWithoutCoordinates(): Promise<{ processed: number; updated: number; failed: string[] }> {
+    try {
+      console.log('🗺️ Iniciando re-geocodificación de negocios sin coordenadas...');
+
+      // Buscar negocios sin coordenadas
+      const businessesWithoutCoords = await this._businessRepository.find({
+        where: [
+          { latitude: IsNull() },
+          { longitude: IsNull() },
+          { coordinates: '' },
+          { coordinates: IsNull() }
+        ]
+      });
+
+      console.log(`Encontrados ${businessesWithoutCoords.length} negocios sin coordenadas`);
+
+      let updated = 0;
+      const failed: string[] = [];
+
+      for (const business of businessesWithoutCoords) {
+        try {
+          if (business.address && business.address.trim().length > 0) {
+            console.log(`Geocodificando: ${business.business_name} - ${business.address}`);
+            
+            const coordinates = await this.mapsService.getCoordinates(business.address);
+            
+            if (coordinates) {
+              // Actualizar el negocio con las nuevas coordenadas
+              business.latitude = coordinates.lat;
+              business.longitude = coordinates.lon;
+              business.coordinates = this.mapsService.formatCoordinatesForStorage(coordinates);
+              
+              await this._businessRepository.save(business);
+              updated++;
+              
+              console.log(`✅ Actualizado: ${business.business_name} -> lat: ${coordinates.lat}, lon: ${coordinates.lon}`);
+            } else {
+              failed.push(`${business.business_name} (ID: ${business.business_id}) - No se encontraron coordenadas`);
+              console.warn(`❌ No se encontraron coordenadas para: ${business.business_name}`);
+            }
+          } else {
+            failed.push(`${business.business_name} (ID: ${business.business_id}) - Dirección vacía`);
+            console.warn(`❌ Dirección vacía para: ${business.business_name}`);
+          }
+          
+          // Pequeña pausa para evitar rate limiting
+          await new Promise(resolve => setTimeout(resolve, 200));
+          
+        } catch (error) {
+          failed.push(`${business.business_name} (ID: ${business.business_id}) - Error: ${error.message}`);
+          console.error(`❌ Error geocodificando ${business.business_name}:`, error.message);
+        }
+      }
+
+      console.log(`🎯 Re-geocodificación completada: ${updated} actualizados, ${failed.length} fallos`);
+
+      return {
+        processed: businessesWithoutCoords.length,
+        updated,
+        failed
+      };
+
+    } catch (error) {
+      console.error('❌ Error durante re-geocodificación:', error);
+      throw new InternalServerErrorException('Error durante el proceso de re-geocodificación');
+    }
+  }
+
+  /**
+   * Actualizar coordenadas de un negocio específico
+   */
+  async updateBusinessCoordinates(businessId: number): Promise<string> {
+    try {
+      const business = await this._businessRepository.findOne({
+        where: { business_id: businessId }
+      });
+
+      if (!business) {
+        throw new NotFoundException('Negocio no encontrado');
+      }
+
+      if (!business.address || business.address.trim().length === 0) {
+        throw new BadRequestException('El negocio no tiene una dirección válida para geocodificar');
+      }
+
+      console.log(`🗺️ Actualizando coordenadas para: ${business.business_name} - ${business.address}`);
+
+      const coordinates = await this.mapsService.getCoordinates(business.address);
+
+      if (!coordinates) {
+        throw new BadRequestException('No se pudieron obtener las coordenadas para esta dirección');
+      }
+
+      // Actualizar el negocio con las nuevas coordenadas
+      business.latitude = coordinates.lat;
+      business.longitude = coordinates.lon;
+      business.coordinates = this.mapsService.formatCoordinatesForStorage(coordinates);
+
+      await this._businessRepository.save(business);
+
+      console.log(`✅ Coordenadas actualizadas: lat=${coordinates.lat}, lon=${coordinates.lon}`);
+
+      return 'Coordenadas del negocio actualizadas correctamente';
+
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      console.error('❌ Error al actualizar coordenadas:', error);
+      throw new InternalServerErrorException('Error al actualizar las coordenadas del negocio');
     }
   }
 }

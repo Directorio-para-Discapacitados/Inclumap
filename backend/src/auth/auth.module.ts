@@ -16,12 +16,14 @@ import { AccessibilityEntity } from 'src/accessibility/entity/accesibility.entit
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { MailsService } from 'src/mails/mails.service';
+import { MapsModule } from 'src/maps/maps.module';
 
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     PassportModule,
+    MapsModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

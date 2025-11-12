@@ -32,6 +32,7 @@ import { OAuth2Client } from 'google-auth-library';
 import { ConfigService } from '@nestjs/config';
 import { GoogleAuthDto } from './dtos/google-auth.dto';
 import { FindOneOptions } from 'typeorm';
+import { MapsService } from 'src/maps/maps.service';
 
 @Injectable()
 export class AuthService {
@@ -62,6 +63,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly mailService: MailsService,
     private readonly configService: ConfigService,
+    private readonly mapsService: MapsService,
   ) {
     this.googleClient = new OAuth2Client(
       this.configService.get<string>('GOOGLE_CLIENT_ID'),
@@ -202,17 +204,35 @@ export class AuthService {
 
     await this.peopleRepository.save(newPeople);
 
-    // Crear el negocio asociado
+    // 🌍 Obtener coordenadas automáticamente usando MapsService
+    const coordinates = await this.mapsService.getCoordinates(businessData.business_address);
+    
+    let latitude: number | null = null;
+    let longitude: number | null = null;
+    
+    if (coordinates) {
+      latitude = coordinates.lat;
+      longitude = coordinates.lon;
+    }
+
+    // Crear el negocio asociado con coordenadas automáticas
     const newBusiness = this.businessRepository.create({
       business_name: businessData.business_name,
       address: businessData.business_address,
       NIT: businessData.NIT,
       description: businessData.description,
       coordinates: businessData.coordinates,
+      latitude: latitude,
+      longitude: longitude,
       user: newUser,
     });
 
-    await this.businessRepository.save(newBusiness);
+    let savedBusiness;
+    try {
+      savedBusiness = await this.businessRepository.save(newBusiness);
+    } catch (error) {
+      throw new InternalServerErrorException(`Error al crear el negocio: ${error.message}`);
+    }
 
     // Crear relaciones de accesibilidad
     if (
@@ -232,7 +252,7 @@ export class AuthService {
 
         const businessAccessibility =
           this.businessAccessibilityRepository.create({
-            business: newBusiness,
+            business: savedBusiness,
             accessibility: accessibility,
           });
 
@@ -256,10 +276,10 @@ export class AuthService {
       firstLastName: newPeople.firstLastName,
       cellphone: newPeople.cellphone,
       address: newPeople.address,
-      business_id: newBusiness.business_id,
-      business_name: newBusiness.business_name,
-      business_address: newBusiness.address,
-      NIT: newBusiness.NIT,
+      business_id: savedBusiness.business_id,
+      business_name: savedBusiness.business_name,
+      business_address: savedBusiness.address,
+      NIT: savedBusiness.NIT,
       rolIds: rolIds,
       accessibilityIds: businessData.accessibilityIds || [],
     };

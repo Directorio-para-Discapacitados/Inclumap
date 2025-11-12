@@ -18,6 +18,7 @@ import { LocalRecognitionModule } from './local-recognition/local-recognition.mo
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { UserRolModule } from './user_rol/user_rol.module';
 import { ReviewModule } from './review/review.module';
+import { MapsModule } from './maps/maps.module';
 
 
 
@@ -56,6 +57,7 @@ import { ReviewModule } from './review/review.module';
     LocalRecognitionModule,
     CloudinaryModule,
     ReviewModule,
+    MapsModule,
   ],
   controllers: [AppController],
   providers: [AppService, GoogleStrategy],

@@ -161,4 +161,50 @@ export class BusinessController {
       throw error;
     }
   }
+
+  @Patch('regeocoding')
+  @Roles(1) // Solo administradores pueden ejecutar re-geocodificación masiva
+  async regeocodeBusinesses(): Promise<{ 
+    message: string; 
+    processed: number; 
+    updated: number; 
+    failed: string[] 
+  }> {
+    try {
+      console.log('🗺️ Iniciando re-geocodificación masiva de negocios...');
+      const result = await this._businessService.regeocodeBusinessesWithoutCoordinates();
+      
+      return {
+        message: 'Proceso de re-geocodificación completado',
+        processed: result.processed,
+        updated: result.updated,
+        failed: result.failed,
+      };
+    } catch (error) {
+      console.error('Error en re-geocodificación masiva:', error);
+      throw error;
+    }
+  }
+
+  @Patch(':id/coordinates')
+  @Roles(1, 3) // Administradores y propietarios pueden actualizar coordenadas
+  async updateBusinessCoordinates(
+    @Param('id') id: string,
+  ): Promise<{ message: string }> {
+    const businessId = parseInt(id, 10);
+    
+    if (isNaN(businessId)) {
+      throw new BadRequestException('ID de negocio inválido');
+    }
+
+    try {
+      console.log(`🗺️ Actualizando coordenadas del negocio ${businessId}...`);
+      const message = await this._businessService.updateBusinessCoordinates(businessId);
+      
+      return { message };
+    } catch (error) {
+      console.error('Error al actualizar coordenadas:', error);
+      throw error;
+    }
+  }
 }
