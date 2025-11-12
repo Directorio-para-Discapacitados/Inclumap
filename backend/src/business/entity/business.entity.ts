@@ -1,4 +1,5 @@
 import { BusinessAccessibilityEntity } from "src/business_accessibility/entity/business_accessibility.entity";
+import { ReviewEntity } from "src/review/entity/review.entity";
 import { UserEntity } from "src/user/entity/user.entity";
 import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 
@@ -27,6 +28,12 @@ export class BusinessEntity {
 
     @Column({type: 'varchar', length: 255})
     coordinates: string;
+
+    @Column({ type: 'decimal', precision: 3, scale: 2, default: 0.0, name: 'average_rating',})
+    average_rating: number; 
+
+    @OneToMany(() => ReviewEntity, (review) => review.business)
+    reviews: ReviewEntity[]; 
 
     @OneToMany(() => BusinessAccessibilityEntity, (businessAccessibility) => businessAccessibility.business, { cascade: true })
     business_accessibility: BusinessAccessibilityEntity[];

@@ -1,0 +1,186 @@
+import {
+    Injectable,
+    NotFoundException,
+    ConflictException,
+    ForbiddenException,
+  } from '@nestjs/common';
+  import { InjectRepository } from '@nestjs/typeorm';
+  import { BusinessEntity } from 'src/business/entity/business.entity';
+  import { UserEntity } from 'src/user/entity/user.entity';
+  import { Repository } from 'typeorm';
+  import { CreateReviewDto } from './dto/create-review.dto';
+  import { ReviewEntity } from './entity/review.entity';
+  import { UpdateReviewDto } from './dto/update-review.dto';
+  
+  @Injectable()
+  export class ReviewService {
+    constructor(
+      @InjectRepository(ReviewEntity)
+      private readonly reviewRepository: Repository<ReviewEntity>,
+      @InjectRepository(BusinessEntity)
+      private readonly businessRepository: Repository<BusinessEntity>,
+    ) {}
+  
+    //Crea una nueva reseña.
+     
+    async create(
+      createReviewDto: CreateReviewDto,
+      user: UserEntity,
+    ): Promise<ReviewEntity> {
+      const { business_id, rating, comment } = createReviewDto;
+  
+      const business = await this.businessRepository.findOne({
+        where: { business_id },
+      });
+      if (!business) {
+        throw new NotFoundException(
+          `Local (Business) con ID ${business_id} no encontrado`,
+        );
+      }
+  
+      const existingReview = await this.reviewRepository.findOne({
+        where: {
+          business: { business_id: business.business_id },
+          user: { user_id: user.user_id },
+        },
+      });
+  
+      if (existingReview) {
+        throw new ConflictException(
+          'Ya has enviado una reseña para este local.',
+        );
+      }
+  
+      const newReview = this.reviewRepository.create({
+        rating,
+        comment,
+        business,
+        user,
+      });
+  
+      const savedReview = await this.reviewRepository.save(newReview);
+  
+      // Recalculamos el promedio
+      const newAverage = await this.updateBusinessAverageRating(business_id);
+  
+      // Usamos nuestra función privada para construir la respuesta
+      const cleanResponse = await this.findReviewClean(savedReview.review_id);
+      
+      // Asignamos el promedio actualizado a la respuesta
+      cleanResponse.business.average_rating = newAverage;
+  
+      return cleanResponse;
+    }
+  
+    //Actualiza una reseña existente.
+    
+    async update(
+      review_id: number,
+      updateReviewDto: UpdateReviewDto,
+      user: UserEntity,
+    ): Promise<ReviewEntity> {
+      
+      const review = await this.reviewRepository.findOne({
+        where: { review_id },
+        relations: ['user', 'business'], 
+      });
+  
+      if (!review) {
+        throw new NotFoundException(`Reseña con ID ${review_id} no encontrada.`);
+      }
+  
+      if (review.user.user_id !== user.user_id) {
+        throw new ForbiddenException(
+          'No tienes permiso para actualizar esta reseña.',
+        );
+      }
+  
+      const updatedReview = this.reviewRepository.merge(review, updateReviewDto);
+      await this.reviewRepository.save(updatedReview);
+  
+      const newAverage = await this.updateBusinessAverageRating(
+        review.business.business_id,
+      );
+  
+      // Usamos nuestra función privada para construir la respuesta
+      const cleanResponse = await this.findReviewClean(review_id);
+      
+      // Asignamos el promedio actualizado a la respuesta
+      cleanResponse.business.average_rating = newAverage;
+  
+      return cleanResponse;
+    }
+    
+ //Obtiene todas las reseñas de un local (versión minimalista).
+     
+    async getReviewsForBusiness(business_id: number): Promise<ReviewEntity[]> {
+      return this.reviewRepository
+        .createQueryBuilder('review')
+        .leftJoin('review.business', 'business')
+        .leftJoin('review.user', 'user')
+        .select([
+          // Reseña
+          'review.review_id',
+          'review.rating',
+          'review.comment',
+          'review.created_at',
+          // Usuario (Solo ID)
+          'user.user_id',
+        ])
+        .where('business.business_id = :business_id', { business_id })
+        .orderBy('review.created_at', 'DESC')
+        .getMany();
+    }
+  
+  
+     //Función privada para recalcular el promedio.
+     
+    private async updateBusinessAverageRating(
+      business_id: number,
+    ): Promise<number> {
+      const result = await this.reviewRepository
+        .createQueryBuilder('review')
+        .select('AVG(review.rating)', 'avg')
+        .where('review.business_id = :business_id', { business_id })
+        .getRawOne();
+  
+      const average_rating = parseFloat(result.avg) || 0.0;
+      const rounded_average = Number(average_rating.toFixed(2));
+  
+      await this.businessRepository.update(
+        { business_id },
+        { average_rating: rounded_average },
+      );
+  
+      return rounded_average;
+    }
+  
+     //Busca una reseña por ID y devuelve solo los campos seguros.
+    private async findReviewClean(review_id: number): Promise<ReviewEntity> {
+      const review = await this.reviewRepository
+        .createQueryBuilder('review')
+        .leftJoin('review.business', 'business')
+        .leftJoin('review.user', 'user')
+        .select([
+          // Reseña
+          'review.review_id',
+          'review.rating',
+          'review.comment',
+          'review.created_at',
+          // Local (Business)
+          'business.business_id',
+          'business.business_name',
+          'business.average_rating',
+          // Usuario (User)
+          'user.user_id',
+        ])
+        .where('review.review_id = :review_id', { review_id })
+        .getOne();
+  
+      if (!review) {
+        throw new NotFoundException(`Reseña con ID ${review_id} no encontrada.`);
+      }
+  
+      return review;
+    }
+  }

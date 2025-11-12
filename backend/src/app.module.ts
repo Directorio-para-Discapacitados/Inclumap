@@ -17,6 +17,8 @@ import { RolesModule } from './roles/roles.module';
 import { LocalRecognitionModule } from './local-recognition/local-recognition.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { UserRolModule } from './user_rol/user_rol.module';
+import { ReviewModule } from './review/review.module';
+
 
 
 
@@ -52,7 +54,8 @@ import { UserRolModule } from './user_rol/user_rol.module';
     MailsModule,
     ChatbotModule,
     LocalRecognitionModule,
-    CloudinaryModule
+    CloudinaryModule,
+    ReviewModule,
   ],
   controllers: [AppController],
   providers: [AppService, GoogleStrategy],
