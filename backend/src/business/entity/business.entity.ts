@@ -26,8 +26,14 @@ export class BusinessEntity {
     @Column({type: 'varchar', length: 255})
     description: string;
 
-    @Column({type: 'varchar', length: 255})
+    @Column({type: 'varchar', length: 255, nullable: true})
     coordinates: string;
+
+    @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true, name: 'latitude' })
+    latitude: number | null;
+
+    @Column({ type: 'decimal', precision: 11, scale: 8, nullable: true, name: 'longitude' })
+    longitude: number | null;
 
     @Column({ type: 'decimal', precision: 3, scale: 2, default: 0.0, name: 'average_rating',})
     average_rating: number; 
