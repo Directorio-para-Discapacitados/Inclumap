@@ -228,3 +228,32 @@
 .search-results-info .clear-btn:hover { color:#c82333; }
 .no-results { text-align:center; font-size:1.1rem; color:#dc3545; padding:2rem; background:#fff5f5; border:1px solid #dc3545; border-radius:8px; grid-column: 1 / -1; }
 
+/* --- Modern business cards --- */
+.cards-grid { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 900px) { .cards-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .cards-grid { grid-template-columns: 1fr; } }
+
+.biz-card { 
+  display: grid; 
+  grid-template-columns: 80px 1fr; 
+  gap: 16px; 
+  text-align: left; 
+  align-items: center; 
+  transition: transform 200ms ease, box-shadow 200ms ease, background-color 200ms ease, border-color 200ms ease;
+}
+.biz-thumb { 
+  width: 80px; height: 80px; border-radius: 12px; overflow: hidden; background: #f1f5f9; display:flex; align-items:center; justify-content:center; 
+}
+.biz-thumb img { width: 100%; height: 100%; object-fit: cover; display:block; transition: transform 300ms ease; }
+.biz-body {}
+.biz-title { margin: 0 0 4px; color:#0f3a5a; font-weight: 800; font-size: 1.1rem; }
+.biz-address { margin: 0 0 10px; color:#475569; font-size: 0.95rem; }
+.biz-meta { display:flex; gap: 10px; align-items:center; flex-wrap: wrap; }
+.biz-owner { background:#eef6ff; color:#0f4a73; padding: 4px 10px; border-radius:999px; font-size: 0.8rem; font-weight: 600; }
+.biz-rating { background:#fff7e6; color:#ad6800; padding: 4px 10px; border-radius:999px; font-size: 0.8rem; font-weight: 700; }
+
+/* Hover (over) effects */
+.biz-card:hover { transform: translateY(-4px); box-shadow: 0 14px 40px rgba(13,21,40,0.12); background: #ffffff; }
+.biz-card:hover .biz-thumb img { transform: scale(1.06); }
+.biz-card:hover .biz-title { color: #123252; }
+

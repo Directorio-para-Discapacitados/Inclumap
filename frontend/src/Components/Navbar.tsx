@@ -57,7 +57,38 @@ export default function Navbar() {
 
   const clearSearch = () => {
     setSearchQuery("");
+    if (location.pathname === "/") {
+      window.history.replaceState({}, "", location.pathname);
+    }
+    // Notificar a la página de inicio para ocultar resultados inmediatamente
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('inclumap:clear-search'));
+    }
   };
+
+  useEffect(() => {
+    if (!showSearch) return;
+    const params = new URLSearchParams(location.search);
+    const q = (params.get("q") || "").trim();
+    setSearchQuery(q);
+  }, [location.pathname, location.search, showSearch]);
+
+  useEffect(() => {
+    if (!showSearch) return;
+    const timer = setTimeout(() => {
+      const trimmed = searchQuery.trim();
+      const params = new URLSearchParams(location.search);
+      const current = (params.get("q") || "").trim();
+      if (trimmed) {
+        if (current !== trimmed) {
+          navigate(`/?q=${encodeURIComponent(trimmed)}`, { replace: true });
+        }
+      } else if (location.search) {
+        window.history.replaceState({}, "", location.pathname);
+      }
+    }, 200);
+    return () => clearTimeout(timer);
+  }, [searchQuery, showSearch, navigate, location.pathname, location.search]);
 
   return (
     <nav className={`navbar ${darkMode ? "dark" : ""}`}>
@@ -72,10 +103,20 @@ export default function Navbar() {
           <div className="search-container">
             <input
               type="text"
-              placeholder="Buscar lugares accesibles..."
+              placeholder="Buscar nombre de lugares"
               className="search-input"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                const v = e.target.value;
+                setSearchQuery(v);
+                if (!v.trim() && location.search) {
+                  // Limpiar inmediatamente el parámetro q para ocultar locales al borrar todo
+                  window.history.replaceState({}, "", location.pathname);
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('inclumap:clear-search'));
+                  }
+                }
+              }}
               onKeyDown={handleSearch}
             />
 
