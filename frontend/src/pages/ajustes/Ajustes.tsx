@@ -1,15 +1,15 @@
 // frontend/src/pages/ajustes/Ajustes.tsx
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import UserSettings from '../../Components/UserSettings/UserSettings';
 import './Ajustes.css';
 
 const AjustesPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const isAdmin = user?.rolIds?.includes(1);
+  const [showSecuritySection, setShowSecuritySection] = useState(false);
 
   return (
     <div className="ajustes-page">
@@ -87,7 +87,64 @@ const AjustesPage = () => {
         ) : (
           // Configuración de cuenta para usuarios regulares y propietarios
           <div className="user-settings-wrapper">
-            <UserSettings />
+            {/* Sección de Seguridad */}
+            <div className="security-section">
+              <div 
+                className="security-header"
+                onClick={() => setShowSecuritySection(!showSecuritySection)}
+              >
+                <div className="security-icon-wrapper">
+                  <span className="security-icon">🔒</span>
+                </div>
+                <div className="security-content">
+                  <h3>Seguridad</h3>
+                  <p>Gestiona tu contraseña y configuración de seguridad</p>
+                </div>
+                <div className={`security-arrow ${showSecuritySection ? 'expanded' : ''}`}>
+                  ▼
+                </div>
+              </div>
+              
+              {showSecuritySection && (
+                <div className="security-options">
+                  <div className="security-option">
+                    <div className="option-header">
+                      <div className="option-icon">🔑</div>
+                      <div className="option-content">
+                        <h4>Cambiar contraseña</h4>
+                        <p>Actualiza tu contraseña para mantener tu cuenta segura</p>
+                      </div>
+                    </div>
+                    <div className="password-change-form">
+                      <div className="form-group">
+                        <label htmlFor="current-password">Contraseña actual</label>
+                        <input 
+                          type="password" 
+                          id="current-password" 
+                          placeholder="Ingresa tu contraseña actual"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label htmlFor="new-password">Nueva contraseña</label>
+                        <input 
+                          type="password" 
+                          id="new-password" 
+                          placeholder="Ingresa tu nueva contraseña"
+                        />
+                      </div>
+                      <div className="form-actions">
+                        <button type="button" className="btn-cancel">
+                          Cancelar
+                        </button>
+                        <button type="button" className="btn-save">
+                          Actualizar contraseña
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
