@@ -106,7 +106,7 @@ import { RolEntity } from 'src/roles/entity/rol.entity';
         return negocios.map((negocio) => {
           // Transformar los roles del usuario a un formato más simple
           const userWithRoles = negocio.user ? {
-            ...negocio.user,
+            user_id: negocio.user.user_id,
             roles: negocio.user.userroles?.map(userRole => ({
               id: userRole.rol.rol_id,
               name: userRole.rol.rol_name
