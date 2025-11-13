@@ -13,6 +13,7 @@ import AdminLoginPage from './pages/adminLogin/AdminLogin';
 import GestionUsuarios from "./pages/admin/gestion-roles/usuarios/GestionUsuarios";
 import GestionPropietarios from "./pages/admin/gestion-roles/propietarios/GestionPropietarios";
 import CrearNegocio from "./pages/crearNegocio/CrearNegocio";
+import LocalDetalle from "./pages/local/LocalDetalle";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -58,6 +59,7 @@ function App() {
               />
 
             </Route>
+            <Route path="/local/:id" element={<LocalDetalle />} />
           </Routes>
         </main>
         <ChatWidget />

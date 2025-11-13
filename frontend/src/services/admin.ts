@@ -203,11 +203,20 @@ export const getAllBusinesses = async () => {
       
       const normalizedBusiness = {
         id: b.id ?? b.business_id,
+        business_id: b.business_id ?? b.id,
         name: b.name ?? b.business_name,
+        business_name: b.business_name ?? b.name,
+        address: b.address,
+        average_rating: b.average_rating,
+        logo_url: b.logo_url,
         user: b.user ? {
           id: b.user.id ?? b.user.user_id,
           email: b.user.email ?? b.user.user_email,
           user_email: b.user.user_email ?? b.user.email, // Mantenemos ambos para compatibilidad
+          people: b.user.people ? {
+            firstName: b.user.people.firstName ?? b.user.people.first_name,
+            firstLastName: b.user.people.firstLastName ?? b.user.people.first_last_name,
+          } : undefined,
           roles: Array.isArray(b.user.roles)
             ? b.user.roles.map((r: any) => ({ 
                 id: r.id ?? r.rol_id, 

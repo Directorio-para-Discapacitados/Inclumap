@@ -91,8 +91,9 @@ import { RolEntity } from 'src/roles/entity/rol.entity';
     try {
       const negocios = await this._businessRepository.find({
           relations: [
-            'user', 
-            'user.userroles', 
+            'user',
+            'user.people',
+            'user.userroles',
             'user.userroles.rol',
             'business_accessibility'
           ],
@@ -109,7 +110,11 @@ import { RolEntity } from 'src/roles/entity/rol.entity';
             roles: negocio.user.userroles?.map(userRole => ({
               id: userRole.rol.rol_id,
               name: userRole.rol.rol_name
-            })) || []
+            })) || [],
+            people: negocio.user.people ? {
+              firstName: (negocio.user.people as any).firstName || (negocio.user.people as any).first_name,
+              firstLastName: (negocio.user.people as any).firstLastName || (negocio.user.people as any).first_last_name,
+            } : undefined,
           } : null;
 
           return {

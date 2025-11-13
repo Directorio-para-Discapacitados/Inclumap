@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { BusinessService } from './business.service';
 import { BusinessController } from './business.controller';
+import { BusinessPublicController } from './business.public.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module'; 
@@ -17,7 +18,7 @@ import { RolEntity } from '../roles/entity/rol.entity';
     CloudinaryModule, 
     MapsModule,
   ],
-  controllers: [BusinessController],
+  controllers: [BusinessController, BusinessPublicController],
   providers: [BusinessService],
 })
 export class BusinessModule {}
