@@ -31,11 +31,9 @@ body {
   El 'padding' solo se aplicará DENTRO del 'max-width'.
 */
 #root {
-  max-width: 1400px; /* Ancho máximo de tu contenido */
   margin: 0 auto;    /* Centra el contenido automáticamente */
   
   /* Añadimos padding solo a los lados, pero no causará scroll */
-  padding: 0 1rem; 
   
   /* Asegura que el #root ocupe al menos toda la pantalla menos el navbar */
   min-height: calc(100vh - var(--navbar-height));
