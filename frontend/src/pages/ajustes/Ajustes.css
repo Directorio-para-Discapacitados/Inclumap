@@ -518,11 +518,22 @@ body.dark-mode .card-icon-wrapper {
   color: var(--color-text-muted, #656d76);
 }
 
+/* --- INICIO DE LA CORRECCIÓN DE BOTONES --- */
 .form-actions {
   display: flex;
-  gap: 0.75rem;
+  flex-direction: column;
+  align-items: flex-end;  /* <-- MODIFICADO: Alinea todo a la derecha */
+  gap: 1rem;              /* Espacio entre el link y los botones */
   margin-top: 1.5rem;
 }
+
+.form-actions-buttons {
+  display: flex;
+  gap: 0.75rem;
+  /* Ya no se necesita width: 100% ni justify-content */
+}
+/* --- FIN DE LA CORRECCIÓN DE BOTONES --- */
+
 
 .btn-cancel,
 .btn-save {
@@ -571,4 +582,137 @@ body.dark-mode .form-group input {
   background-color: var(--color-surface, #2a2a2a);
   border-color: var(--color-border, #3a3a3a);
   color: var(--color-text-primary, #f0f0f0);
+}
+
+
+/* --- INICIO DE ESTILOS FALTANTES --- */
+
+/* Estilos para los mensajes de éxito y error */
+.success-message {
+  color: #1f6d3a;
+  background-color: #dafbe1;
+  border: 1px solid rgba(46, 160, 67, 0.4);
+  padding: 10px 15px;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  text-align: left;
+}
+
+.error-message {
+  color: #c93c37;
+  background-color: #ffebe9;
+  border: 1px solid rgba(248, 81, 73, 0.4);
+  padding: 10px 15px;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  text-align: left;
+}
+
+/* Estilo para el nuevo enlace "Olvidé contraseña" */
+.forgot-password-link {
+  background: none;
+  border: none;
+  color: var(--color-link, #0969da);
+  cursor: pointer;
+  padding: 0;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 0.2s ease-in-out;
+}
+
+.forgot-password-link:hover {
+  color: var(--color-link-hover, #0860ca);
+  text-decoration: underline;
+}
+
+/* Estilo para el enlace cuando está deshabilitado */
+.forgot-password-link[style*="pointer-events: none"] { 
+  color: var(--color-text-muted, #656d76);
+  cursor: default;
+  text-decoration: none;
+}
+
+/* --- AÑADIR AL FINAL DE Ajustes.css --- */
+
+/* Estilos para el Modal de Reseteo de Contraseña */
+.reset-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.reset-modal-content {
+  background-color: var(--color-bg-primary, #ffffff);
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 450px;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reset-modal-content h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: var(--color-text-primary, #24292f);
+  font-weight: 600;
+}
+
+.reset-modal-content p {
+  margin-bottom: 1.5rem;
+  color: var(--color-text-muted, #656d76);
+  font-size: 0.875rem;
+}
+
+.reset-modal-form .form-group input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border, #d1d9e0);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  background-color: var(--color-bg-primary, #ffffff);
+  color: var(--color-text-primary, #24292f);
+  transition: border-color 0.15s ease;
+  box-sizing: border-box; 
+}
+
+.reset-modal-form .form-group input:focus {
+  outline: none;
+  border-color: var(--color-link, #0969da);
+  box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.1);
+}
+
+
+.reset-modal-form .form-actions-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
 }
