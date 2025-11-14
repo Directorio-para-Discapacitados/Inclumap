@@ -1,0 +1,52 @@
+name: CI/CD Frontend (React)
+
+on:
+  push:
+    branches:
+      - main 
+    paths:
+      - 'frontend/**' 
+  pull_request:
+    branches:
+      - main 
+    paths:
+      - 'frontend/**'
+
+jobs:
+  ci_frontend:
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: ./frontend 
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' 
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json 
+
+      - name: Instalar dependencias
+        run: npm ci 
+
+      - name: Ejecutar Linting
+        run: npm run lint
+      
+      - name: Compilar y verificar (Build Check)
+        env:
+          # Inyectamos las variables de entorno para el build
+          VITE_API_URL: http://localhost:9080
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+        run: npm run build
+      
+      - name: Subir Artifacto de Build
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-frontend
+          path: ./dist 
+          retention-days: 1
