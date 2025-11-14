@@ -16,6 +16,7 @@ import CrearNegocio from "./pages/crearNegocio/CrearNegocio";
 import LocalDetalle from "./pages/local/LocalDetalle";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Footer from "./Components/Footer";
 
 function App() {
   return (
@@ -62,6 +63,7 @@ function App() {
             <Route path="/local/:id" element={<LocalDetalle />} />
           </Routes>
         </main>
+        <Footer />
         <ChatWidget />
         <ToastContainer
           position="top-right"

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "./Registro.css";
+import "./registro.css";
 import { Eye, EyeOff, HelpCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
