@@ -2,10 +2,10 @@ name: CI de Backend (NestJS con Postgres)
 
 on:
   push:
-    branches: [ main ] 
+    branches: [ main ]
     paths: [ 'backend/**' ]
   pull_request:
-    branches: [ main ] 
+    branches: [ main ]
     paths: [ 'backend/**' ]
 
 jobs:
@@ -48,7 +48,6 @@ jobs:
         run: npm run lint
 
       - name: Cargar variables de entorno de APP_SECRETS
-        # Este comando lee el secret grande y lo "expone" como variables
         run: echo "${{ secrets.APP_SECRETS }}" >> $GITHUB_ENV
 
       - name: Configurar credenciales de Google Vision
@@ -56,7 +55,6 @@ jobs:
         
       - name: Ejecutar Pruebas (Unit & E2E)
         env:
-          # Definimos las variables de la BD manualmente
           DB_HOST: postgres
           DB_PORT: 5432
           DB_DATABASE: ${{ secrets.DB_DATABASE }}
