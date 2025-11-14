@@ -22,6 +22,20 @@ export default function Login() {
   const { login } = useAuth();
   const isValid = email && password;
 
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('savedAccounts');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          setSavedAccounts(parsed);
+        }
+      }
+    } catch {
+      // ignorar errores de lectura de localStorage
+    }
+  }, []);
+
   const decodeJwt = (token: string): any => {
     try {
       const base64Url = token.split(".")[1];
@@ -63,6 +77,21 @@ export default function Login() {
         } else {
           // Si NO es Admin (Usuario o Propietario), proceder con tu lógica original
           await login(res.token);
+          // Guardar o eliminar la cuenta según "Recordarme"
+          try {
+            const next = [...savedAccounts];
+            const idx = next.findIndex((a) => a.email === email);
+            if (rememberMe) {
+              const entry = { email, password };
+              if (idx >= 0) next[idx] = entry; else next.push(entry);
+            } else if (idx >= 0) {
+              next.splice(idx, 1);
+            }
+            localStorage.setItem('savedAccounts', JSON.stringify(next));
+            setSavedAccounts(next);
+          } catch {
+            // si falla localStorage no debe romper el login
+          }
           const firstName = payload?.firstName || "";
           const lastName = payload?.firstLastName || "";
           const name = `${firstName} ${lastName}`.trim() || email;
@@ -211,7 +240,10 @@ export default function Login() {
                   const v = e.target.value;
                   setEmail(v);
                   const acc = savedAccounts.find((a) => a.email === v);
-                  if (acc) setPassword(acc.password);
+                  if (acc) {
+                    setPassword(acc.password);
+                    setRememberMe(true);
+                  }
                 }}
                 required
               />
