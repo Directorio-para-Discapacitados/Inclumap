@@ -145,6 +145,7 @@ export default function Navbar() {
             <li className="profile-container" ref={profileMenuRef}>
               <div onClick={handleProfileClick} className="profile-trigger">
                 <Avatar
+                  key={user?.avatar || 'default-trigger'}
                   src={user?.avatar}
                   alt="Perfil"
                   size="small"
@@ -156,6 +157,7 @@ export default function Navbar() {
                 <div className="profile-menu">
                   <div className="profile-info">
                     <Avatar
+                      key={user?.avatar || 'default-menu'}
                       src={user?.avatar}
                       alt="Perfil"
                       size="medium"

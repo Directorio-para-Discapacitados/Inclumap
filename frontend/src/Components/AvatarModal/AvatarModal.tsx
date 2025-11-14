@@ -70,12 +70,16 @@ export default function AvatarModal({
     setLoading(true);
     try {
       const response = await avatarService.uploadAvatar(user.user_id, selectedFile);
+      console.log('Avatar upload response:', response);
       
-      // Actualizar el avatar en el componente padre
-      onAvatarUpdate(response.avatar_url);
-      
-      // Actualizar el contexto de usuario
+      // Actualizar el contexto de usuario primero
+      console.log('Calling refreshUser...');
       await refreshUser();
+      console.log('refreshUser completed');
+      
+      // Luego actualizar el avatar en el componente padre
+      onAvatarUpdate(response.avatar_url);
+      console.log('onAvatarUpdate called with:', response.avatar_url);
       
       toast.success(response.message || 'Avatar actualizado exitosamente');
       handleClose();

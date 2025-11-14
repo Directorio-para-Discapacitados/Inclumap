@@ -114,6 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const data = await resp.json();
+      console.log('Profile data received:', data);
       
       setUser({
         user_id: data.user_id,
@@ -123,6 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         rolIds: data.rolIds,
         avatar: data.avatar,
       });
+      console.log('User updated with avatar:', data.avatar);
       setIsAuthenticated(true);
       return true;
     } catch (err) {
@@ -160,9 +162,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const refreshUser = async () => {
+    console.log('refreshUser called');
     const token = localStorage.getItem('token');
     if (token) {
+      console.log('Token found, calling fetchUserFromServer');
       await fetchUserFromServer(token);
+    } else {
+      console.log('No token found');
     }
   };
 
