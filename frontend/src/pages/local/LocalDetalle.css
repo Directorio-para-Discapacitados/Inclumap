@@ -1,6 +1,4 @@
-/* ===========================
-   CONTENEDOR GENERAL
-   =========================== */
+/*CONTENEDOR GENERAL*/
 .local-details-container {
   width: 100%;
   max-width: 900px;
@@ -17,9 +15,7 @@
   box-shadow: 0 15px 48px rgba(0, 0, 0, 0.12);
 }
 
-/* ===========================
-   IMAGEN PRINCIPAL
-   =========================== */
+/*IMAGEN PRINCIPAL*/
 .local-details-image {
   width: 100%;
   border-radius: 18px;
@@ -33,9 +29,7 @@
   transform: scale(1.01);
 }
 
-/* ===========================
-   NOMBRE + ESTRELLAS
-   =========================== */
+/*NOMBRE + ESTRELLAS*/
 .local-details-header {
   margin-top: 22px;
   display: flex;
@@ -63,9 +57,7 @@
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
 }
 
-/* ===========================
-   ACCESIBILIDAD
-   =========================== */
+/*ACCESIBILIDAD*/
 .accessibility-section {
   margin-top: 40px;
 }
@@ -135,9 +127,7 @@
   bottom: -52px;
 }
 
-/* ===========================
-   BOTONES
-   =========================== */
+/*BOTONES*/
 .local-details-buttons {
   margin-top: 45px;
   display: flex;
@@ -172,9 +162,7 @@
   height: 22px;
 }
 
-/* ===========================
-   RESEÑAS
-   =========================== */
+/*RESEÑAS*/
 .reviews-section {
   margin-top: 50px;
   padding: 26px;
@@ -250,9 +238,7 @@
   line-height: 1.55;
 }
 
-/* ===========================
-   RESPONSIVE
-   =========================== */
+/* RESPONSIVE*/
 @media (max-width: 768px) {
   .local-details-container { padding: 20px; }
   .local-details-name { font-size: 28px; }
@@ -266,9 +252,7 @@
   .accessibility-icon-wrapper svg { width: 32px; height: 32px; }
 }
 
-/* ===========================
-   MODO OSCURO
-   =========================== */
+/*MODO OSCURO*/
 body.dark-mode .local-details-container {
   background: #1a1a1a;
   color: #e0e0e0;
