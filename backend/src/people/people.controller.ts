@@ -28,6 +28,15 @@ export class PeopleController {
     return await this._peopleService.obtenerPersonaPorUserId(user.user_id);
   }
 
+  @Put('my-profile')
+  @Roles(1, 2, 3)
+  async actualizarMiPerfil(
+    @User() user: any,
+    @Body() updatePeopleDto: UpdatePeopleDto
+  ) {
+    return this._peopleService.actualizarMiPerfil(user.user_id, updatePeopleDto);
+  }
+
   @Get(':id')
   @Roles(1, 2, 3)
   async obtenerPersonaPorId(@Param('id') id: number): Promise<PeopleEntity> {

@@ -71,6 +71,12 @@ export class AuthController {
     return this.authService.changePassword(user.user_id, changePasswordDto);
   }
 
+  @Get('profile')
+  @UseGuards(JwtAuthGuard)
+  async getProfile(@User() user: any) {
+    return this.authService.getProfile(user.user_id);
+  }
+
   // --- ENDPOINT ACTUALIZADO ---
   @Post('google')
   async googleAuth(@Body() googleAuthDto: GoogleAuthDto) {

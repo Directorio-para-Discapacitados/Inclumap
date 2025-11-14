@@ -823,5 +823,66 @@ export class AuthService {
     }
   }
 
+  async getProfile(userId: number): Promise<any> {
+    try {
+      // Obtener el usuario con todas las relaciones necesarias
+      const user = await this.userRepository.findOne({
+        where: { user_id: userId },
+        relations: ['people', 'business', 'userroles', 'userroles.rol'],
+      });
+
+      if (!user) {
+        throw new NotFoundException('Usuario no encontrado');
+      }
+
+      // Obtener los IDs de roles
+      const rolIds = user.userroles?.map((userRole) => userRole.rol.rol_id) || [];
+      
+      // Determinar el tipo de usuario y construir displayName
+      let displayName: string;
+      let roleDescription: string;
+      
+      if (rolIds.includes(3) && user.business?.business_name) {
+        // Propietario de negocio
+        displayName = user.business.business_name;
+        roleDescription = "Propietario";
+      } else if (user.people) {
+        // Usuario normal
+        displayName = `${user.people.firstName} ${user.people.firstLastName}`.trim();
+        roleDescription = this.getRoleDescription(rolIds);
+      } else {
+        displayName = "Usuario";
+        roleDescription = this.getRoleDescription(rolIds);
+      }
+
+      return {
+        user_id: user.user_id,
+        displayName,
+        roleDescription,
+        email: user.user_email,
+        rolIds,
+        avatar: user.avatar_url || null,
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      console.error('Error getting profile:', error);
+      throw new InternalServerErrorException('Error al obtener el perfil');
+    }
+  }
+
+  private getRoleDescription(rolIds: number[]): string {
+    if (rolIds.includes(3)) {
+      return "Propietario";
+    }
+    if (rolIds.includes(1)) {
+      return "Administrador";
+    }
+    if (rolIds.includes(2)) {
+      return "Usuario";
+    }
+    return "Usuario";
+  }
 
 }

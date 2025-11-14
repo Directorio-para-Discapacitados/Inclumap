@@ -158,4 +158,45 @@ export class PeopleService {
       throw new InternalServerErrorException('Error al actualizar la persona');
     }
   }
+
+  async actualizarMiPerfil(userId: number, dto: UpdatePeopleDto): Promise<string> {
+    try {
+      // Buscar la persona por user_id
+      const persona = await this._peopleRepository.findOne({
+        where: { user: { user_id: userId } }
+      });
+
+      if (!persona) {
+        throw new NotFoundException('Perfil no encontrado');
+      }
+
+      // Actualizar los campos si están presentes en el DTO
+      if (dto.firstName !== undefined) {
+        persona.firstName = dto.firstName;
+      }
+      if (dto.firstLastName !== undefined) {
+        persona.firstLastName = dto.firstLastName;
+      }
+      if (dto.cellphone !== undefined) {
+        persona.cellphone = dto.cellphone;
+      }
+      if (dto.address !== undefined) {
+        persona.address = dto.address;
+      }
+      if (dto.gender !== undefined) {
+        persona.gender = dto.gender;
+      }
+
+      // Guardar los cambios
+      await this._peopleRepository.save(persona);
+
+      return 'Perfil actualizado correctamente';
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      console.error('Error updating profile:', error);
+      throw new InternalServerErrorException('Error al actualizar el perfil');
+    }
+  }
 }
