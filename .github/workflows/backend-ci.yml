@@ -50,6 +50,17 @@ jobs:
       - name: Cargar variables de entorno de APP_SECRETS
         run: echo "${{ secrets.APP_SECRETS }}" >> $GITHUB_ENV
 
+      - name: Instalar netcat (Herramienta de red)
+        run: sudo apt-get update && sudo apt-get install -y netcat
+
+      - name: Esperar a que la Base de Datos esté disponible
+        run: |
+            echo "Esperando a Postgres..."
+            while ! nc -z postgres 5432; do   
+              sleep 1
+            done
+            echo "Postgres está listo."
+
       - name: Configurar credenciales de Google Vision
         run: echo "${{ secrets.GOOGLE_VISION_CREDENTIALS }}" > google-creds.json
         
