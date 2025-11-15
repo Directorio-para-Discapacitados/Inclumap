@@ -129,6 +129,7 @@ import { RolEntity } from 'src/roles/entity/rol.entity';
             average_rating: negocio.average_rating,
             logo_url: negocio.logo_url,
             verification_image_url: negocio.verification_image_url,
+            verified: negocio.verified || false,
             user: userWithRoles, // Usuario con roles transformados
             business_accessibility: negocio.business_accessibility, // Incluir accesibilidades si están disponibles
           };
@@ -160,6 +161,12 @@ import { RolEntity } from 'src/roles/entity/rol.entity';
           NIT: negocio.NIT,
           description: negocio.description,
           coordinates: negocio.coordinates,
+          latitude: negocio.latitude,
+          longitude: negocio.longitude,
+          logo_url: negocio.logo_url,
+          verification_image_url: negocio.verification_image_url,
+          verified: negocio.verified || false,
+          business_accessibility: negocio.business_accessibility,
         };
       } catch (error) {
         throw new InternalServerErrorException('Error al obtener el negocio');
@@ -700,6 +707,98 @@ import { RolEntity } from 'src/roles/entity/rol.entity';
       }
       console.error('❌ Error al actualizar coordenadas:', error);
       throw new InternalServerErrorException('Error al actualizar las coordenadas del negocio');
+    }
+  }
+
+  // Obtener el negocio del usuario autenticado (propietario)
+  async getOwnerBusiness(userId: number): Promise<BusinessEntity> {
+    try {
+      const business = await this._businessRepository.createQueryBuilder('business')
+        .leftJoinAndSelect('business.user', 'user')
+        .leftJoinAndSelect('user.people', 'people')
+        .leftJoinAndSelect('user.userroles', 'userroles')
+        .leftJoinAndSelect('userroles.rol', 'rol')
+        .leftJoinAndSelect('business.business_accessibility', 'accessibility')
+        .where('business.user_id = :userId', { userId })
+        .getOne();
+
+      if (!business) {
+        throw new NotFoundException('No tienes un negocio registrado');
+      }
+
+      return business;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al obtener el negocio del propietario');
+    }
+  }
+
+  // Actualizar el negocio del propietario con validación de permisos
+  async updateOwnerBusiness(
+    businessId: number,
+    updateDto: UpdateBusinessDto,
+    user: UserEntity,
+  ): Promise<BusinessEntity> {
+    try {
+      console.log('🔍 [updateOwnerBusiness] businessId:', businessId, 'updateDto:', updateDto);
+      
+      const business = await this._businessRepository.findOne({
+        where: { business_id: businessId },
+        relations: ['user', 'user.userroles', 'user.userroles.rol'],
+      });
+
+      if (!business) {
+        throw new NotFoundException('Negocio no encontrado');
+      }
+
+      console.log('📊 [updateOwnerBusiness] Business found:', business.business_id);
+
+      // Verificar que el usuario es el propietario o es admin
+      const isAdmin = user.userroles && user.userroles.some(ur => ur.rol?.rol_id === 1);
+      const isOwner = business.user && business.user.user_id === user.user_id;
+
+      console.log('🔐 [updateOwnerBusiness] isAdmin:', isAdmin, 'isOwner:', isOwner, 'user.user_id:', user.user_id, 'business.user.user_id:', business.user?.user_id);
+
+      if (!isAdmin && !isOwner) {
+        throw new ForbiddenException('No tienes permiso para actualizar este negocio');
+      }
+
+      // Actualizar cada campo explícitamente
+      if (updateDto.business_name !== undefined && updateDto.business_name !== null) {
+        business.business_name = updateDto.business_name;
+      }
+      if (updateDto.address !== undefined && updateDto.address !== null) {
+        business.address = updateDto.address;
+      }
+      if (updateDto.description !== undefined && updateDto.description !== null) {
+        business.description = updateDto.description;
+      }
+      // NO actualizar logo con base64 - ignorar si viene en la solicitud
+      if (updateDto.verified !== undefined && updateDto.verified !== null) {
+        console.log('✅ [updateOwnerBusiness] Setting verified to:', updateDto.verified);
+        business.verified = updateDto.verified;
+      }
+
+      console.log('💾 [updateOwnerBusiness] Saving business:', { verified: business.verified, business_name: business.business_name });
+
+      const updatedBusiness = await this._businessRepository.save(business);
+
+      console.log('✔️ [updateOwnerBusiness] Business saved successfully:', updatedBusiness.business_id);
+
+      return updatedBusiness;
+    } catch (error) {
+      console.error('❌ [updateOwnerBusiness] Error:', error.message);
+      console.error('❌ [updateOwnerBusiness] Full error:', error);
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ForbiddenException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al actualizar el negocio: ' + error.message);
     }
   }
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import "./CrearNegocio.css";
 import { HelpCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -132,7 +132,7 @@ export default function CrearNegocio() {
 
       toast.success("✅ Negocio creado exitosamente", {
         position: "top-center",
-        autoClose: 2500,
+        autoClose: 2000,
         onClose: () => navigate("/perfil"),
       });
     } catch (error: any) {

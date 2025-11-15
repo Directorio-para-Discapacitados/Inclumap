@@ -207,4 +207,21 @@ export class BusinessController {
       throw error;
     }
   }
+
+  @Get('owner-business')
+  @UseGuards(JwtAuthGuard)
+  @Roles(2, 3) // Usuarios normales y propietarios pueden acceder a su negocio
+  async getOwnerBusiness(@User() user: UserEntity): Promise<BusinessEntity> {
+    return await this._businessService.getOwnerBusiness(user.user_id);
+  }
+
+  @Patch(':id')
+  @Roles(1, 3) // Admin y propietarios pueden actualizar
+  async updateBusinessProfile(
+    @Param('id') id: number,
+    @Body() updateDto: UpdateBusinessDto,
+    @User() user: UserEntity,
+  ): Promise<BusinessEntity> {
+    return await this._businessService.updateOwnerBusiness(id, updateDto, user);
+  }
 }

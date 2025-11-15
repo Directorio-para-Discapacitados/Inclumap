@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAuth } from '../../context/AuthContext';
 import './ProfileSidebar.css';
 
 interface ProfileSidebarProps {
@@ -11,6 +12,7 @@ interface SidebarItem {
   title: string;
   icon: string;
   description: string;
+  requiredRole?: string;
 }
 
 const sidebarItems: SidebarItem[] = [
@@ -19,10 +21,26 @@ const sidebarItems: SidebarItem[] = [
     title: 'Perfil de Usuario',
     icon: '👤',
     description: 'Información personal y configuración básica'
+  },
+  {
+    id: 'owner-profile',
+    title: 'Perfil de Propietario',
+    icon: '🏪',
+    description: 'Gestiona tu negocio y verificación',
+    requiredRole: 'Propietario'
   }
 ];
 
 export default function ProfileSidebar({ activeSection, onSectionChange }: ProfileSidebarProps) {
+  const { user } = useAuth();
+
+  const visibleItems = sidebarItems.filter(item => {
+    if (item.requiredRole) {
+      return user?.roleDescription === item.requiredRole;
+    }
+    return true;
+  });
+
   return (
     <div className="profile-sidebar">
       <div className="sidebar-header">
@@ -31,7 +49,7 @@ export default function ProfileSidebar({ activeSection, onSectionChange }: Profi
       </div>
       
       <nav className="sidebar-nav">
-        {sidebarItems.map((item) => (
+        {visibleItems.map((item) => (
           <button
             key={item.id}
             className={`sidebar-item ${activeSection === item.id ? 'active' : ''}`}
