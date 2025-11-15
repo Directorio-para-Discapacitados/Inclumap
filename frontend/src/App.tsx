@@ -17,6 +17,7 @@ import LocalDetalle from "./pages/local/LocalDetalle";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Footer from "./Components/Footer";
+import LocalRecognitionPage from './pages/LocalRecognition/LocalRecognition';
 
 function App() {
   return (
@@ -32,10 +33,11 @@ function App() {
             <Route path="/admin" element={<AdminLoginPage />} />
 
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-            
+
             <Route element={<ProtectedRoute />}>
               <Route path="/perfil" element={<Perfil />} />
-                            
+              <Route path="/reconocimiento" element={<LocalRecognitionPage />} />
+              
               <Route
                 path="/guardados"
                 element={

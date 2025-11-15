@@ -2,10 +2,11 @@
 
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import "./Navbar.css";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import { useAuth } from "../context/AuthContext";
 import { FaMoon, FaSun } from "react-icons/fa";
 import Avatar from "./Avatar/Avatar";
+import { AuthContext } from "../context/AuthContext";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -13,17 +14,46 @@ export default function Navbar() {
   const [darkMode, setDarkMode] = useState(() => {
     return localStorage.getItem("darkMode") === "true";
   });
+  const [showNotification, setShowNotification] = useState(false);
+  const [missingItems, setMissingItems] = useState<string[]>([]);
   const location = useLocation();
   const showSearch = location.pathname === "/";
 
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
+  const authContext = useContext(AuthContext);
   const profileMenuRef = useRef<HTMLLIElement | null>(null); 
 
   useEffect(() => {
     document.body.classList.toggle("dark-mode", darkMode);
     localStorage.setItem("darkMode", darkMode.toString());
   }, [darkMode]);
+
+  // Verificar notificación de perfil incompleto
+  useEffect(() => {
+    // Solo mostrar la notificación en la página de inicio
+    const isOnHomePage = location.pathname === '/';
+    
+    if (user?.roleDescription === "Propietario" && isOnHomePage) {
+      const missing: string[] = [];
+      
+      if (!user?.logo_url) {
+        missing.push("logo");
+      }
+      if (!user?.verified) {
+        missing.push("verificación");
+      }
+
+      if (missing.length > 0) {
+        setMissingItems(missing);
+        setShowNotification(true);
+      } else {
+        setShowNotification(false);
+      }
+    } else {
+      setShowNotification(false);
+    }
+  }, [user?.logo_url, user?.verified, user?.roleDescription, location.pathname]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -164,7 +194,12 @@ export default function Navbar() {
                       className="profile-menu-image"
                     />
                     <div className="profile-details">
-                      <p className="profile-name">{user?.displayName || "Usuario"}</p>
+                      <div className="profile-name-container">
+                        <p className="profile-name">{user?.displayName || "Usuario"}</p>
+                        {user?.roleDescription === "Propietario" && user?.verified && (
+                          <i className="fas fa-check-circle" style={{ color: '#4CAF50', marginLeft: '8px', fontSize: '14px' }}></i>
+                        )}
+                      </div>
                       
                       <p className="profile-email">
                         {user?.email || "No disponible"}
@@ -243,6 +278,38 @@ export default function Navbar() {
           </li>
         </ul>
       </div>
+
+      {/* Notificación de perfil incompleto */}
+      {showNotification && (
+        <div 
+          className="navbar-notification"
+          onClick={() => {
+            // Si es propietario, navega a perfil con la sección owner-profile
+            if (user?.roleDescription === "Propietario") {
+              navigate("/perfil?section=owner-profile");
+            } else {
+              navigate("/perfil");
+            }
+          }}
+          role="alert"
+          aria-live="polite"
+        >
+          <div className="notification-badge">
+            <i className="fas fa-exclamation-circle"></i>
+          </div>
+          <div className="notification-message">
+            <span className="notification-title">Completa tu perfil</span>
+            <span className="notification-detail">
+              {missingItems.includes("logo") && missingItems.includes("verificación")
+                ? "Sube el logo de tu empresa"
+                : missingItems.includes("logo")
+                ? "Falta el logo"
+                : "Verifica tu negocio"}
+            </span>
+          </div>
+          <i className="fas fa-chevron-right notification-arrow"></i>
+        </div>
+      )}
     </nav>
   );
 }

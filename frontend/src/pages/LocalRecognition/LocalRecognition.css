@@ -1,0 +1,44 @@
+.local-recognition-page {
+  min-height: calc(100vh - 60px);
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 40px 20px;
+}
+
+.page-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.page-content {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .local-recognition-page {
+    min-height: calc(100vh - 50px);
+    padding: 20px 12px;
+  }
+
+  .page-container {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .local-recognition-page {
+    min-height: calc(100vh - 45px);
+    padding: 16px 8px;
+  }
+}

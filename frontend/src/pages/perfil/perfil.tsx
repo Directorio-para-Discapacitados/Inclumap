@@ -1,14 +1,26 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import ProfileSidebar from "../../Components/ProfileSidebar/ProfileSidebar";
 import UserProfileSection from "../../Components/UserProfileSection/UserProfileSection";
+import OwnerBusinessProfile from "../../Components/OwnerBusinessProfile/OwnerBusinessProfile";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./perfil.css";
 
 export default function Perfil() {
-  const [activeSection, setActiveSection] = useState('user-profile');
+  const [searchParams] = useSearchParams();
+  const sectionParam = searchParams.get('section');
+  const [activeSection, setActiveSection] = useState(sectionParam || 'user-profile');
   const navigate = useNavigate();
   const { user } = useAuth();
+
+  // Actualizar la sección activa cuando cambia el parámetro de query
+  useEffect(() => {
+    if (sectionParam) {
+      setActiveSection(sectionParam);
+    }
+  }, [sectionParam]);
 
   // Función para obtener el perfil del backend; la empleamos en useEffect y después de guardar
   // Verificar autenticación
@@ -32,6 +44,9 @@ export default function Perfil() {
   }
 
   const renderActiveSection = () => {
+    if (activeSection === 'owner-profile' && user?.roleDescription === 'Propietario') {
+      return <OwnerBusinessProfile />;
+    }
     return <UserProfileSection />;
   };
 
@@ -63,6 +78,18 @@ export default function Perfil() {
           </div>
         </div>
       </div>
+      <ToastContainer 
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={true}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
     </div>
   );
 }

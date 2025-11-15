@@ -23,6 +23,9 @@ export class BusinessEntity {
     @Column({ type: 'varchar', length: 255, nullable: true, name: 'verification_image_url',})
     verification_image_url: string | null;
 
+    @Column({ type: 'boolean', default: false, name: 'verified' })
+    verified: boolean;
+
     @Column({type: 'varchar', length: 255})
     description: string;
 
