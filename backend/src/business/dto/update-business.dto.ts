@@ -12,12 +12,16 @@ export class UpdateBusinessDto {
   @IsString()
   address?: string;
 
-  @ApiPropertyOptional({ description: 'Número de identificación tributaria (NIT)' })
+  @ApiPropertyOptional({
+    description: 'Número de identificación tributaria (NIT)',
+  })
   @IsOptional()
   @IsString()
   NIT?: number;
 
-  @ApiPropertyOptional({ description: 'Descripción del negocio y sus servicios' })
+  @ApiPropertyOptional({
+    description: 'Descripción del negocio y sus servicios',
+  })
   @IsOptional()
   @IsString()
   description?: string;
@@ -32,7 +36,9 @@ export class UpdateBusinessDto {
   @IsBoolean()
   verified?: boolean;
 
-  @ApiPropertyOptional({ description: 'ID del usuario propietario (null para remover propietario)' })
+  @ApiPropertyOptional({
+    description: 'ID del usuario propietario (null para remover propietario)',
+  })
   @IsOptional()
   user_id?: number | null;
 }

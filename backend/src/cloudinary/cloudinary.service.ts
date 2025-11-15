@@ -21,7 +21,7 @@ export class CloudinaryService {
   ): Promise<UploadApiResponse> {
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
-        { 
+        {
           folder: folder,
           public_id: publicId,
           transformation: [
@@ -43,7 +43,9 @@ export class CloudinaryService {
 
           if (!result) {
             return reject(
-              new InternalServerErrorException('No se recibió respuesta de Cloudinary.'),
+              new InternalServerErrorException(
+                'No se recibió respuesta de Cloudinary.',
+              ),
             );
           }
           resolve(result);
@@ -67,10 +69,8 @@ export class CloudinaryService {
 
   extractPublicIdFromUrl(url: string): string | null {
     if (!url) return null;
-    
-    // Extraer public_id de una URL de Cloudinary
-    // Ejemplo: https://res.cloudinary.com/demo/image/upload/v1234567890/inclumap/avatars/user_123.webp
-    const match = url.match(/\/([^\/]+\/[^\/]+\/[^\.]+)\.[^\.]+$/);
+
+    const match = url.match(/\/([^/]+.[^/]+.[^.]+)\.[^.]+$/);
     return match ? match[1] : null;
   }
 }

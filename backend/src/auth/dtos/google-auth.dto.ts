@@ -7,8 +7,10 @@ export class GoogleAuthDto {
   @IsString()
   idToken: string;
 
-  @ApiPropertyOptional({ description: 'Token de acceso de Google OAuth (Opcional)' })
+  @ApiPropertyOptional({
+    description: 'Token de acceso de Google OAuth (Opcional)',
+  })
   @IsOptional() // <-- Añade esto
-  @IsString()   // <-- Añade esto
+  @IsString() // <-- Añade esto
   accessToken?: string; // <-- Añade el '?' para hacerlo opcional
 }

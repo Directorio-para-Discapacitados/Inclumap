@@ -4,7 +4,6 @@ import {
   Inject,
   InternalServerErrorException,
   NotFoundException,
-  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -12,14 +11,14 @@ import { ImageAnnotatorClient } from '@google-cloud/vision';
 import { GOOGLE_VISION_CLIENT } from './google-vision.provider';
 import { BusinessEntity } from 'src/business/entity/business.entity';
 import { UserEntity } from 'src/user/entity/user.entity';
-import { CloudinaryService } from 'src/cloudinary/cloudinary.service'; 
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 export interface RecognitionResponse {
-  local_id: string; 
-  confidence: number; 
-  details: string[]; 
-  match: boolean; 
-  verification_url?: string; 
+  local_id: string;
+  confidence: number;
+  details: string[];
+  match: boolean;
+  verification_url?: string;
 }
 
 @Injectable()
@@ -139,7 +138,7 @@ export class LocalRecognitionService {
         confidence: parseFloat(confidence.toFixed(2)),
         details,
         match,
-        verification_url, 
+        verification_url,
       };
     } catch (error) {
       console.error('Error en Google Vision Service:', error);

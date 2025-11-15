@@ -24,12 +24,20 @@ export class UserRolController {
   @Post()
   @Roles(1) // Solo administradores pueden añadir roles
   async addUserRole(@Body() addUserRoleDto: AddUserRoleDto): Promise<string> {
-    return this.userRolService.addUserRole(addUserRoleDto.user_id, addUserRoleDto.rol_id);
+    return this.userRolService.addUserRole(
+      addUserRoleDto.user_id,
+      addUserRoleDto.rol_id,
+    );
   }
 
   @Delete()
   @Roles(1) // Solo administradores pueden quitar roles
-  async removeUserRole(@Body() removeUserRoleDto: RemoveUserRoleDto): Promise<string> {
-    return this.userRolService.removeUserRole(removeUserRoleDto.user_id, removeUserRoleDto.rol_id);
+  async removeUserRole(
+    @Body() removeUserRoleDto: RemoveUserRoleDto,
+  ): Promise<string> {
+    return this.userRolService.removeUserRole(
+      removeUserRoleDto.user_id,
+      removeUserRoleDto.rol_id,
+    );
   }
 }

@@ -19,9 +19,12 @@ export class BusinessPublicController {
       business_name: b.business_name,
       address: b.address,
       average_rating: b.average_rating,
-      logo_url: b.logo_url || 'https://res.cloudinary.com/demo/image/upload/sample.jpg',
+      logo_url:
+        b.logo_url || 'https://res.cloudinary.com/demo/image/upload/sample.jpg',
       owner_email: b.user?.user_email || b.user?.email || null,
-      owner_name: b.user?.people ? `${b.user.people.firstName || ''} ${b.user.people.firstLastName || ''}`.trim() : null,
+      owner_name: b.user?.people
+        ? `${b.user.people.firstName || ''} ${b.user.people.firstLastName || ''}`.trim()
+        : null,
     });
 
     if (!q || !q.trim()) {
@@ -42,7 +45,9 @@ export class BusinessPublicController {
   async getPublicById(@Param('id') id: string): Promise<any> {
     const businessId = parseInt(id, 10);
     const all = await this.businessService.obtenerNegocios();
-    const b = (all || []).find((x: any) => (x.business_id ?? x.id) === businessId);
+    const b = (all || []).find(
+      (x: any) => (x.business_id ?? x.id) === businessId,
+    );
     if (!b) return null;
     return {
       business_id: b.business_id,
@@ -53,13 +58,21 @@ export class BusinessPublicController {
       latitude: b.latitude,
       longitude: b.longitude,
       average_rating: b.average_rating,
-      logo_url: b.logo_url || 'https://res.cloudinary.com/demo/image/upload/sample.jpg',
-      owner_name: b.user?.people ? `${b.user.people.firstName || ''} ${b.user.people.firstLastName || ''}`.trim() : null,
-      business_accessibility: Array.isArray(b.business_accessibility) ? b.business_accessibility.map((a: any) => ({
-        id: a.id ?? a.business_accessibility_id ?? a.accessibility_id,
-        name: a.name ?? a.accessibility?.name ?? a.accessibility_name,
-        description: a.description ?? a.accessibility?.description ?? a.accessibility_description,
-      })) : [],
+      logo_url:
+        b.logo_url || 'https://res.cloudinary.com/demo/image/upload/sample.jpg',
+      owner_name: b.user?.people
+        ? `${b.user.people.firstName || ''} ${b.user.people.firstLastName || ''}`.trim()
+        : null,
+      business_accessibility: Array.isArray(b.business_accessibility)
+        ? b.business_accessibility.map((a: any) => ({
+            id: a.id ?? a.business_accessibility_id ?? a.accessibility_id,
+            name: a.name ?? a.accessibility?.name ?? a.accessibility_name,
+            description:
+              a.description ??
+              a.accessibility?.description ??
+              a.accessibility_description,
+          }))
+        : [],
     };
   }
 }

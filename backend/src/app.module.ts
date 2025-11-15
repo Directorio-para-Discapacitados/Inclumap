@@ -4,7 +4,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
-import { DB_DATABASE, DB_HOST, DB_PASSWORD, DB_PORT, DB_USER } from './config/constants';
+import {
+  DB_DATABASE,
+  DB_HOST,
+  DB_PASSWORD,
+  DB_PORT,
+  DB_USER,
+} from './config/constants';
 import { PeopleModule } from './people/people.module';
 import { BusinessModule } from './business/business.module';
 import { BusinessAccessibilityModule } from './business_accessibility/business_accessibility.module';
@@ -20,9 +26,6 @@ import { UserRolModule } from './user_rol/user_rol.module';
 import { ReviewModule } from './review/review.module';
 import { MapsModule } from './maps/maps.module';
 
-
-
-
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -32,14 +35,14 @@ import { MapsModule } from './maps/maps.module';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
-        type: 'postgres', 
+        type: 'postgres',
         host: configService.get<string>(DB_HOST),
-        port: configService.get<number>(DB_PORT) ?? 5432, 
+        port: configService.get<number>(DB_PORT) ?? 5432,
         username: configService.get<string>(DB_USER),
         password: configService.get<string>(DB_PASSWORD),
         database: configService.get<string>(DB_DATABASE),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-        synchronize: true, 
+        synchronize: true,
         logging: false,
       }),
       inject: [ConfigService],

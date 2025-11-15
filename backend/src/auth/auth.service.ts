@@ -1,7 +1,7 @@
-// backend/src/auth/auth.service.ts (Código Completo)
-
 import {
   BadRequestException,
+  HttpException,
+  HttpStatus,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -28,11 +28,12 @@ import { UpgradeToBusinessDto } from './dtos/upgradeToBusiness.dto';
 import { MailsService } from 'src/mails/mails.service';
 import { MoreThan } from 'typeorm';
 import { ChangePasswordDto } from './dtos/change-password.dto';
-import { OAuth2Client } from 'google-auth-library';
+import { OAuth2Client, TokenPayload } from 'google-auth-library';
 import { ConfigService } from '@nestjs/config';
 import { GoogleAuthDto } from './dtos/google-auth.dto';
 import { FindOneOptions } from 'typeorm';
 import { MapsService } from 'src/maps/maps.service';
+import { PayloadInterface } from './payload/payload.interface';
 
 @Injectable()
 export class AuthService {
@@ -73,114 +74,39 @@ export class AuthService {
   async registerFullUser(
     userData: CreateFullUserDto,
   ): Promise<{ message: string; token: string }> {
-    // Verificar si el correo electrónico ya está registrado
-    const existingUser = await this.userRepository.findOne({
-      where: { user_email: userData.user_email },
-    });
-    if (existingUser) {
-      throw new BadRequestException('El correo electrónico ya está registrado');
-    }
+    try {
+      const existingUser: UserEntity | null = await this.userRepository.findOne(
+        {
+          where: { user_email: userData.user_email },
+        },
+      );
+      if (existingUser) {
+        throw new BadRequestException(
+          'El correo electrónico ya está registrado',
+        );
+      }
 
-    // Generar un salt para mejorar la seguridad del hash de la contraseña
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(userData.user_password, salt);
+      // Generar un salt y hashear la contraseña
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(userData.user_password, salt);
 
-    // Crear el nuevo usuario
-    const newUser = this.userRepository.create({
-      user_email: userData.user_email,
-      user_password: hashedPassword,
-    });
-
-    await this.userRepository.save(newUser);
-
-    // Verificar si se proporcionaron roles, de lo contrario asignar un rol por defecto
-    let rol;
-    if (userData.rolIds && userData.rolIds.length > 0) {
-      rol = await this.rolRepository.findOne({
-        where: { rol_id: userData.rolIds[0] },
+      const newUser: UserEntity = this.userRepository.create({
+        user_email: userData.user_email,
+        user_password: hashedPassword,
       });
-    } else {
-      rol = await this.rolRepository.findOne({ where: { rol_id: 2 } });
-    }
+      await this.userRepository.save(newUser);
 
-    if (!rol) {
-      throw new BadRequestException('Rol no encontrado');
-    }
-
-    // Crear la relación entre el usuario y el rol
-    const userRole = this.userRolesRepository.create({
-      user: newUser,
-      rol: rol,
-    });
-
-    await this.userRolesRepository.save(userRole);
-
-    // Crear la persona asociada a ese usuario
-    const newPeople = this.peopleRepository.create({
-      ...userData,
-      user: newUser,
-    });
-
-    await this.peopleRepository.save(newPeople);
-
-    // Crear el payload para el token JWT
-    const payload = {
-      user_email: newUser.user_email,
-      firstName: newPeople.firstName,
-      firstLastName: newPeople.firstLastName,
-      cellphone: newPeople.cellphone,
-      address: newPeople.address,
-      rolIds: [rol.rol_id],
-    };
-
-    // Generar el token JWT
-    const token = this.jwtService.sign(payload);
-
-    return { message: 'Usuario registrados exitosamente', token };
-  }
-
-  async registerFullBusiness(
-    businessData: CreateFullBusinessDto,
-  ): Promise<{ message: string; token: string }> {
-    // Verificar si el correo electrónico ya está registrado
-    const existingUser = await this.userRepository.findOne({
-      where: { user_email: businessData.user_email },
-    });
-    if (existingUser) {
-      throw new BadRequestException('El correo electrónico ya está registrado');
-    }
-
-    // Verificar si el NIT ya está registrado
-    const existingBusiness = await this.businessRepository.findOne({
-      where: { NIT: businessData.NIT },
-    });
-    if (existingBusiness) {
-      throw new BadRequestException('El NIT ya está registrado');
-    }
-
-    // Generar hash de contraseña
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(businessData.user_password, salt);
-
-    // Crear el nuevo usuario
-    const newUser = this.userRepository.create({
-      user_email: businessData.user_email,
-      user_password: hashedPassword,
-    });
-
-    await this.userRepository.save(newUser);
-
-    // Asignar múltiples roles: Usuario (2) + Propietario/Negocio (3)
-    const rolesToAssign =
-      businessData.rolIds && businessData.rolIds.length > 0
-        ? businessData.rolIds
-        : [2, 3]; // Por defecto: usuario + negocio
-
-    for (const rolId of rolesToAssign) {
-      const rol = await this.rolRepository.findOne({ where: { rol_id: rolId } });
+      let rol: RolEntity | null;
+      if (userData.rolIds && userData.rolIds.length > 0) {
+        rol = await this.rolRepository.findOne({
+          where: { rol_id: userData.rolIds[0] },
+        });
+      } else {
+        rol = await this.rolRepository.findOne({ where: { rol_id: 2 } });
+      }
 
       if (!rol) {
-        throw new BadRequestException(`Rol con ID ${rolId} no encontrado`);
+        throw new BadRequestException('Rol no encontrado');
       }
 
       // Crear la relación entre el usuario y el rol
@@ -188,307 +114,488 @@ export class AuthService {
         user: newUser,
         rol: rol,
       });
-
       await this.userRolesRepository.save(userRole);
-    }
 
-    // Crear la persona asociada
-    const newPeople = this.peopleRepository.create({
-      firstName: businessData.firstName,
-      firstLastName: businessData.firstLastName,
-      cellphone: businessData.cellphone,
-      address: businessData.address,
-      gender: businessData.gender,
-      user: newUser,
-    });
+      // Crear la persona asociada a ese usuario
+      const newPeople: PeopleEntity = this.peopleRepository.create({
+        ...userData,
+        user: newUser,
+      });
+      await this.peopleRepository.save(newPeople);
 
-    await this.peopleRepository.save(newPeople);
+      // Crear el payload para el token JWT
+      const payload: PayloadInterface = {
+        user_id: newUser.user_id,
+        user_email: newUser.user_email,
+        firstName: newPeople.firstName,
+        firstLastName: newPeople.firstLastName,
+        cellphone: newPeople.cellphone,
+        address: newPeople.address,
+        rolIds: [rol.rol_id],
 
-    // 🌍 Obtener coordenadas automáticamente usando MapsService
-    const coordinates = await this.mapsService.getCoordinates(businessData.business_address);
-    
-    let latitude: number | null = null;
-    let longitude: number | null = null;
-    
-    if (coordinates) {
-      latitude = coordinates.lat;
-      longitude = coordinates.lon;
-    }
+        business_id: null,
+        business_name: null,
+        business_address: null,
+        NIT: null,
+      };
 
-    // Crear el negocio asociado con coordenadas automáticas
-    const newBusiness = this.businessRepository.create({
-      business_name: businessData.business_name,
-      address: businessData.business_address,
-      NIT: businessData.NIT,
-      description: businessData.description,
-      coordinates: businessData.coordinates,
-      latitude: latitude,
-      longitude: longitude,
-      user: newUser,
-    });
+      // Generar el token JWT
+      const token = this.jwtService.sign(payload);
 
-    let savedBusiness;
-    try {
-      savedBusiness = await this.businessRepository.save(newBusiness);
+      return { message: 'Usuario registrados exitosamente', token };
     } catch (error) {
-      throw new InternalServerErrorException(`Error al crear el negocio: ${error.message}`);
-    }
-
-    // Crear relaciones de accesibilidad
-    if (
-      businessData.accessibilityIds &&
-      businessData.accessibilityIds.length > 0
-    ) {
-      for (const accessibilityId of businessData.accessibilityIds) {
-        const accessibility = await this.accessibilityRepository.findOne({
-          where: { accessibility_id: accessibilityId },
-        });
-
-        if (!accessibility) {
-          throw new BadRequestException(
-            `Accesibilidad con ID ${accessibilityId} no encontrada`,
-          );
-        }
-
-        const businessAccessibility =
-          this.businessAccessibilityRepository.create({
-            business: savedBusiness,
-            accessibility: accessibility,
-          });
-
-        await this.businessAccessibilityRepository.save(businessAccessibility);
+      // Manejo de errores seguro
+      if (error instanceof HttpException) {
+        throw error;
       }
+      if (error instanceof Error) {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      throw new HttpException(
+        'Un error inesperado ocurrió durante el registro',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
-
-    // Obtener todos los roles asignados para el payload
-    const userRoles = await this.userRolesRepository.find({
-      where: { user: { user_id: newUser.user_id } },
-      relations: ['rol'],
-    });
-
-    const rolIds = userRoles.map((ur) => ur.rol.rol_id);
-
-    // Crear payload para el token JWT
-    const payload = {
-      user_id: newUser.user_id,
-      user_email: newUser.user_email,
-      firstName: newPeople.firstName,
-      firstLastName: newPeople.firstLastName,
-      cellphone: newPeople.cellphone,
-      address: newPeople.address,
-      business_id: savedBusiness.business_id,
-      business_name: savedBusiness.business_name,
-      business_address: savedBusiness.address,
-      NIT: savedBusiness.NIT,
-      rolIds: rolIds,
-      accessibilityIds: businessData.accessibilityIds || [],
-    };
-
-    // Generar el token JWT
-    const token = this.jwtService.sign(payload);
-
-    return {
-      message: 'Negocio registrado exitosamente',
-      token,
-    };
   }
 
-  // --- INICIO DE LA CORRECCIÓN FUNCIÓN LOGIN ---
-  async login(dto: LoginDto): Promise<any> {
-    const { user_email, user_password } = dto;
+  async registerFullBusiness(
+    businessData: CreateFullBusinessDto,
+  ): Promise<{ message: string; token: string }> {
+    try {
+      // Verificar si el correo electrónico ya está registrado
+      const existingUser: UserEntity | null = await this.userRepository.findOne(
+        {
+          where: { user_email: businessData.user_email },
+        },
+      );
+      if (existingUser) {
+        throw new BadRequestException(
+          'El correo electrónico ya está registrado',
+        );
+      }
 
-    // Buscar el usuario en la base de datos por correo
-    // AÑADIDO 'business' a las relaciones
-    const user = await this.userRepository.findOne({
-      where: { user_email },
-      relations: ['people', 'userroles', 'userroles.rol', 'business'],
-    });
+      // Verificar si el NIT ya está registrado
+      const existingBusiness: BusinessEntity | null =
+        await this.businessRepository.findOne({
+          where: { NIT: businessData.NIT },
+        });
+      if (existingBusiness) {
+        throw new BadRequestException('El NIT ya está registrado');
+      }
 
-    if (!user)
-      throw new UnauthorizedException(
-        'Usuario no registrado, verifique su correo u contraseña',
+      // Generar hash de contraseña
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(
+        businessData.user_password,
+        salt,
       );
 
-    // Comparar la contraseña ingresada con la almacenada en la base de datos
-    const passwordOK = await compare(dto.user_password, user.user_password);
-    if (!passwordOK) throw new UnauthorizedException('Contraseña incorrecta');
+      // Crear el nuevo usuario
+      const newUser: UserEntity = this.userRepository.create({
+        user_email: businessData.user_email,
+        user_password: hashedPassword,
+      });
+      await this.userRepository.save(newUser);
 
-    // Obtener TODOS los roles del usuario
-    if (!user.userroles || user.userroles.length === 0)
-      throw new UnauthorizedException('El usuario no tiene roles asignados');
+      // Asignar múltiples roles: Usuario (2) + Propietario/Negocio (3)
+      const rolesToAssign =
+        businessData.rolIds && businessData.rolIds.length > 0
+          ? businessData.rolIds
+          : [2, 3]; // Por defecto: usuario + negocio
 
-    const rolIds = user.userroles.map((ur) => ur.rol.rol_id);
+      for (const rolId of rolesToAssign) {
+        const rol: RolEntity | null = await this.rolRepository.findOne({
+          where: { rol_id: rolId },
+        });
 
-    // Crear el token JWT con la información del usuario
-    const payload = {
-      user_id: user.user_id,
-      user_email: user.user_email,
-      firstName: user.people?.firstName,
-      firstLastName: user.people?.firstLastName,
-      cellphone: user.people?.cellphone, // Añadido para consistencia
-      address: user.people?.address,     // Añadido para consistencia
-      rolIds: rolIds, // CORREGIDO: Se envía el array de roles
-      
-      // Añadido: Incluir info del negocio (será null si no tiene)
-      business_id: user.business?.business_id || null,
-      business_name: user.business?.business_name || null,
-    };
+        if (!rol) {
+          throw new BadRequestException(`Rol con ID ${rolId} no encontrado`);
+        }
 
-    const token = this.jwtService.sign(payload);
+        // Crear la relación entre el usuario y el rol
+        const userRole = this.userRolesRepository.create({
+          user: newUser,
+          rol: rol,
+        });
+        await this.userRolesRepository.save(userRole);
+      }
 
-    // CORREGIDO: Mensaje de éxito
-    return { message: 'Usuario logueado exitosamente', token };
+      // Crear la persona asociada
+      const newPeople: PeopleEntity = this.peopleRepository.create({
+        firstName: businessData.firstName,
+        firstLastName: businessData.firstLastName,
+        cellphone: businessData.cellphone,
+        address: businessData.address,
+        gender: businessData.gender,
+        user: newUser,
+      });
+      await this.peopleRepository.save(newPeople);
+
+      //  Obtener coordenadas automáticamente usando MapsService
+      const coordinates = await this.mapsService.getCoordinates(
+        businessData.business_address,
+      );
+
+      let latitude: number | null = null;
+      let longitude: number | null = null;
+
+      if (coordinates) {
+        latitude = coordinates.lat;
+        longitude = coordinates.lon;
+      }
+
+      // Crear el negocio asociado con coordenadas automáticas
+      const newBusiness: BusinessEntity = this.businessRepository.create({
+        business_name: businessData.business_name,
+        address: businessData.business_address,
+        NIT: businessData.NIT,
+        description: businessData.description,
+        coordinates: businessData.coordinates,
+        latitude: latitude,
+        longitude: longitude,
+        user: newUser,
+      });
+
+      const savedBusiness: BusinessEntity =
+        await this.businessRepository.save(newBusiness);
+
+      // Crear relaciones de accesibilidad
+      if (
+        businessData.accessibilityIds &&
+        businessData.accessibilityIds.length > 0
+      ) {
+        for (const accessibilityId of businessData.accessibilityIds) {
+          const accessibility: AccessibilityEntity | null =
+            await this.accessibilityRepository.findOne({
+              where: { accessibility_id: accessibilityId },
+            });
+
+          if (!accessibility) {
+            throw new BadRequestException(
+              `Accesibilidad con ID ${accessibilityId} no encontrada`,
+            );
+          }
+
+          const businessAccessibility =
+            this.businessAccessibilityRepository.create({
+              business: savedBusiness,
+              accessibility: accessibility,
+            });
+
+          await this.businessAccessibilityRepository.save(
+            businessAccessibility,
+          );
+        }
+      }
+
+      // Obtener todos los roles asignados para el payload
+      const userRoles: UserRolesEntity[] = await this.userRolesRepository.find({
+        where: { user: { user_id: newUser.user_id } },
+        relations: ['rol'],
+      });
+
+      const rolIds = userRoles.map((ur) => ur.rol.rol_id);
+
+      // Crear payload para el token JWT
+      const payload: PayloadInterface = {
+        user_id: newUser.user_id,
+        user_email: newUser.user_email,
+        firstName: newPeople.firstName,
+        firstLastName: newPeople.firstLastName,
+        cellphone: newPeople.cellphone,
+        address: newPeople.address,
+        business_id: savedBusiness.business_id,
+        business_name: savedBusiness.business_name,
+        business_address: savedBusiness.address,
+        NIT: savedBusiness.NIT,
+        rolIds: rolIds,
+        accessibilityIds: businessData.accessibilityIds || [],
+      };
+
+      // Generar el token JWT
+      const token = this.jwtService.sign(payload);
+
+      return {
+        message: 'Negocio registrado exitosamente',
+        token,
+      };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      if (error instanceof Error) {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      throw new HttpException(
+        'Un error inesperado ocurrió durante el registro del negocio',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
-  // --- FIN DE LA CORRECCIÓN FUNCIÓN LOGIN ---
 
+  async login(dto: LoginDto): Promise<{ message: string; token: string }> {
+    try {
+      const { user_email, user_password } = dto;
+
+      const user: UserEntity | null = await this.userRepository.findOne({
+        where: { user_email },
+        relations: ['people', 'userroles', 'userroles.rol', 'business'],
+      });
+
+      // Esta comprobación ahora también funciona como type guard
+      if (!user) {
+        throw new UnauthorizedException(
+          'Usuario no registrado, verifique su correo u contraseña',
+        );
+      }
+
+      const passwordOK = await compare(user_password, user.user_password);
+      if (!passwordOK) {
+        throw new UnauthorizedException('Contraseña incorrecta');
+      }
+
+      if (!user.userroles || user.userroles.length === 0) {
+        throw new UnauthorizedException('El usuario no tiene roles asignados');
+      }
+
+      const rolIds = user.userroles.map((ur) => ur.rol.rol_id);
+
+      const payload: PayloadInterface = {
+        user_id: user.user_id,
+        user_email: user.user_email,
+        firstName: user.people?.firstName || null,
+        firstLastName: user.people?.firstLastName || null,
+        cellphone: user.people?.cellphone || null,
+        address: user.people?.address || null,
+        rolIds: rolIds,
+
+        business_id: user.business?.business_id || null,
+        business_name: user.business?.business_name || null,
+        business_address: user.business?.address || null,
+        NIT: user.business?.NIT || null,
+      };
+
+      const token = this.jwtService.sign(payload);
+
+      return { message: 'Usuario logueado exitosamente', token };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      if (error instanceof Error) {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      throw new HttpException(
+        'Un error inesperado ocurrió durante el login',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 
   async upgradeToBusiness(
     userId: number,
     businessData: UpgradeToBusinessDto,
   ): Promise<{ message: string; token: string }> {
-    // 1. Verificar que el usuario existe
-    const user = await this.userRepository.findOne({
-      where: { user_id: userId },
-      relations: ['people', 'business', 'userroles', 'userroles.rol'],
-    });
-
-    if (!user) {
-      throw new BadRequestException('Usuario no encontrado');
-    }
-
-    // Verificar si ya tiene negocio
-    if (user.business) {
-      throw new BadRequestException('El usuario ya tiene un negocio registrado');
-    }
-
-    // Verificar si el NIT ya está registrado
-    const existingBusiness = await this.businessRepository.findOne({
-      where: { NIT: businessData.NIT },
-    });
-
-    if (existingBusiness) {
-      throw new BadRequestException('El NIT ya está registrado');
-    }
-
-    // Verificar si ya tiene rol de negocio
-    const hasBusinessRole = user.userroles.some((ur) => ur.rol.rol_id === 3);
-
-    // Agregar rol de negocio si no lo tiene
-    if (!hasBusinessRole) {
-      const businessRole = await this.rolRepository.findOne({
-        where: { rol_id: 3 },
+    try {
+      // Verificar que el usuario existe
+      const user: UserEntity | null = await this.userRepository.findOne({
+        where: { user_id: userId },
+        relations: ['people', 'business', 'userroles', 'userroles.rol'],
       });
 
-      if (!businessRole) {
-        throw new BadRequestException('Rol de negocio no encontrado');
+      if (!user) {
+        throw new BadRequestException('Usuario no encontrado');
       }
 
-      const userRole = this.userRolesRepository.create({
-        user: user,
-        rol: businessRole,
-      });
+      if (user.business) {
+        throw new BadRequestException(
+          'El usuario ya tiene un negocio registrado',
+        );
+      }
 
-      await this.userRolesRepository.save(userRole);
-    }
-
-    // Crear el negocio
-    const newBusiness = this.businessRepository.create({
-      business_name: businessData.business_name,
-      address: businessData.business_address,
-      NIT: businessData.NIT,
-      description: businessData.description,
-      coordinates: businessData.coordinates,
-      user: user,
-    });
-
-    await this.businessRepository.save(newBusiness);
-
-    // Crear relaciones de accesibilidad
-    if (
-      businessData.accessibilityIds &&
-      businessData.accessibilityIds.length > 0
-    ) {
-      for (const accessibilityId of businessData.accessibilityIds) {
-        const accessibility = await this.accessibilityRepository.findOne({
-          where: { accessibility_id: accessibilityId },
+      // Verificar si el NIT ya está registrado
+      const existingBusiness: BusinessEntity | null =
+        await this.businessRepository.findOne({
+          where: { NIT: businessData.NIT },
         });
 
-        if (accessibility) {
-          const businessAccessibility =
-            this.businessAccessibilityRepository.create({
-              business: newBusiness,
-              accessibility: accessibility,
+      if (existingBusiness) {
+        throw new BadRequestException('El NIT ya está registrado');
+      }
+
+      // Verificar y agregar rol de negocio
+      const hasBusinessRole = user.userroles.some((ur) => ur.rol.rol_id === 3);
+      if (!hasBusinessRole) {
+        const businessRole: RolEntity | null = await this.rolRepository.findOne(
+          {
+            where: { rol_id: 3 },
+          },
+        );
+
+        if (!businessRole) {
+          throw new BadRequestException('Rol de negocio no encontrado');
+        }
+
+        const userRole = this.userRolesRepository.create({
+          user: user,
+          rol: businessRole,
+        });
+        await this.userRolesRepository.save(userRole);
+      }
+
+      const coordinates = await this.mapsService.getCoordinates(
+        businessData.business_address,
+      );
+
+      let latitude: number | null = null;
+      let longitude: number | null = null;
+
+      if (coordinates) {
+        latitude = coordinates.lat;
+        longitude = coordinates.lon;
+      }
+
+      // Crear el negocio
+      const newBusiness: BusinessEntity = this.businessRepository.create({
+        business_name: businessData.business_name,
+        address: businessData.business_address,
+        NIT: businessData.NIT,
+        description: businessData.description,
+        coordinates: businessData.coordinates,
+        latitude: latitude,
+        longitude: longitude,
+        user: user,
+      });
+
+      await this.businessRepository.save(newBusiness);
+
+      // Crear relaciones de accesibilidad
+      if (
+        businessData.accessibilityIds &&
+        businessData.accessibilityIds.length > 0
+      ) {
+        for (const accessibilityId of businessData.accessibilityIds) {
+          const accessibility: AccessibilityEntity | null =
+            await this.accessibilityRepository.findOne({
+              where: { accessibility_id: accessibilityId },
             });
-          await this.businessAccessibilityRepository.save(businessAccessibility);
+
+          if (accessibility) {
+            const businessAccessibility =
+              this.businessAccessibilityRepository.create({
+                business: newBusiness,
+                accessibility: accessibility,
+              });
+            await this.businessAccessibilityRepository.save(
+              businessAccessibility,
+            );
+          }
         }
       }
+
+      // Obtener usuario actualizado con todos los roles
+      const updatedUser: UserEntity | null = await this.userRepository.findOne({
+        where: { user_id: userId },
+        relations: ['people', 'userroles', 'userroles.rol', 'business'],
+      });
+
+      if (!updatedUser) {
+        throw new BadRequestException('Error al actualizar el usuario');
+      }
+      if (!updatedUser.people) {
+        throw new BadRequestException('Datos de persona no encontrados');
+      }
+
+      const rolIds = updatedUser.userroles.map((ur) => ur.rol.rol_id);
+
+      // Generar nuevo token con la información actualizada
+      const payload: PayloadInterface = {
+        user_id: updatedUser.user_id,
+        user_email: updatedUser.user_email,
+        firstName: updatedUser.people.firstName,
+        firstLastName: updatedUser.people.firstLastName,
+        cellphone: updatedUser.people.cellphone,
+        address: updatedUser.people.address,
+        business_id: newBusiness.business_id,
+        business_name: newBusiness.business_name,
+        business_address: newBusiness.address,
+        NIT: newBusiness.NIT,
+        rolIds: rolIds,
+        accessibilityIds: businessData.accessibilityIds || [],
+      };
+
+      const token = this.jwtService.sign(payload);
+
+      return {
+        message: 'Negocio registrado exitosamente',
+        token,
+      };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      if (error instanceof Error) {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      throw new HttpException(
+        'Un error inesperado ocurrió al actualizar a negocio',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
-
-    // Obtener usuario actualizado con todos los roles
-    const updatedUser = await this.userRepository.findOne({
-      where: { user_id: userId },
-      relations: ['people', 'userroles', 'userroles.rol', 'business'],
-    });
-
-    // Verificar que updatedUser no sea null
-    if (!updatedUser) {
-      throw new BadRequestException('Error al actualizar el usuario');
-    }
-
-    // Verificar que people existe
-    if (!updatedUser.people) {
-      throw new BadRequestException('Datos de persona no encontrados');
-    }
-
-    const rolIds = updatedUser.userroles.map((ur) => ur.rol.rol_id);
-
-    // Generar nuevo token con la información actualizada
-    const payload = {
-      user_id: updatedUser.user_id,
-      user_email: updatedUser.user_email,
-      firstName: updatedUser.people.firstName,
-      firstLastName: updatedUser.people.firstLastName,
-      cellphone: updatedUser.people.cellphone,
-      address: updatedUser.people.address,
-      business_id: newBusiness.business_id,
-      business_name: newBusiness.business_name,
-      business_address: newBusiness.address,
-      NIT: newBusiness.NIT,
-      rolIds: rolIds,
-      accessibilityIds: businessData.accessibilityIds || [],
-    };
-
-    const token = this.jwtService.sign(payload);
-
-    return {
-      message: 'Negocio registrado exitosamente',
-      token,
-    };
   }
 
   //Metodo refrescarToken
-  async refreshToken(dto: TokenDto): Promise<any> {
-    const usuario = await this.jwtService.decode(dto.token);
+  refreshToken(dto: TokenDto): string {
+    try {
+      const usuario = this.jwtService.decode(dto.token);
 
-    // CORREGIDO: Esta función también debe usar rolIds
-    const payload = {
-      user_id: usuario['user_id'],
-      user_email: usuario['user_email'],
-      firstName: usuario['firstName'],
-      firstLastName: usuario['firstLastName'],
-      cellphone: usuario['cellphone'],
-      address: usuario['address'],
-      rolIds: usuario['rolIds'], // Asegúrate de que el payload original tenga 'rolIds'
-      business_id: usuario['business_id'],
-      business_name: usuario['business_name'],
-    };
-    const token = this.jwtService.sign(payload);
+      const payload: PayloadInterface = {
+        user_id: usuario.user_id,
+        user_email: usuario.user_email,
+        firstName: usuario.firstName,
+        firstLastName: usuario.firstLastName,
+        cellphone: usuario.cellphone,
+        address: usuario.address,
+        rolIds: usuario.rolIds,
+        business_id: usuario.business_id,
+        business_name: usuario.business_name,
+        business_address: usuario.business_address || null,
+        NIT: usuario.NIT || null,
+      };
 
-    return token;
+      const token = this.jwtService.sign(payload);
+
+      return token;
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      if (error instanceof Error) {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      throw new HttpException(
+        'Un error inesperado ocurrió al refrescar el token',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
-
   //Generar Codigo de restablecimiento de contraseña
-  generarcodigoResetPassword(): any {
+  generarcodigoResetPassword(): string {
     const codigo = Math.floor(100000 + Math.random() * 900000).toString();
     return codigo;
   }
@@ -501,19 +608,23 @@ export class AuthService {
     const { user_email } = userdto;
 
     try {
-      const user = await this.userRepository.findOne({
+      const user: UserEntity | null = await this.userRepository.findOne({
         where: { user_email },
         relations: ['people'],
       });
 
       if (!user) {
-        throw new UnauthorizedException('El correo electrónico no está registrado');
+        throw new UnauthorizedException(
+          'El correo electrónico no está registrado',
+        );
       }
 
       // Generar un código de restablecimiento de contraseña
       const resetPasswordCode = this.generarcodigoResetPassword();
       user.resetpassword_token = resetPasswordCode;
-      user.resetpassword_token_expiration = new Date(Date.now() + 10 * 60 * 1000);
+      user.resetpassword_token_expiration = new Date(
+        Date.now() + 10 * 60 * 1000,
+      ); // 10 minutos
 
       await this.userRepository.save(user);
 
@@ -529,27 +640,58 @@ export class AuthService {
         resetPasswordCode,
       );
 
-      //Elimincacion del código de restablecimiento después de 10 minutos
-      setTimeout(async () => {
-        user.resetpassword_token = null;
-        user.resetpassword_token_expiration = null;
-        await this.userRepository.save(user);
-      }, 10 * 60 * 1000);
+      setTimeout(
+        () => {
+          (async () => {
+            try {
+              const userToUpdate: UserEntity | null =
+                await this.userRepository.findOne({
+                  where: { user_id: user.user_id },
+                });
 
-      // Mensaje de éxito
+              // Solo limpiamos el token si sigue siendo el mismo
+              if (
+                userToUpdate &&
+                userToUpdate.resetpassword_token === resetPasswordCode
+              ) {
+                userToUpdate.resetpassword_token = null;
+                userToUpdate.resetpassword_token_expiration = null;
+                await this.userRepository.save(userToUpdate);
+              }
+            } catch (err) {
+              // Si esto falla, solo lo logueamos
+              console.error('Error al limpiar el token de reseteo:', err);
+            }
+          })();
+        },
+        10 * 60 * 1000,
+      ); // 10 minutos
+
       return {
         message:
           'Su solicitud se completó correctamente. Revise su correo electrónico.',
       };
     } catch (error) {
-      throw new BadRequestException('Error en la solicitud:' + error.message);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      if (error instanceof Error) {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      throw new HttpException(
+        'Error en la solicitud',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
   async verificarCodigoRestablecimiento(
     codigo: string,
   ): Promise<{ isValid: boolean; message: string; user_email?: string }> {
     try {
-      const user = await this.userRepository.findOne({
+      const user: UserEntity | null = await this.userRepository.findOne({
         where: {
           resetpassword_token: codigo,
           resetpassword_token_expiration: MoreThan(new Date()),
@@ -570,7 +712,19 @@ export class AuthService {
         user_email: user.user_email,
       };
     } catch (error) {
-      throw new BadRequestException('Error verificando el código');
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      if (error instanceof Error) {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      throw new HttpException(
+        'Error verificando el código',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -580,13 +734,14 @@ export class AuthService {
     newPassword: string,
   ): Promise<{ message: string }> {
     try {
-      const user = await this.userRepository.findOne({
+      const user: UserEntity | null = await this.userRepository.findOne({
         where: {
           resetpassword_token: codigo,
           resetpassword_token_expiration: MoreThan(new Date()),
         },
       });
 
+      // Esta comprobación funciona como un type guard
       if (!user) {
         throw new BadRequestException('Código inválido o expirado');
       }
@@ -599,6 +754,7 @@ export class AuthService {
 
       // Hash de la nueva contraseña
       const salt = await bcrypt.genSalt(10);
+
       user.user_password = await bcrypt.hash(newPassword, salt);
 
       // Limpiar el código de restablecimiento
@@ -609,17 +765,32 @@ export class AuthService {
 
       return { message: 'Contraseña restablecida exitosamente' };
     } catch (error) {
-      throw new BadRequestException('Error restableciendo la contraseña');
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      if (error instanceof Error) {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      throw new HttpException(
+        'Error restableciendo la contraseña',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
+  //Cambio de contraseña con usuario Logueado
   async changePassword(
     user_id: number,
     changePasswordDto: ChangePasswordDto,
   ): Promise<{ message: string }> {
     try {
-      // Buscar usuario
-      const user = await this.userRepository.findOne({ where: { user_id } });
+      const user: UserEntity | null = await this.userRepository.findOne({
+        where: { user_id },
+      });
+
       if (!user) {
         throw new NotFoundException('Usuario no encontrado');
       }
@@ -646,7 +817,10 @@ export class AuthService {
 
       // Hash de la nueva contraseña
       const salt = await bcrypt.genSalt(10);
-      user.user_password = await bcrypt.hash(changePasswordDto.newPassword, salt);
+      user.user_password = await bcrypt.hash(
+        changePasswordDto.newPassword,
+        salt,
+      );
 
       await this.userRepository.save(user);
 
@@ -657,6 +831,13 @@ export class AuthService {
         error instanceof BadRequestException
       ) {
         throw error;
+      }
+
+      // Maneja errores genéricos de forma segura
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(
+          `Error al cambiar la contraseña: ${error.message}`,
+        );
       }
       throw new InternalServerErrorException('Error al cambiar la contraseña');
     }
@@ -673,37 +854,60 @@ export class AuthService {
     missing: { logo: boolean; location: boolean };
     warnings: string[];
   }> {
-    const warnings: string[] = [];
-    const options: FindOneOptions<BusinessEntity> = {
-      where: { user: { user_id: userId } },
-    };
-    const business = await this.businessRepository.findOne(options);
+    try {
+      const warnings: string[] = [];
+      const options: FindOneOptions<BusinessEntity> = {
+        where: { user: { user_id: userId } },
+      };
 
-    if (!business) {
-      warnings.push('Completa el registro de negocio y sube la imagen del local.');
+      const business: BusinessEntity | null =
+        await this.businessRepository.findOne(options);
+
+      if (!business) {
+        warnings.push(
+          'Completa el registro de negocio y sube la imagen del local.',
+        );
+        return {
+          hasBusiness: false,
+          businessId: null,
+          missing: { logo: true, location: true },
+          warnings,
+        };
+      }
+
+      const missingLogo =
+        !business.logo_url || business.logo_url.trim().length === 0;
+      const missingLocation =
+        !business.coordinates || business.coordinates.trim().length === 0;
+
+      if (missingLogo)
+        warnings.push('Te falta subir la imagen (logo/fachada) del local.');
+      if (missingLocation)
+        warnings.push('Te falta establecer la ubicación exacta del local.');
+
       return {
-        hasBusiness: false,
-        businessId: null,
-        missing: { logo: true, location: true },
+        hasBusiness: true,
+        businessId: business.business_id,
+        missing: { logo: missingLogo, location: missingLocation },
         warnings,
       };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      if (error instanceof Error) {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      throw new HttpException(
+        'Error obteniendo el estado post-login',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
-
-    const missingLogo = !business.logo_url || business.logo_url.trim().length === 0;
-    const missingLocation = !business.coordinates || business.coordinates.trim().length === 0;
-
-    if (missingLogo) warnings.push('Te falta subir la imagen (logo/fachada) del local.');
-    if (missingLocation) warnings.push('Te falta establecer la ubicación exacta del local.');
-
-    return {
-      hasBusiness: true,
-      businessId: business.business_id,
-      missing: { logo: missingLogo, location: missingLocation },
-      warnings,
-    };
   }
 
-  
   async googleLoginClient(
     googleAuthDto: GoogleAuthDto,
   ): Promise<{ message: string; token: string }> {
@@ -720,14 +924,20 @@ export class AuthService {
         audience: this.configService.get<string>('GOOGLE_CLIENT_ID'),
       });
 
-      const payload = ticket.getPayload();
+      const payload: TokenPayload | undefined = ticket.getPayload();
 
       if (!payload) {
         throw new UnauthorizedException('Token de Google inválido');
       }
 
-      // Adaptar el payload de Google a la estructura que espera nuestro servicio
-      const googleUser = {
+      interface GoogleUserPayload {
+        email: string | null | undefined;
+        firstName: string | null | undefined;
+        lastName: string | null | undefined;
+        picture: string | null | undefined;
+      }
+
+      const googleUser: GoogleUserPayload = {
         email: payload.email,
         firstName: payload.given_name,
         lastName: payload.family_name,
@@ -740,18 +950,33 @@ export class AuthService {
         );
       }
 
-    
+      // Pasamos el objeto tipado a la siguiente función
       return this.googleLogin(googleUser);
     } catch (error) {
       console.error('Error verifying Google ID token:', error);
+
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      if (error instanceof Error) {
+        throw new UnauthorizedException(
+          'Error al validar el token de Google: ' + error.message,
+        );
+      }
+
       throw new UnauthorizedException(
-        'Error al validar el token de Google: ' + error.message,
+        'Error desconocido al validar el token de Google',
       );
     }
   }
 
-  
-  async googleLogin(googleUser: any): Promise<{ message: string; token: string }> {
+  async googleLogin(googleUser: {
+    email: string | null | undefined;
+    firstName: string | null | undefined;
+    lastName: string | null | undefined;
+    picture: string | null | undefined;
+  }): Promise<{ message: string; token: string }> {
     try {
       const { email } = googleUser;
 
@@ -761,45 +986,40 @@ export class AuthService {
         );
       }
 
-      // BUSCAR AL USUARIO POR EMAIL
-      const user = await this.userRepository.findOne({
+      const user: UserEntity | null = await this.userRepository.findOne({
         where: { user_email: email },
         relations: ['people', 'userroles', 'userroles.rol', 'business'],
       });
 
-    
-      
       if (!user) {
         throw new UnauthorizedException(
           'Usuario no registrado. Por favor, regístrese primero con correo y contraseña antes de usar Google.',
         );
       }
 
-      
       if (!user.people) {
-        
         throw new InternalServerErrorException(
           'Datos de persona no encontrados para este usuario. Contacte a soporte.',
         );
       }
 
-      //  GENERAR EL PAYLOAD CON LOS DATOS COMPLETOS DE LA BD
       const rolIds =
         user.userroles && user.userroles.length > 0
           ? user.userroles.map((ur) => ur.rol.rol_id)
-          : [2]; 
+          : [2]; // Rol de usuario por defecto
 
-      // El payload prioriza los datos de la BD
-      const payload = {
+      const payload: PayloadInterface = {
         user_id: user.user_id,
         user_email: user.user_email,
-        firstName: user.people.firstName, 
-        firstLastName: user.people.firstLastName, 
-        cellphone: user.people.cellphone, 
-        address: user.people.address, 
+        firstName: user.people.firstName,
+        firstLastName: user.people.firstLastName,
+        cellphone: user.people.cellphone,
+        address: user.people.address,
         rolIds: rolIds,
         business_id: user.business?.business_id || null,
         business_name: user.business?.business_name || null,
+        business_address: user.business?.address || null,
+        NIT: user.business?.NIT || null,
       };
 
       const token = this.jwtService.sign(payload);
@@ -812,21 +1032,35 @@ export class AuthService {
       if (
         error instanceof BadRequestException ||
         error instanceof InternalServerErrorException ||
-        error instanceof UnauthorizedException 
+        error instanceof UnauthorizedException
       ) {
         throw error;
       }
+
       console.error('Error en googleLogin:', error);
-      throw new InternalServerErrorException(
-        'Error en login con Google: ' + error.message,
-      );
+
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(
+          'Error en login con Google: ' + error.message,
+        );
+      }
+
+      throw new InternalServerErrorException('Error en login con Google');
     }
   }
 
-  async getProfile(userId: number): Promise<any> {
+  async getProfile(userId: number): Promise<{
+    user_id: number;
+    displayName: string;
+    roleDescription: string;
+    email: string;
+    rolIds: number[];
+    avatar: string | null;
+    logo_url?: string | null;
+    verified?: boolean;
+  }> {
     try {
-      // Obtener el usuario con todas las relaciones necesarias
-      const user = await this.userRepository.findOne({
+      const user: UserEntity | null = await this.userRepository.findOne({
         where: { user_id: userId },
         relations: ['people', 'business', 'userroles', 'userroles.rol'],
       });
@@ -835,29 +1069,31 @@ export class AuthService {
         throw new NotFoundException('Usuario no encontrado');
       }
 
-      // Obtener los IDs de roles
-      const rolIds = user.userroles?.map((userRole) => userRole.rol.rol_id) || [];
-      
-      // Determinar el tipo de usuario y construir displayName
+      const rolIds =
+        user.userroles?.map((userRole) => userRole.rol.rol_id) || [];
+
       let displayName: string;
       let roleDescription: string;
       let logo_url: string | null = null;
       let verified: boolean = false;
-      
+
       if (rolIds.includes(3) && user.business?.business_name) {
         // Propietario de negocio
         displayName = user.business.business_name;
-        roleDescription = "Propietario";
+        roleDescription = 'Propietario';
         logo_url = user.business.logo_url || null;
         verified = user.business.verified || false;
       } else if (user.people) {
         // Usuario normal
-        displayName = `${user.people.firstName} ${user.people.firstLastName}`.trim();
+        displayName =
+          `${user.people.firstName} ${user.people.firstLastName}`.trim();
         roleDescription = this.getRoleDescription(rolIds);
       } else {
-        displayName = "Usuario";
+        displayName = 'Usuario';
         roleDescription = this.getRoleDescription(rolIds);
       }
+
+      // Continúa con el resto del código...
 
       return {
         user_id: user.user_id,
@@ -870,25 +1106,26 @@ export class AuthService {
         verified,
       };
     } catch (error) {
-      if (error instanceof NotFoundException) {
+      if (error instanceof HttpException) {
         throw error;
       }
+
       console.error('Error getting profile:', error);
+
+      if (error instanceof Error) {
+        throw new InternalServerErrorException(
+          'Error al obtener el perfil: ' + error.message,
+        );
+      }
+
       throw new InternalServerErrorException('Error al obtener el perfil');
     }
   }
 
   private getRoleDescription(rolIds: number[]): string {
-    if (rolIds.includes(3)) {
-      return "Propietario";
-    }
-    if (rolIds.includes(1)) {
-      return "Administrador";
-    }
-    if (rolIds.includes(2)) {
-      return "Usuario";
-    }
-    return "Usuario";
+    if (rolIds.includes(1)) return 'Administrador';
+    if (rolIds.includes(3)) return 'Propietario';
+    if (rolIds.includes(2)) return 'Usuario';
+    return 'Usuario';
   }
-
 }
