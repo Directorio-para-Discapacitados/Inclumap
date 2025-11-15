@@ -15,7 +15,9 @@ export const googleVisionProvider: Provider = {
     // 1) Si el usuario define GOOGLE_APPLICATION_CREDENTIALS o GOOGLE_APPLICATION_CREDENTIALS_PATH, usarlo.
     // 2) Si no, intentar con el archivo local del proyecto: backend/google-vision-credentials.json
 
-    const envPath = process.env.GOOGLE_APPLICATION_CREDENTIALS || process.env.GOOGLE_APPLICATION_CREDENTIALS_PATH;
+    const envPath =
+      process.env.GOOGLE_APPLICATION_CREDENTIALS ||
+      process.env.GOOGLE_APPLICATION_CREDENTIALS_PATH;
 
     // Resolver una ruta por defecto robusta según el cwd.
     // Normalmente "npm run start:dev" se ejecuta desde /backend, así que el archivo está en cwd/google-vision-credentials.json

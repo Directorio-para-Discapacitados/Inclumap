@@ -12,9 +12,7 @@ import { ApiTags } from '@nestjs/swagger';
 @Controller('people')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class PeopleController {
-  constructor(
-    private readonly _peopleService: PeopleService
-  ) { }
+  constructor(private readonly _peopleService: PeopleService) {}
 
   @Get()
   @Roles(1)
@@ -23,7 +21,7 @@ export class PeopleController {
   }
 
   @Get('my-profile')
-  @Roles(1, 2, 3) 
+  @Roles(1, 2, 3)
   async obtenerMiPersona(@User() user: any): Promise<PeopleEntity> {
     return await this._peopleService.obtenerPersonaPorUserId(user.user_id);
   }
@@ -32,9 +30,12 @@ export class PeopleController {
   @Roles(1, 2, 3)
   async actualizarMiPerfil(
     @User() user: any,
-    @Body() updatePeopleDto: UpdatePeopleDto
+    @Body() updatePeopleDto: UpdatePeopleDto,
   ) {
-    return this._peopleService.actualizarMiPerfil(user.user_id, updatePeopleDto);
+    return this._peopleService.actualizarMiPerfil(
+      user.user_id,
+      updatePeopleDto,
+    );
   }
 
   @Get(':id')
@@ -44,13 +45,12 @@ export class PeopleController {
   }
 
   @Put(':id')
-@Roles(1, 2, 3)
-async update(
-  @User() user: any, 
-  @Param('id') id: number, 
-  @Body() updatePeopleDto: UpdatePeopleDto
-) {
-
-  return this._peopleService.actualizarPersona(id, updatePeopleDto, user);
-}
+  @Roles(1, 2, 3)
+  async update(
+    @User() user: any,
+    @Param('id') id: number,
+    @Body() updatePeopleDto: UpdatePeopleDto,
+  ) {
+    return this._peopleService.actualizarPersona(id, updatePeopleDto, user);
+  }
 }

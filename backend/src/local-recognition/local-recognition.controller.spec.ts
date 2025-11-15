@@ -9,7 +9,9 @@ describe('LocalRecognitionController', () => {
       controllers: [LocalRecognitionController],
     }).compile();
 
-    controller = module.get<LocalRecognitionController>(LocalRecognitionController);
+    controller = module.get<LocalRecognitionController>(
+      LocalRecognitionController,
+    );
   });
 
   it('should be defined', () => {

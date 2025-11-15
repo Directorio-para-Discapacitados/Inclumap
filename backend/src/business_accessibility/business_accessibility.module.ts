@@ -4,6 +4,6 @@ import { BusinessAccessibilityController } from './business_accessibility.contro
 
 @Module({
   providers: [BusinessAccessibilityService],
-  controllers: [BusinessAccessibilityController]
+  controllers: [BusinessAccessibilityController],
 })
 export class BusinessAccessibilityModule {}

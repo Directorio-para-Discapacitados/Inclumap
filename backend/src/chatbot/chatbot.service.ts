@@ -14,13 +14,10 @@ export class ChatbotService {
     private readonly accessibilityRepo: Repository<AccessibilityEntity>,
   ) {}
 
-
   async generateResponse(dto: ChatRequestDto): Promise<ChatResponseDto> {
     const message = dto.message.toLowerCase().trim();
 
     try {
-
-      
       if (this.esSaludo(message)) {
         return {
           response:
@@ -28,7 +25,6 @@ export class ChatbotService {
         };
       }
 
-      
       if (
         message.includes('lugares') ||
         message.includes('negocios') ||
@@ -38,34 +34,40 @@ export class ChatbotService {
         return this.findBusinessesByAccessibility(message);
       }
 
-      
       if (message.includes('qué es') || message.includes('información sobre')) {
         return this.findAccessibilityInfo(message);
       }
 
-    
       return {
         response:
           'Lo siento, no entendí tu pregunta. Intenta preguntarme por "lugares con rampa" o "información sobre accesibilidad auditiva".',
       };
     } catch (error) {
       console.error('Error en ChatbotService:', error);
-      throw new InternalServerErrorException('No se pudo generar una respuesta.');
+      throw new InternalServerErrorException(
+        'No se pudo generar una respuesta.',
+      );
     }
   }
 
   private esSaludo(message: string): boolean {
-    const saludos = ['hola', 'buenos días', 'buenas tardes', 'buenas noches', 'saludos'];
-    return saludos.some(saludo => message.startsWith(saludo));
+    const saludos = [
+      'hola',
+      'buenos días',
+      'buenas tardes',
+      'buenas noches',
+      'saludos',
+    ];
+    return saludos.some((saludo) => message.startsWith(saludo));
   }
 
-  
   private async findBusinessesByAccessibility(
     message: string,
   ): Promise<ChatResponseDto> {
-    
     const allAccessibilities = await this.accessibilityRepo.find();
-    const keywords = allAccessibilities.map(a => a.accessibility_name.toLowerCase());
+    const keywords = allAccessibilities.map((a) =>
+      a.accessibility_name.toLowerCase(),
+    );
 
     const foundKeyword = keywords.find((k) => message.includes(k));
 
@@ -78,18 +80,16 @@ export class ChatbotService {
 
     const businesses = await this.businessRepo
       .createQueryBuilder('business')
-      .innerJoin(
-        'business.business_accessibility', 
-        'business_accessibility',
-      )
-      .innerJoin(
-        'business_accessibility.accessibility', 
-        'accessibility',
-      )
+      .innerJoin('business.business_accessibility', 'business_accessibility')
+      .innerJoin('business_accessibility.accessibility', 'accessibility')
       .where('accessibility.accessibility_name ILIKE :keyword', {
         keyword: `%${foundKeyword}%`,
       })
-      .select(['business.business_id', 'business.business_name', 'business.address']) 
+      .select([
+        'business.business_id',
+        'business.business_name',
+        'business.address',
+      ])
       .getMany();
 
     if (businesses.length === 0) {
@@ -101,19 +101,18 @@ export class ChatbotService {
     const suggestions = businesses.map(
       (b) => `${b.business_name} (Ubicado en: ${b.address})`,
     );
-    
+
     return {
       response: `¡Buenas noticias! Encontré ${
         businesses.length
       } ${businesses.length === 1 ? 'lugar' : 'lugares'} con "${foundKeyword}":`,
-      suggestions: suggestions, 
+      suggestions: suggestions,
     };
   }
 
   private async findAccessibilityInfo(
     message: string,
   ): Promise<ChatResponseDto> {
-    
     const keyword = message
       .replace('qué es', '')
       .replace('información sobre', '')

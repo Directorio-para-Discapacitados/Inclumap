@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateAccesibilityDto } from './dto/create-accessibility.dto';
@@ -17,15 +23,21 @@ export class AccessibilityService {
     try {
       // Verificar si ya existe una accesibilidad con el mismo nombre
       const existingAccessibility = await this.accessibilityRepository.findOne({
-        where: { accessibility_name: createAccessibilityDto.accessibility_name }
+        where: {
+          accessibility_name: createAccessibilityDto.accessibility_name,
+        },
       });
 
       if (existingAccessibility) {
-        throw new ConflictException('Ya existe una accesibilidad con este nombre');
+        throw new ConflictException(
+          'Ya existe una accesibilidad con este nombre',
+        );
       }
 
       // Crear nueva accesibilidad
-      const accessibility = this.accessibilityRepository.create(createAccessibilityDto);
+      const accessibility = this.accessibilityRepository.create(
+        createAccessibilityDto,
+      );
       await this.accessibilityRepository.save(accessibility);
 
       return 'Accesibilidad creada exitosamente';
@@ -33,24 +45,42 @@ export class AccessibilityService {
       if (error instanceof ConflictException) {
         throw error;
       }
-      throw new Error(`Error al crear la accesibilidad: ${error.message}`);
+      if (error instanceof Error) {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      throw new HttpException(
+        'Error al crear la accesibilidad',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
   async obtenerAccesibilidades(): Promise<AccessibilityEntity[]> {
     try {
       return await this.accessibilityRepository.find({
-        order: { accessibility_name: 'ASC' }
+        order: { accessibility_name: 'ASC' },
       });
     } catch (error) {
-      throw new Error(`Error al obtener las accesibilidades: ${error.message}`);
+      if (error instanceof Error) {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      throw new HttpException(
+        'Error al obtener las accesibilidades',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
   async obtenerAccesibilidadesPorId(id: number): Promise<AccessibilityEntity> {
     try {
       const accessibility = await this.accessibilityRepository.findOne({
-        where: { accessibility_id: id }
+        where: { accessibility_id: id },
       });
 
       if (!accessibility) {
@@ -62,27 +92,41 @@ export class AccessibilityService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      throw new Error(`Error al obtener la accesibilidad: ${error.message}`);
+      if (error instanceof Error) {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      throw new HttpException(
+        'Error al obtener la accesibilidad',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
   async actualizarAccesibilidad(
-    id: number, 
-    updateAccessibilityDto: UpdateAccesibilityDto
+    id: number,
+    updateAccessibilityDto: UpdateAccesibilityDto,
   ): Promise<string> {
     try {
-      const accessibility = await this.obtenerAccesibilidadesPorId(id);
+      await this.obtenerAccesibilidadesPorId(id);
 
       if (updateAccessibilityDto.accessibility_name) {
-        const existingAccessibility = await this.accessibilityRepository.findOne({
-          where: { 
-            accessibility_name: updateAccessibilityDto.accessibility_name,
-            accessibility_id: id 
-          }
-        });
+        const existingAccessibility =
+          await this.accessibilityRepository.findOne({
+            where: {
+              accessibility_name: updateAccessibilityDto.accessibility_name,
+            },
+          });
 
-        if (existingAccessibility && existingAccessibility.accessibility_id !== id) {
-          throw new ConflictException('Ya existe otra accesibilidad con este nombre');
+        if (
+          existingAccessibility &&
+          existingAccessibility.accessibility_id !== id
+        ) {
+          throw new ConflictException(
+            'Ya existe otra accesibilidad con este nombre',
+          );
         }
       }
 
@@ -91,25 +135,34 @@ export class AccessibilityService {
 
       return 'Accesibilidad actualizada exitosamente';
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof ConflictException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ConflictException
+      ) {
         throw error;
       }
-      throw new Error(`Error al actualizar la accesibilidad: ${error.message}`);
+      if (error instanceof Error) {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      throw new HttpException(
+        'Error al actualizar la accesibilidad',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
+  async eliminarAccesibilidad(id: number): Promise<string> {
+    const queryRunner =
+      this.accessibilityRepository.manager.connection.createQueryRunner();
 
-
-async eliminarAccesibilidad(id: number): Promise<string> {
-    const queryRunner = this.accessibilityRepository.manager.connection.createQueryRunner();
-    
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-
-      const accessibility = await this.obtenerAccesibilidadesPorId(id);
-
+      await this.obtenerAccesibilidadesPorId(id);
 
       const hasRelations = await queryRunner.manager
         .getRepository(BusinessAccessibilityEntity)
@@ -119,25 +172,35 @@ async eliminarAccesibilidad(id: number): Promise<string> {
 
       if (hasRelations > 0) {
         throw new ConflictException(
-          'No se puede eliminar la accesibilidad porque está siendo utilizada en negocios'
+          'No se puede eliminar la accesibilidad porque está siendo utilizada en negocios',
         );
       }
 
-      // Eliminar la accesibilidad
       await queryRunner.manager.delete(AccessibilityEntity, id);
-      
+
       await queryRunner.commitTransaction();
       return 'Accesibilidad eliminada exitosamente';
-
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      
-      if (error instanceof NotFoundException || error instanceof ConflictException) {
+
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ConflictException
+      ) {
         throw error;
       }
-      throw new Error(`Error al eliminar la accesibilidad: ${error.message}`);
+      if (error instanceof Error) {
+        throw new HttpException(
+          error.message,
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+      throw new HttpException(
+        'Error al eliminar la accesibilidad',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     } finally {
       await queryRunner.release();
     }
-}
+  }
 }

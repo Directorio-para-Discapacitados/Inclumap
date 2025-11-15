@@ -1,10 +1,14 @@
-import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  InternalServerErrorException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PeopleEntity } from './entity/people.entity';
 import { UserEntity } from '../user/entity/user.entity';
 import { UpdatePeopleDto } from './dto/update-people.dto';
-
 
 @Injectable()
 export class PeopleService {
@@ -20,7 +24,7 @@ export class PeopleService {
   async obtenerPersonas(): Promise<any[]> {
     try {
       const personas = await this._peopleRepository.find({
-        relations: ['user']
+        relations: ['user'],
       });
 
       if (!personas.length) {
@@ -46,9 +50,9 @@ export class PeopleService {
 
   async obtenerPersonaPorUserId(user_id: number): Promise<PeopleEntity> {
     try {
-      const persona = await this._peopleRepository.findOne({ 
+      const persona = await this._peopleRepository.findOne({
         where: { user: { user_id } },
-        relations: ['user']
+        relations: ['user'],
       });
 
       if (!persona) {
@@ -69,7 +73,7 @@ export class PeopleService {
     try {
       const persona = await this._peopleRepository.findOne({
         where: { people_id },
-        relations: ['user']
+        relations: ['user'],
       });
 
       if (!persona) {
@@ -90,50 +94,44 @@ export class PeopleService {
   }
 
   async actualizarPersona(
-    user_id: number, 
+    user_id: number,
     dto: UpdatePeopleDto,
-    currentUser: any 
+    currentUser: any,
   ): Promise<string> {
     try {
-      
       // Asegurar que ambos sean números y comparar correctamente
       const userIdFromParam = Number(user_id);
       const userIdFromToken = Number(currentUser.user_id);
       const isOwner = userIdFromParam === userIdFromToken;
       const isAdmin = currentUser.rolIds.includes(1);
-  
-  
+
       if (!isOwner && !isAdmin) {
-       
-        throw new ForbiddenException('No tienes permisos para actualizar esta persona');
+        throw new ForbiddenException(
+          'No tienes permisos para actualizar esta persona',
+        );
       }
-  
-  
+
       // Validar si el ID del usuario es válido
-      const usuario = await this._userRepository.findOne({ where: { user_id } });
+      const usuario = await this._userRepository.findOne({
+        where: { user_id },
+      });
       if (!usuario) {
-        
         throw new NotFoundException('Usuario no encontrado');
       }
-  
-     
-  
+
       // Buscar la persona asociada al usuario
-      const persona = await this._peopleRepository.findOne({ 
-        where: { user: usuario } 
+      const persona = await this._peopleRepository.findOne({
+        where: { user: usuario },
       });
       if (!persona) {
-        
         throw new NotFoundException('Persona no encontrada');
       }
-  
 
-  
       // Actualizar los campos de la persona
       if (dto.firstName) {
         persona.firstName = dto.firstName;
       }
-      if (dto.firstLastName) { 
+      if (dto.firstLastName) {
         persona.firstLastName = dto.firstLastName;
       }
       if (dto.cellphone) {
@@ -142,28 +140,31 @@ export class PeopleService {
       if (dto.address) {
         persona.address = dto.address;
       }
-  
+
       // Guardar los cambios
       await this._peopleRepository.save(persona);
-  
+
       return 'Información de la persona actualizada correctamente';
-  
     } catch (error) {
-     
-      
-      if (error instanceof NotFoundException || error instanceof ForbiddenException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ForbiddenException
+      ) {
         throw error;
       }
-      
+
       throw new InternalServerErrorException('Error al actualizar la persona');
     }
   }
 
-  async actualizarMiPerfil(userId: number, dto: UpdatePeopleDto): Promise<string> {
+  async actualizarMiPerfil(
+    userId: number,
+    dto: UpdatePeopleDto,
+  ): Promise<string> {
     try {
       // Buscar la persona por user_id
       const persona = await this._peopleRepository.findOne({
-        where: { user: { user_id: userId } }
+        where: { user: { user_id: userId } },
       });
 
       if (!persona) {

@@ -12,7 +12,7 @@ import { join } from 'path';
         transport: {
           host: config.get('MAIL_HOST'),
           port: config.get('MAIL_PORT'),
-          secure: false, 
+          secure: false,
           auth: {
             user: config.get('MAIL_USER'),
             pass: config.get('MAIL_PASSWORD'),
@@ -35,4 +35,4 @@ import { join } from 'path';
   providers: [MailsService],
   exports: [MailsService],
 })
-export class MailsModule { }
+export class MailsModule {}

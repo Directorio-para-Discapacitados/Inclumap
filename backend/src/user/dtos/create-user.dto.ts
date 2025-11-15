@@ -1,4 +1,11 @@
-import { IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateUserDto {
@@ -16,5 +23,5 @@ export class CreateUserDto {
   @ApiPropertyOptional({ description: 'ID del rol asignado al usuario' })
   @IsOptional({ message: 'No tienes un Rol' })
   @IsNumber({}, { message: 'Rol indefinido' })
-  rol_id: number;  
+  rol_id: number;
 }

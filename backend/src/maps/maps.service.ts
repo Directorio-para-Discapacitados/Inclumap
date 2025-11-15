@@ -1,5 +1,9 @@
 // backend/src/maps/maps.service.ts
-import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
@@ -29,10 +33,13 @@ export class MapsService {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {
-    this.geoapifyApiKey = this.configService.get<string>('GEOAPIFY_API_KEY') || '';
-    
+    this.geoapifyApiKey =
+      this.configService.get<string>('GEOAPIFY_API_KEY') || '';
+
     if (!this.geoapifyApiKey) {
-      this.logger.warn('GEOAPIFY_API_KEY no está configurado en las variables de entorno');
+      this.logger.warn(
+        'GEOAPIFY_API_KEY no está configurado en las variables de entorno',
+      );
     }
   }
 
@@ -48,8 +55,12 @@ export class MapsService {
     }
 
     if (!this.geoapifyApiKey) {
-      this.logger.error('No se puede realizar geocodificación: API key no configurado');
-      throw new InternalServerErrorException('Servicio de geocodificación no configurado');
+      this.logger.error(
+        'No se puede realizar geocodificación: API key no configurado',
+      );
+      throw new InternalServerErrorException(
+        'Servicio de geocodificación no configurado',
+      );
     }
 
     try {
@@ -64,11 +75,17 @@ export class MapsService {
       this.logger.debug(`Geocodificando dirección: "${address}"`);
 
       const response = await firstValueFrom(
-        this.httpService.get<GeoapifyResponse>(url, { params })
+        this.httpService.get<GeoapifyResponse>(url, { params }),
       );
 
-      if (!response.data || !response.data.results || response.data.results.length === 0) {
-        this.logger.warn(`No se encontraron coordenadas para la dirección: "${address}"`);
+      if (
+        !response.data ||
+        !response.data.results ||
+        response.data.results.length === 0
+      ) {
+        this.logger.warn(
+          `No se encontraron coordenadas para la dirección: "${address}"`,
+        );
         return null;
       }
 
@@ -79,35 +96,50 @@ export class MapsService {
       };
 
       this.logger.debug(
-        `Geocodificación exitosa: "${address}" -> lat: ${coordinates.lat}, lon: ${coordinates.lon}`
+        `Geocodificación exitosa: "${address}" -> lat: ${coordinates.lat}, lon: ${coordinates.lon}`,
       );
 
       return coordinates;
     } catch (error) {
-      this.logger.error(`Error al geocodificar dirección "${address}":`, error.message);
-      
+      this.logger.error(
+        `Error al geocodificar dirección "${address}":`,
+        error.message,
+      );
+
       if (error.response) {
         const status = error.response.status;
         const data = error.response.data;
-        
+
         switch (status) {
           case 401:
             this.logger.error('API key de Geoapify inválido o expirado');
-            throw new InternalServerErrorException('Servicio de geocodificación no autorizado');
+            throw new InternalServerErrorException(
+              'Servicio de geocodificación no autorizado',
+            );
           case 429:
             this.logger.error('Límite de rate de API de Geoapify alcanzado');
-            throw new InternalServerErrorException('Servicio de geocodificación temporalmente no disponible');
+            throw new InternalServerErrorException(
+              'Servicio de geocodificación temporalmente no disponible',
+            );
           case 400:
-            this.logger.error(`Parámetros inválidos enviados a Geoapify: ${JSON.stringify(data)}`);
+            this.logger.error(
+              `Parámetros inválidos enviados a Geoapify: ${JSON.stringify(data)}`,
+            );
             return null;
           default:
-            this.logger.error(`Error HTTP ${status} de Geoapify: ${JSON.stringify(data)}`);
-            throw new InternalServerErrorException('Error en el servicio de geocodificación');
+            this.logger.error(
+              `Error HTTP ${status} de Geoapify: ${JSON.stringify(data)}`,
+            );
+            throw new InternalServerErrorException(
+              'Error en el servicio de geocodificación',
+            );
         }
       }
 
       // Error de red u otro error no HTTP
-      throw new InternalServerErrorException('Error de conexión con el servicio de geocodificación');
+      throw new InternalServerErrorException(
+        'Error de conexión con el servicio de geocodificación',
+      );
     }
   }
 

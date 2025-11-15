@@ -18,7 +18,6 @@ import { RolesGuard } from './guards/roles.guard';
 import { MailsService } from 'src/mails/mails.service';
 import { MapsModule } from 'src/maps/maps.module';
 
-
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -29,29 +28,21 @@ import { MapsModule } from 'src/maps/maps.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.get('JWT_SECRET'),
-        signOptions: { expiresIn: '30m' }
-      })
+        signOptions: { expiresIn: '30m' },
+      }),
     }),
     TypeOrmModule.forFeature([
-      UserEntity, 
-      RolEntity, 
-      UserRolesEntity, 
-      PeopleEntity, 
-      BusinessEntity, 
-      BusinessAccessibilityEntity, 
-      AccessibilityEntity]),
+      UserEntity,
+      RolEntity,
+      UserRolesEntity,
+      PeopleEntity,
+      BusinessEntity,
+      BusinessAccessibilityEntity,
+      AccessibilityEntity,
+    ]),
   ],
-  providers: [
-    AuthService,
-    JwtStrategy,
-    JwtAuthGuard,  
-    RolesGuard, 
-    MailsService
-  ],
+  providers: [AuthService, JwtStrategy, JwtAuthGuard, RolesGuard, MailsService],
   controllers: [AuthController],
-  exports: [
-    JwtAuthGuard,  
-    RolesGuard,    
-  ],
+  exports: [JwtAuthGuard, RolesGuard],
 })
-export class AuthModule { }
+export class AuthModule {}

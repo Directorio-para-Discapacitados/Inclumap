@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsString, IsNumber, IsOptional, IsArray } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsNumber,
+  IsOptional,
+  IsArray,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateBusinessDto {
@@ -32,7 +38,10 @@ export class CreateBusinessDto {
   @IsNumber()
   user_id: number;
 
-  @ApiProperty({ description: 'IDs de las características de accesibilidad del negocio', isArray: true })
+  @ApiProperty({
+    description: 'IDs de las características de accesibilidad del negocio',
+    isArray: true,
+  })
   @IsOptional()
   @IsArray()
   accessibilityIds?: number[];
