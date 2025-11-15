@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { LocalRecognitionController } from './local-recognition.controller';
-import { LocalRecognitionService } from './local-recognition.service'; 
+import { LocalRecognitionService } from './local-recognition.service';
 
 describe('LocalRecognitionController', () => {
   let controller: LocalRecognitionController;

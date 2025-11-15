@@ -27,16 +27,18 @@ export class UpdateBusinessDto {
   description?: string;
 
   @ApiPropertyOptional({ description: 'Coordenadas geográficas del negocio' })
-@IsOptional()
-@IsString()
-coordinates?: string;
+  @IsOptional()
+  @IsString()
+  coordinates?: string;
 
-@ApiPropertyOptional({ description: 'Estado de verificación del logo' })
-@IsOptional()
-@IsBoolean()
-verified?: boolean;
+  @ApiPropertyOptional({ description: 'Estado de verificación del logo' })
+  @IsOptional()
+  @IsBoolean()
+  verified?: boolean;
 
-@ApiPropertyOptional({
-  description: 'ID del usuario propietario (null para remover propietario)',})
-@IsOptional()
-user_id?: number | null;
+  @ApiPropertyOptional({
+    description: 'ID del usuario propietario (null para remover propietario)',
+  })
+  @IsOptional()
+  user_id?: number | null;
+}

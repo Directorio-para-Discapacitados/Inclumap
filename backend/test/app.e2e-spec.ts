@@ -14,7 +14,7 @@ describe.skip('AppController (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
-  }, 40000); 
+  }, 40000);
 
   afterAll(async () => {
     if (app) {
