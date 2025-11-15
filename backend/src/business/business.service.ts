@@ -94,21 +94,61 @@ export class BusinessService {
   }
 
   //  Obtener todos los negocios
-  async obtenerNegocios(): Promise<any[]> {
-    try {
-      const negocios = await this._businessRepository.find({
-        relations: [
-          'user',
-          'user.people',
-          'user.userroles',
-          'user.userroles.rol',
-          'business_accessibility',
-        ],
-      });
+ async obtenerNegocios(): Promise<any[]> {
+  try {
+    const negocios = await this._businessRepository.find({
+      relations: [
+        'user',
+        'user.people',
+        'user.userroles',
+        'user.userroles.rol',
+        'business_accessibility',
+      ],
+    });
 
-      if (!negocios.length) {
-        throw new NotFoundException('No hay negocios registrados');
-      }
+    if (!negocios.length) {
+      throw new NotFoundException('No hay negocios registrados');
+    }
+
+    return negocios.map((negocio) => {
+      // Transformar los roles del usuario a un formato más simple
+      const userWithRoles = negocio.user ? {
+        user_id: negocio.user.user_id,
+        roles: negocio.user.userroles?.map(userRole => ({
+          id: userRole.rol.rol_id,
+          name: userRole.rol.rol_name
+        })) || [],
+        people: negocio.user.people ? {
+          firstName: (negocio.user.people as any).firstName || (negocio.user.people as any).first_name,
+          firstLastName: (negocio.user.people as any).firstLastName || (negocio.user.people as any).first_last_name,
+        } : undefined,
+      } : null;
+
+      return {
+        business_id: negocio.business_id,
+        business_name: negocio.business_name,
+        address: negocio.address,
+        NIT: negocio.NIT,
+        description: negocio.description,
+        coordinates: negocio.coordinates,
+        latitude: negocio.latitude,
+        longitude: negocio.longitude,
+        average_rating: negocio.average_rating,
+        logo_url: negocio.logo_url,
+        verification_image_url: negocio.verification_image_url,
+        verified: negocio.verified || false,
+        user: userWithRoles, // Usuario con roles transformados
+        business_accessibility: negocio.business_accessibility, // Incluir accesibilidades si están disponibles
+      };
+    });
+  } catch (error) {
+    if (error instanceof NotFoundException) {
+      throw error;
+    }
+    throw new InternalServerErrorException(
+      'Error en el servidor al obtener negocios',
+    );
+  }
 
       return negocios.map((negocio) => {
         // Transformar los roles del usuario a un formato más simple
@@ -133,21 +173,22 @@ export class BusinessService {
             }
           : null;
 
-        return {
-          business_id: negocio.business_id,
-          business_name: negocio.business_name,
-          address: negocio.address,
-          NIT: negocio.NIT,
-          description: negocio.description,
-          coordinates: negocio.coordinates,
-          latitude: negocio.latitude,
-          longitude: negocio.longitude,
-          average_rating: negocio.average_rating,
-          logo_url: negocio.logo_url,
-          verification_image_url: negocio.verification_image_url,
-          user: userWithRoles, // Usuario con roles transformados
-          business_accessibility: negocio.business_accessibility, // Incluir accesibilidades si están disponibles
-        };
+          return {
+    business_id: negocio.business_id,
+    business_name: negocio.business_name,
+    address: negocio.address,
+    NIT: negocio.NIT,
+    description: negocio.description,
+    coordinates: negocio.coordinates,
+    latitude: negocio.latitude,
+    longitude: negocio.longitude,
+    average_rating: negocio.average_rating,
+    logo_url: negocio.logo_url,
+    verification_image_url: negocio.verification_image_url,
+    verified: negocio.verified || false,
+    user: userWithRoles, 
+    business_accessibility: negocio.business_accessibility, 
+  };
       });
     } catch (error) {
       if (error instanceof NotFoundException) {
@@ -765,6 +806,98 @@ export class BusinessService {
       throw new InternalServerErrorException(
         'Error al actualizar las coordenadas del negocio',
       );
+    }
+  }
+
+  // Obtener el negocio del usuario autenticado (propietario)
+  async getOwnerBusiness(userId: number): Promise<BusinessEntity> {
+    try {
+      const business = await this._businessRepository.createQueryBuilder('business')
+        .leftJoinAndSelect('business.user', 'user')
+        .leftJoinAndSelect('user.people', 'people')
+        .leftJoinAndSelect('user.userroles', 'userroles')
+        .leftJoinAndSelect('userroles.rol', 'rol')
+        .leftJoinAndSelect('business.business_accessibility', 'accessibility')
+        .where('business.user_id = :userId', { userId })
+        .getOne();
+
+      if (!business) {
+        throw new NotFoundException('No tienes un negocio registrado');
+      }
+
+      return business;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al obtener el negocio del propietario');
+    }
+  }
+
+  // Actualizar el negocio del propietario con validación de permisos
+  async updateOwnerBusiness(
+    businessId: number,
+    updateDto: UpdateBusinessDto,
+    user: UserEntity,
+  ): Promise<BusinessEntity> {
+    try {
+      console.log('🔍 [updateOwnerBusiness] businessId:', businessId, 'updateDto:', updateDto);
+      
+      const business = await this._businessRepository.findOne({
+        where: { business_id: businessId },
+        relations: ['user', 'user.userroles', 'user.userroles.rol'],
+      });
+
+      if (!business) {
+        throw new NotFoundException('Negocio no encontrado');
+      }
+
+      console.log('📊 [updateOwnerBusiness] Business found:', business.business_id);
+
+      // Verificar que el usuario es el propietario o es admin
+      const isAdmin = user.userroles && user.userroles.some(ur => ur.rol?.rol_id === 1);
+      const isOwner = business.user && business.user.user_id === user.user_id;
+
+      console.log('🔐 [updateOwnerBusiness] isAdmin:', isAdmin, 'isOwner:', isOwner, 'user.user_id:', user.user_id, 'business.user.user_id:', business.user?.user_id);
+
+      if (!isAdmin && !isOwner) {
+        throw new ForbiddenException('No tienes permiso para actualizar este negocio');
+      }
+
+      // Actualizar cada campo explícitamente
+      if (updateDto.business_name !== undefined && updateDto.business_name !== null) {
+        business.business_name = updateDto.business_name;
+      }
+      if (updateDto.address !== undefined && updateDto.address !== null) {
+        business.address = updateDto.address;
+      }
+      if (updateDto.description !== undefined && updateDto.description !== null) {
+        business.description = updateDto.description;
+      }
+      // NO actualizar logo con base64 - ignorar si viene en la solicitud
+      if (updateDto.verified !== undefined && updateDto.verified !== null) {
+        console.log('✅ [updateOwnerBusiness] Setting verified to:', updateDto.verified);
+        business.verified = updateDto.verified;
+      }
+
+      console.log('💾 [updateOwnerBusiness] Saving business:', { verified: business.verified, business_name: business.business_name });
+
+      const updatedBusiness = await this._businessRepository.save(business);
+
+      console.log('✔️ [updateOwnerBusiness] Business saved successfully:', updatedBusiness.business_id);
+
+      return updatedBusiness;
+    } catch (error) {
+      console.error('❌ [updateOwnerBusiness] Error:', error.message);
+      console.error('❌ [updateOwnerBusiness] Full error:', error);
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ForbiddenException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error al actualizar el negocio: ' + error.message);
     }
   }
 }

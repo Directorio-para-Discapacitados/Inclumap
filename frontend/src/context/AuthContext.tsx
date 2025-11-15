@@ -10,6 +10,8 @@ interface User {
   email?: string;
   rolIds?: number[];
   avatar?: string;
+  logo_url?: string | null;
+  verified?: boolean;
 }
 // --- FIN INTERFAZ ---
 
@@ -21,7 +23,7 @@ interface AuthContextType {
   refreshUser: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -79,6 +81,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: decoded.user_email || decoded.email,
       rolIds: rolIds,
       avatar: decoded.avatar,
+      logo_url: decoded.logo_url || null,
+      verified: decoded.verified || false,
     });
     setIsAuthenticated(true);
     return true;
@@ -123,6 +127,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email: data.email,
         rolIds: data.rolIds,
         avatar: data.avatar,
+        logo_url: data.logo_url || null,
+        verified: data.verified || false,
       });
       console.log('User updated with avatar:', data.avatar);
       setIsAuthenticated(true);

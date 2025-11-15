@@ -1049,43 +1049,51 @@ export class AuthService {
     }
   }
 
-  async getProfile(userId: number): Promise<{
-    user_id: number;
-    displayName: string;
-    roleDescription: string;
-    email: string;
-    rolIds: number[];
-    avatar: string | null;
-  }> {
-    try {
-      const user: UserEntity | null = await this.userRepository.findOne({
-        where: { user_id: userId },
-        relations: ['people', 'business', 'userroles', 'userroles.rol'],
-      });
+ async getProfile(userId: number): Promise<{
+  user_id: number;
+  displayName: string;
+  roleDescription: string;
+  email: string;
+  rolIds: number[];
+  avatar: string | null;
+  logo_url?: string | null;
+  verified?: boolean;
+}> {
+  try {
+    const user: UserEntity | null = await this.userRepository.findOne({
+      where: { user_id: userId },
+      relations: ['people', 'business', 'userroles', 'userroles.rol'],
+    });
 
-      if (!user) {
-        throw new NotFoundException('Usuario no encontrado');
-      }
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
 
-      const rolIds =
-        user.userroles?.map((userRole) => userRole.rol.rol_id) || [];
+    const rolIds =
+      user.userroles?.map((userRole) => userRole.rol.rol_id) || [];
 
-      let displayName: string;
-      let roleDescription: string;
+    let displayName: string;
+    let roleDescription: string;
+    let logo_url: string | null = null;
+    let verified: boolean = false;
 
-      if (rolIds.includes(3) && user.business?.business_name) {
-        // Propietario de negocio
-        displayName = user.business.business_name;
-        roleDescription = 'Propietario';
-      } else if (user.people) {
-        // Usuario normal
-        displayName =
-          `${user.people.firstName} ${user.people.firstLastName}`.trim();
-        roleDescription = this.getRoleDescription(rolIds);
-      } else {
-        displayName = 'Usuario';
-        roleDescription = this.getRoleDescription(rolIds);
-      }
+    if (rolIds.includes(3) && user.business?.business_name) {
+      // Propietario de negocio
+      displayName = user.business.business_name;
+      roleDescription = 'Propietario';
+      logo_url = user.business.logo_url || null;
+      verified = user.business.verified || false;
+    } else if (user.people) {
+      // Usuario normal
+      displayName =
+        `${user.people.firstName} ${user.people.firstLastName}`.trim();
+      roleDescription = this.getRoleDescription(rolIds);
+    } else {
+      displayName = 'Usuario';
+      roleDescription = this.getRoleDescription(rolIds);
+    }
+
+    // Continúa con el resto del código...
 
       return {
         user_id: user.user_id,
@@ -1094,6 +1102,8 @@ export class AuthService {
         email: user.user_email,
         rolIds,
         avatar: user.avatar_url || null,
+        logo_url,
+        verified,
       };
     } catch (error) {
       if (error instanceof HttpException) {

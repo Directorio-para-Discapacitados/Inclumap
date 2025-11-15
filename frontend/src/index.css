@@ -1,3 +1,6 @@
+/* IMPORTANTE: Leaflet necesita su CSS antes de todo */
+@import "leaflet/dist/leaflet.css";
+
 /* frontend/src/index.css (CORREGIDO) */
 
 /* --- INICIO DE LA MODIFICACIÓN: Arreglo de Scroll Horizontal --- */
@@ -25,34 +28,14 @@ body {
 }
 
 /* --- ESTA ES LA REGLA CORREGIDA --- */
-/*
-  En lugar de un 'padding' fijo que causa desbordamiento, 
-  usamos 'max-width' con márgenes automáticos para centrar el contenido.
-  El 'padding' solo se aplicará DENTRO del 'max-width'.
-*/
 #root {
-  margin: 0 auto;    /* Centra el contenido automáticamente */
-  
-  /* Añadimos padding solo a los lados, pero no causará scroll */
-  
-  /* Asegura que el #root ocupe al menos toda la pantalla menos el navbar */
+  margin: 0 auto;
   min-height: calc(100vh - var(--navbar-height));
-  
-  /* Asegura que no haya desbordamiento horizontal */
   width: 100%;
   overflow-x: hidden;
 }
 
-/*
-  Las páginas especiales como Login/Admin que necesitan la pantalla 
-  completa anularán este padding con sus propias reglas 
-  (ej. 'body:has(.login-page) #root')
-*/
-
-/* --- FIN DE LA MODIFICACIÓN --- */
-
-
-/* Estilos del Modo Oscuro */
+/* Modo oscuro */
 body.dark-mode {
   --color-background: #1a1a1a;
   --color-surface: #2a2a2a;
@@ -62,7 +45,7 @@ body.dark-mode {
   --color-primary-hover: #5a7dff;
 }
 
-/* Estilos de scrollbar (si los tenías) */
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -77,4 +60,4 @@ body.dark-mode ::-webkit-scrollbar-thumb {
   background: #555;
 }
 
-/* ... (Cualquier otro estilo global que tengas) ... */
+/* ...otros estilos... */
