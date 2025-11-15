@@ -18,20 +18,20 @@ export class RolesService implements OnModuleInit {
     const defaultRoles = [
       { rol_id: 1, rol_name: 'Admin' },
       { rol_id: 2, rol_name: 'User' },
-      { rol_id: 3, rol_name: 'Propietario' }
+      { rol_id: 3, rol_name: 'Propietario' },
     ];
-    
+
     for (const roleData of defaultRoles) {
       await this.createRoleIfNotExists(roleData);
     }
   }
 
-  private async createRoleIfNotExists(roleData: { rol_id: number, rol_name: string }): Promise<void> {
+  private async createRoleIfNotExists(roleData: {
+    rol_id: number;
+    rol_name: string;
+  }): Promise<void> {
     const roleExists = await this.rolRepository.findOne({
-      where: [
-        { rol_id: roleData.rol_id },
-        { rol_name: roleData.rol_name }
-      ]
+      where: [{ rol_id: roleData.rol_id }, { rol_name: roleData.rol_name }],
     });
 
     if (!roleExists) {

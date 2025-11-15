@@ -1,4 +1,10 @@
-import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { UserEntity } from './entity/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -9,7 +15,6 @@ import { RolEntity } from 'src/roles/entity/rol.entity';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { PeopleEntity } from '../people/entity/people.entity';
 import { BusinessEntity } from '../business/entity/business.entity';
-
 
 @Injectable()
 export class UserService {
@@ -29,18 +34,21 @@ export class UserService {
 
     @InjectRepository(BusinessEntity)
     private readonly _businessRepository: Repository<BusinessEntity>,
-  ) { }
+  ) {}
 
-
-  // Crear un nuevo usuario 
+  // Crear un nuevo usuario
   async create(createUserDto: CreateUserDto): Promise<string> {
     const { user_email, user_password } = createUserDto;
 
     try {
       // Verificar si el correo ya está registrado
-      const usuarioExistente = await this._userRepository.findOne({ where: { user_email } });
+      const usuarioExistente = await this._userRepository.findOne({
+        where: { user_email },
+      });
       if (usuarioExistente) {
-        throw new BadRequestException('El correo electrónico ya esta registrado');
+        throw new BadRequestException(
+          'El correo electrónico ya esta registrado',
+        );
       }
 
       // Crear y guardar el usuarios
@@ -52,9 +60,7 @@ export class UserService {
 
       return 'Usuario creado correctamente';
     } catch (error) {
-      if (
-        error instanceof BadRequestException
-      ) {
+      if (error instanceof BadRequestException) {
         throw error;
       }
       throw new InternalServerErrorException('Error al crear el usuario');
@@ -63,34 +69,34 @@ export class UserService {
 
   async obtenerUsuarios(): Promise<any[]> {
     try {
-        const usuarios = await this._userRepository.find({
-            relations: ['userroles', 'userroles.rol'],
-        });
+      const usuarios = await this._userRepository.find({
+        relations: ['userroles', 'userroles.rol'],
+      });
 
-        // Si no hay usuarios, se da una excepcion
-        if (!usuarios.length) {
-            throw new NotFoundException('No hay usuarios registrados');
-        }
+      // Si no hay usuarios, se da una excepcion
+      if (!usuarios.length) {
+        throw new NotFoundException('No hay usuarios registrados');
+      }
 
-    
-        return usuarios.map((usuario) => ({
-            user_id: usuario.user_id,
-            user_email: usuario.user_email,
-            user_password: usuario.user_password,
-            
-            roles: usuario.userroles ? usuario.userroles.map(ur => ({
-                rol_id: ur.rol.rol_id,
-                rol_name: ur.rol.rol_name
-            })) : []
-        }));
+      return usuarios.map((usuario) => ({
+        user_id: usuario.user_id,
+        user_email: usuario.user_email,
+        user_password: usuario.user_password,
+
+        roles: usuario.userroles
+          ? usuario.userroles.map((ur) => ({
+              rol_id: ur.rol.rol_id,
+              rol_name: ur.rol.rol_name,
+            }))
+          : [],
+      }));
     } catch (error) {
-        if (error instanceof NotFoundException) {
-            throw error;
-        }
-        throw new InternalServerErrorException('Error en el servidor');
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Error en el servidor');
     }
-}
-
+  }
 
   async obtenerUsuarioPorId(user_id: number, currentUser: any): Promise<any> {
     try {
@@ -99,7 +105,9 @@ export class UserService {
       const isAdmin = currentUser.rolIds.includes(1); // rol admin = 1
 
       if (!isOwner && !isAdmin) {
-        throw new ForbiddenException('No tienes permisos para ver este usuario');
+        throw new ForbiddenException(
+          'No tienes permisos para ver este usuario',
+        );
       }
 
       const usuario = await this._userRepository.findOne({
@@ -115,29 +123,41 @@ export class UserService {
         user_id: usuario.user_id,
         user_email: usuario.user_email,
         user_password: usuario.user_password,
-        roles: isAdmin || isOwner ? usuario.userroles.map(ur => ({
-          rol_id: ur.rol.rol_id,
-          rol_name: ur.rol.rol_name
-        })) : undefined
+        roles:
+          isAdmin || isOwner
+            ? usuario.userroles.map((ur) => ({
+                rol_id: ur.rol.rol_id,
+                rol_name: ur.rol.rol_name,
+              }))
+            : undefined,
       };
 
       return result;
     } catch (error) {
-      if (error instanceof ForbiddenException || error instanceof NotFoundException) {
+      if (
+        error instanceof ForbiddenException ||
+        error instanceof NotFoundException
+      ) {
         throw error;
       }
       throw new InternalServerErrorException('Error al obtener el usuario');
     }
   }
 
-  async actualizarUsuario(user_id: number, dto: UpdateUserDto, currentUser: any): Promise<string> {
+  async actualizarUsuario(
+    user_id: number,
+    dto: UpdateUserDto,
+    currentUser: any,
+  ): Promise<string> {
     try {
       // ✅ VERIFICAR PERMISOS: Solo puede actualizar su propio usuario o admin
       const isOwner = user_id === currentUser.user_id;
       const isAdmin = currentUser.rolIds.includes(1);
 
       if (!isOwner && !isAdmin) {
-        throw new ForbiddenException('No tienes permisos para actualizar este usuario');
+        throw new ForbiddenException(
+          'No tienes permisos para actualizar este usuario',
+        );
       }
 
       // ✅ RESTRICCIÓN: Usuarios normales no pueden cambiar su rol
@@ -151,20 +171,27 @@ export class UserService {
       }
 
       // Buscar el usuario por ID
-      const usuario = await this._userRepository.findOne({ where: { user_id } });
+      const usuario = await this._userRepository.findOne({
+        where: { user_id },
+      });
       if (!usuario) {
         throw new NotFoundException('Usuario no encontrado');
       }
 
       // Verificar si el correo ya existe en otro usuario
       if (dto.user_email) {
-        const existeEmail = await this._userRepository.createQueryBuilder('usuarios')
+        const existeEmail = await this._userRepository
+          .createQueryBuilder('usuarios')
           .where('usuarios.user_id != :user_id', { user_id })
-          .andWhere('usuarios.user_email = :user_email', { user_email: dto.user_email })
+          .andWhere('usuarios.user_email = :user_email', {
+            user_email: dto.user_email,
+          })
           .getOne();
 
         if (existeEmail) {
-          throw new BadRequestException('El correo electrónico ya está registrado en otro usuario');
+          throw new BadRequestException(
+            'El correo electrónico ya está registrado en otro usuario',
+          );
         }
       }
 
@@ -175,7 +202,9 @@ export class UserService {
       // Si el rol está presente en el DTO y es admin, se actualiza
       if (dto.rol_id && isAdmin) {
         // Buscar el rol con el ID proporcionado
-        const rol = await this._rolRepository.findOne({ where: { rol_id: dto.rol_id } });
+        const rol = await this._rolRepository.findOne({
+          where: { rol_id: dto.rol_id },
+        });
         if (!rol) {
           throw new NotFoundException('El rol especificado no existe');
         }
@@ -205,26 +234,23 @@ export class UserService {
 
       return 'Usuario actualizado correctamente';
     } catch (error) {
-      if (error instanceof BadRequestException ||
+      if (
+        error instanceof BadRequestException ||
         error instanceof NotFoundException ||
-        error instanceof ForbiddenException) {
+        error instanceof ForbiddenException
+      ) {
         throw error;
       }
-      throw new InternalServerErrorException('Error al intentar actualizar el usuario');
+      throw new InternalServerErrorException(
+        'Error al intentar actualizar el usuario',
+      );
     }
   }
 
-
   async eliminarUsuario(user_id: number): Promise<string> {
-    console.log(`🗑️ Iniciando eliminación del usuario ID: ${user_id}`);
-    
     const usuario = await this._userRepository.findOne({
       where: { user_id },
-      relations: [
-        'userroles',
-        'people',
-        'business'
-      ],
+      relations: ['userroles', 'people', 'business'],
     });
 
     if (!usuario) {
@@ -236,51 +262,44 @@ export class UserService {
       if (usuario.business) {
         throw new BadRequestException(
           'No se puede eliminar el usuario porque tiene un negocio asignado. ' +
-          'Primero elimine o reasigne el negocio.'
+            'Primero elimine o reasigne el negocio.',
         );
       }
 
       // Paso 2: Eliminar todos los roles del usuario (tabla user_roles)
       if (usuario.userroles && usuario.userroles.length > 0) {
-        console.log(`📋 Eliminando ${usuario.userroles.length} roles del usuario...`);
-        
         for (const userRole of usuario.userroles) {
           await this._userRolesRepository.remove(userRole);
         }
-        
-        console.log('✅ Todos los roles eliminados exitosamente');
       }
 
       // Paso 3: Eliminar datos de people si existen
       if (usuario.people) {
-        console.log('📋 Eliminando datos personales del usuario...');
         await this._peopleRepository.remove(usuario.people);
-        console.log('✅ Datos personales eliminados exitosamente');
       }
 
       // Paso 4: Finalmente eliminar el usuario
-      console.log('📋 Eliminando usuario de la tabla users...');
       await this._userRepository.remove(usuario);
-      
-      console.log('✅ Usuario eliminado completamente del sistema');
+
       return 'Usuario eliminado correctamente';
     } catch (error) {
       console.error('❌ Error al eliminar usuario:', error);
-      
-      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      ) {
         throw error;
       }
-      
+
       throw new InternalServerErrorException(
-        `Error al intentar eliminar el usuario: ${error.message || 'Error desconocido'}`
+        `Error al intentar eliminar el usuario: ${error.message || 'Error desconocido'}`,
       );
     }
   }
 
   async obtenerUsuarioCompleto(user_id: number): Promise<any> {
     try {
-      console.log('🔍 Obteniendo información completa para usuario ID:', user_id);
-      
       // Obtener información del usuario con roles
       const usuario = await this._userRepository.findOne({
         where: { user_id },
@@ -299,55 +318,65 @@ export class UserService {
       // Obtener negocios del usuario
       const businesses = await this._businessRepository.find({
         where: { user: { user_id } },
-        relations: ['business_accessibility', 'business_accessibility.accessibility'],
+        relations: [
+          'business_accessibility',
+          'business_accessibility.accessibility',
+        ],
       });
 
       const result = {
         user: {
           user_id: usuario.user_id,
           user_email: usuario.user_email,
-          roles: usuario.userroles.map(ur => ({
+          roles: usuario.userroles.map((ur) => ({
             rol_id: ur.rol.rol_id,
-            rol_name: ur.rol.rol_name
-          }))
+            rol_name: ur.rol.rol_name,
+          })),
         },
-        people: people ? {
-          people_id: people.people_id,
-          firstName: people.firstName,
-          firstLastName: people.firstLastName,
-          cellphone: people.cellphone,
-          address: people.address,
-          gender: people.gender
-        } : null,
-        businesses: businesses.map(business => ({
+        people: people
+          ? {
+              people_id: people.people_id,
+              firstName: people.firstName,
+              firstLastName: people.firstLastName,
+              cellphone: people.cellphone,
+              address: people.address,
+              gender: people.gender,
+            }
+          : null,
+        businesses: businesses.map((business) => ({
           business_id: business.business_id,
           business_name: business.business_name,
           NIT: business.NIT,
           address: business.address,
           description: business.description,
           coordinates: business.coordinates,
-          accessibilities: business.business_accessibility?.map(ba => ba.accessibility.accessibility_id) || []
-        }))
+          accessibilities:
+            business.business_accessibility?.map(
+              (ba) => ba.accessibility.accessibility_id,
+            ) || [],
+        })),
       };
 
-      console.log('✅ Información completa obtenida:', result);
       return result;
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       }
       console.error('❌ Error al obtener información completa:', error);
-      throw new InternalServerErrorException('Error al obtener información completa del usuario');
+      throw new InternalServerErrorException(
+        'Error al obtener información completa del usuario',
+      );
     }
   }
 
   /**
    * Actualizar avatar del usuario
    */
-  async updateAvatar(userId: number, file: Express.Multer.File): Promise<{ message: string; avatar_url: string }> {
+  async updateAvatar(
+    userId: number,
+    file: Express.Multer.File,
+  ): Promise<{ message: string; avatar_url: string }> {
     try {
-      console.log(`📸 Actualizando avatar del usuario ${userId}...`);
-
       // Buscar el usuario
       const usuario = await this._userRepository.findOne({
         where: { user_id: userId },
@@ -363,32 +392,33 @@ export class UserService {
       });
 
       if (!people) {
-        throw new NotFoundException('No se encontraron datos personales del usuario');
+        throw new NotFoundException(
+          'No se encontraron datos personales del usuario',
+        );
       }
 
       // Subir imagen a Cloudinary
       const uploadResult = await this.cloudinaryService.uploadImage(
         file.buffer,
         'inclumap/avatars',
-        `user_${userId}`
+        `user_${userId}`,
       );
-      
+
       // Actualizar la URL del avatar
       people.avatar = uploadResult.secure_url;
       await this._peopleRepository.save(people);
 
-      console.log('✅ Avatar actualizado exitosamente');
       return {
         message: 'Avatar actualizado correctamente',
-        avatar_url: uploadResult.secure_url
+        avatar_url: uploadResult.secure_url,
       };
     } catch (error) {
       console.error('❌ Error al actualizar avatar:', error);
-      
+
       if (error instanceof NotFoundException) {
         throw error;
       }
-      
+
       throw new InternalServerErrorException('Error al actualizar el avatar');
     }
   }
@@ -398,8 +428,6 @@ export class UserService {
    */
   async deleteAvatar(userId: number): Promise<{ message: string }> {
     try {
-      console.log(`🗑️ Eliminando avatar del usuario ${userId}...`);
-
       // Buscar el usuario
       const usuario = await this._userRepository.findOne({
         where: { user_id: userId },
@@ -415,7 +443,9 @@ export class UserService {
       });
 
       if (!people) {
-        throw new NotFoundException('No se encontraron datos personales del usuario');
+        throw new NotFoundException(
+          'No se encontraron datos personales del usuario',
+        );
       }
 
       // Eliminar la URL del avatar (solo si existe)
@@ -424,22 +454,19 @@ export class UserService {
         // const publicId = this.cloudinaryService.extractPublicIdFromUrl(people.avatar);
         // await this.cloudinaryService.deleteImage(publicId);
       }
-      
+
       people.avatar = null;
       await this._peopleRepository.save(people);
 
-      console.log('✅ Avatar eliminado exitosamente');
       return { message: 'Avatar eliminado correctamente' };
     } catch (error) {
       console.error('❌ Error al eliminar avatar:', error);
-      
+
       if (error instanceof NotFoundException) {
         throw error;
       }
-      
+
       throw new InternalServerErrorException('Error al eliminar el avatar');
     }
   }
 }
-
-

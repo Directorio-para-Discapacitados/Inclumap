@@ -17,13 +17,11 @@ import { UserEntity } from 'src/user/entity/user.entity';
 
 @Controller('local-recognition')
 export class LocalRecognitionController {
-  constructor(
-    private readonly recognitionService: LocalRecognitionService,
-  ) {}
+  constructor(private readonly recognitionService: LocalRecognitionService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard) 
-  @UseInterceptors(FileInterceptor('image')) 
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('image'))
   async uploadAndRecognize(
     @UploadedFile(
       new ParseFilePipe({
@@ -34,12 +32,11 @@ export class LocalRecognitionController {
       }),
     )
     file: Express.Multer.File,
-    @User() user: UserEntity, 
+    @User() user: UserEntity,
   ) {
     if (!file) {
       throw new BadRequestException('No se proporcionó ningún archivo.');
     }
-
 
     return this.recognitionService.validateBusinessImage(user, file.buffer);
   }

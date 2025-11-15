@@ -11,6 +11,7 @@ import { ChangePasswordDto } from './dtos/change-password.dto';
 import { GoogleAuthDto } from './dtos/google-auth.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
+import { PayloadInterface } from './payload/payload.interface';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -33,70 +34,66 @@ export class AuthController {
 
   @Post('upgrade-to-business')
   @UseGuards(JwtAuthGuard)
-  upgradeToBusiness(
-    @User() user: any,
+  async upgradeToBusiness(
+    @User() user: PayloadInterface,
     @Body() businessData: UpgradeToBusinessDto,
-  ) {
+  ): Promise<any> {
     return this.authService.upgradeToBusiness(user.user_id, businessData);
   }
 
   @Post('login')
-  async login(@Body() loginDto: LoginDto) {
+  async login(@Body() loginDto: LoginDto): Promise<any> {
     return this.authService.login(loginDto);
   }
 
   @Post('request-reset-password')
   async solicitarRestablecimientoPassword(
     @Body() user: usuarioEmailResetPasswordDto,
-  ) {
+  ): Promise<any> {
     return this.authService.solicitarRestablecimientoPassword(user);
   }
 
   @Post('verify-reset-code')
-  async verifyResetCode(@Body() body: { code: string }) {
+  async verifyResetCode(@Body() body: { code: string }): Promise<any> {
     return this.authService.verificarCodigoRestablecimiento(body.code);
   }
 
   @Post('reset-password')
-  async resetPassword(@Body() body: { code: string; newPassword: string }) {
+  async resetPassword(
+    @Body() body: { code: string; newPassword: string },
+  ): Promise<any> {
     return this.authService.restablecerPassword(body.code, body.newPassword);
   }
 
-  @Post('change-password')
   @UseGuards(JwtAuthGuard)
+  @Post('change-password')
   async changePassword(
-    @User() user: any,
+    @User() user: PayloadInterface,
     @Body() changePasswordDto: ChangePasswordDto,
-  ) {
+  ): Promise<any> {
     return this.authService.changePassword(user.user_id, changePasswordDto);
   }
 
   @Get('profile')
   @UseGuards(JwtAuthGuard)
-  async getProfile(@User() user: any) {
+  async getProfile(@User() user: PayloadInterface): Promise<any> {
     return this.authService.getProfile(user.user_id);
   }
 
-  // --- ENDPOINT ACTUALIZADO ---
   @Post('google')
-  async googleAuth(@Body() googleAuthDto: GoogleAuthDto) {
-    // Llama al nuevo método de servicio para validación de token de cliente
+  async googleAuth(@Body() googleAuthDto: GoogleAuthDto): Promise<any> {
     return this.authService.googleLoginClient(googleAuthDto);
   }
 
-  // --- ENDPOINT PARA CALLBACK DE SERVIDOR (YA ERA CORRECTO) ---
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Req() req) {
-    // req.user es poblado por GoogleStrategy.validate()
-    // Reutiliza la lógica central de login/registro
+  async googleAuthRedirect(@Req() req: any): Promise<any> {
     return this.authService.googleLogin(req.user);
   }
 
-  // Estado post-login: advertencias de perfil/negocio incompleto
   @Get('post-login/status')
   @UseGuards(JwtAuthGuard)
-  async postLoginStatus(@User() user: any) {
+  async postLoginStatus(@User() user: PayloadInterface): Promise<any> {
     return this.authService.getPostLoginStatus(user.user_id);
   }
 }

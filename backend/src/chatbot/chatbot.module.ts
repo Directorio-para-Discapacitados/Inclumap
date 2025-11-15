@@ -11,7 +11,7 @@ import { BusinessAccessibilityEntity } from 'src/business_accessibility/entity/b
     TypeOrmModule.forFeature([
       BusinessEntity,
       AccessibilityEntity,
-      BusinessAccessibilityEntity, 
+      BusinessAccessibilityEntity,
     ]),
   ],
   controllers: [ChatbotController],

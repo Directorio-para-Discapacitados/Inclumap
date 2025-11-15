@@ -1,10 +1,20 @@
 // auth/dtos/createFullBusiness.dto.ts
-import { IsEmail, IsNotEmpty, IsString, MinLength, IsArray, IsNumber, IsOptional } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  MinLength,
+  IsArray,
+  IsNumber,
+  IsOptional,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateFullBusinessDto {
   // Datos de usuario
-  @ApiProperty({ description: 'Correo electrónico del usuario dueño del negocio' })
+  @ApiProperty({
+    description: 'Correo electrónico del usuario dueño del negocio',
+  })
   @IsEmail({}, { message: 'El correo electrónico no es válido' })
   @IsNotEmpty({ message: 'El correo electrónico es obligatorio' })
   user_email: string;
@@ -49,7 +59,9 @@ export class CreateFullBusinessDto {
 
   @ApiProperty({ description: 'Dirección física del negocio' })
   @IsNotEmpty({ message: 'La dirección del negocio es obligatoria' })
-  @IsString({ message: 'La dirección del negocio debe ser una cadena de texto' })
+  @IsString({
+    message: 'La dirección del negocio debe ser una cadena de texto',
+  })
   business_address: string;
 
   @ApiProperty({ description: 'Número de identificación tributaria (NIT)' })
@@ -62,21 +74,30 @@ export class CreateFullBusinessDto {
   @IsString({ message: 'La descripción debe ser una cadena de texto' })
   description: string;
 
-  @ApiProperty({ description: 'Coordenadas geográficas del negocio (latitud, longitud)' })
+  @ApiProperty({
+    description: 'Coordenadas geográficas del negocio (latitud, longitud)',
+  })
   @IsNotEmpty({ message: 'Las coordenadas son obligatorias' })
   @IsString({ message: 'Las coordenadas deben ser una cadena de texto' })
   coordinates: string;
 
   // Roles y accesibilidades
-  @ApiPropertyOptional({ description: 'IDs de roles asignados al usuario dueño' })
+  @ApiPropertyOptional({
+    description: 'IDs de roles asignados al usuario dueño',
+  })
   @IsOptional()
   @IsArray({ message: 'rolIds debe ser un arreglo de números' })
   @IsNumber({}, { each: true, message: 'Cada rol debe ser un número' })
   rolIds?: number[];
 
-  @ApiPropertyOptional({ description: 'IDs de accesibilidades disponibles en el negocio' })
+  @ApiPropertyOptional({
+    description: 'IDs de accesibilidades disponibles en el negocio',
+  })
   @IsOptional()
   @IsArray({ message: 'accessibilityIds debe ser un arreglo' })
-  @IsNumber({}, { each: true, message: 'Cada accesibilidad debe ser un número' })
+  @IsNumber(
+    {},
+    { each: true, message: 'Cada accesibilidad debe ser un número' },
+  )
   accessibilityIds?: number[];
 }

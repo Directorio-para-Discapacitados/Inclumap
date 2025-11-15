@@ -11,10 +11,16 @@ import { BusinessEntity } from '../business/entity/business.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([UserEntity, UserRolesEntity, RolEntity, PeopleEntity, BusinessEntity]),
-    CloudinaryModule
+    TypeOrmModule.forFeature([
+      UserEntity,
+      UserRolesEntity,
+      RolEntity,
+      PeopleEntity,
+      BusinessEntity,
+    ]),
+    CloudinaryModule,
   ],
   providers: [UserService],
-  controllers: [UserController]
+  controllers: [UserController],
 })
 export class UserModule {}

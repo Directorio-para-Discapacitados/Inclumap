@@ -23,16 +23,14 @@ export class ReviewEntity {
   @CreateDateColumn({ name: 'created_at' })
   created_at: Date;
 
-
   @ManyToOne(() => BusinessEntity, (business) => business.reviews, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'business_id' })
   business: BusinessEntity;
 
-
   @ManyToOne(() => UserEntity, (user) => user.reviews, {
-    onDelete: 'SET NULL', 
+    onDelete: 'SET NULL',
   })
   @JoinColumn({ name: 'user_id' })
   user: UserEntity;

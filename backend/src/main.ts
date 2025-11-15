@@ -10,17 +10,17 @@ async function bootstrap() {
 
   // Configurar Swagger
   const config = new DocumentBuilder()
-    .setTitle('API de Directorio Inclumap') 
-    .setDescription('La API para gestionar APP Inclumap') 
-    .setVersion('1.0') 
-    .addTag('users') 
-    .addTag('auth') 
-    .addTag('people') 
+    .setTitle('API de Directorio Inclumap')
+    .setDescription('La API para gestionar APP Inclumap')
+    .setVersion('1.0')
+    .addTag('users')
+    .addTag('auth')
+    .addTag('people')
     .addTag('business')
     .addTag('reviews')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document); 
+  SwaggerModule.setup('api', app, document);
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
   const configService = app.get(ConfigService);

@@ -9,7 +9,7 @@ export const avatarMulterConfig: MulterOptions = {
     // Validar tipo MIME
     const allowedMimeTypes = [
       'image/jpeg',
-      'image/jpg', 
+      'image/jpg',
       'image/png',
       'image/gif',
       'image/webp',
@@ -18,9 +18,9 @@ export const avatarMulterConfig: MulterOptions = {
     if (!allowedMimeTypes.includes(file.mimetype)) {
       return callback(
         new BadRequestException(
-          'Solo se permiten archivos de imagen (JPG, PNG, GIF, WebP)'
+          'Solo se permiten archivos de imagen (JPG, PNG, GIF, WebP)',
         ),
-        false
+        false,
       );
     }
 
@@ -29,9 +29,9 @@ export const avatarMulterConfig: MulterOptions = {
     if (!allowedExtensions.test(file.originalname)) {
       return callback(
         new BadRequestException(
-          'Extensión de archivo no válida. Use JPG, PNG, GIF o WebP'
+          'Extensión de archivo no válida. Use JPG, PNG, GIF o WebP',
         ),
-        false
+        false,
       );
     }
 

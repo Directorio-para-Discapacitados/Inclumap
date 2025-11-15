@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, ParseIntPipe, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  ParseIntPipe,
+  UseGuards,
+} from '@nestjs/common';
 import { AccessibilityService } from './accessibility.service';
 import { CreateAccesibilityDto } from './dto/create-accessibility.dto';
 import { AccessibilityEntity } from './entity/accesibility.entity';
@@ -14,7 +24,9 @@ export class AccessibilityController {
 
   @Post()
   @Roles(1)
-  async crearAccesibilidad(@Body() createAccessibilityDto: CreateAccesibilityDto): Promise<string> {
+  async crearAccesibilidad(
+    @Body() createAccessibilityDto: CreateAccesibilityDto,
+  ): Promise<string> {
     return this._accessibilityService.create(createAccessibilityDto);
   }
 
@@ -26,22 +38,29 @@ export class AccessibilityController {
 
   @Get(':id')
   @Roles(1, 2, 3)
-  async obtenerAccesibilidadPorId(@Param('id', ParseIntPipe) id: number): Promise<AccessibilityEntity> {
+  async obtenerAccesibilidadPorId(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<AccessibilityEntity> {
     return await this._accessibilityService.obtenerAccesibilidadesPorId(id);
   }
 
   @Put(':id')
   @Roles(1)
   async actualizarAccesibilidad(
-    @Param('id', ParseIntPipe) id: number, 
-    @Body() updateAccesibilidadDto: UpdateAccesibilityDto
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateAccesibilidadDto: UpdateAccesibilityDto,
   ): Promise<string> {
-    return await this._accessibilityService.actualizarAccesibilidad(id, updateAccesibilidadDto);
+    return await this._accessibilityService.actualizarAccesibilidad(
+      id,
+      updateAccesibilidadDto,
+    );
   }
 
   @Delete(':id')
   @Roles(1)
-  async eliminarAccesibilidad(@Param('id', ParseIntPipe) id: number): Promise<string> {
-      return await this._accessibilityService.eliminarAccesibilidad(id);
+  async eliminarAccesibilidad(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<string> {
+    return await this._accessibilityService.eliminarAccesibilidad(id);
   }
 }
