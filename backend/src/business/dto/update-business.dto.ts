@@ -1,4 +1,4 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, IsBoolean } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateBusinessDto {
@@ -26,6 +26,11 @@ export class UpdateBusinessDto {
   @IsOptional()
   @IsString()
   coordinates?: string;
+
+  @ApiPropertyOptional({ description: 'Estado de verificación del logo' })
+  @IsOptional()
+  @IsBoolean()
+  verified?: boolean;
 
   @ApiPropertyOptional({ description: 'ID del usuario propietario (null para remover propietario)' })
   @IsOptional()

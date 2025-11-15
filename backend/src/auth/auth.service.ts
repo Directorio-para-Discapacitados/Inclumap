@@ -841,11 +841,15 @@ export class AuthService {
       // Determinar el tipo de usuario y construir displayName
       let displayName: string;
       let roleDescription: string;
+      let logo_url: string | null = null;
+      let verified: boolean = false;
       
       if (rolIds.includes(3) && user.business?.business_name) {
         // Propietario de negocio
         displayName = user.business.business_name;
         roleDescription = "Propietario";
+        logo_url = user.business.logo_url || null;
+        verified = user.business.verified || false;
       } else if (user.people) {
         // Usuario normal
         displayName = `${user.people.firstName} ${user.people.firstLastName}`.trim();
@@ -862,6 +866,8 @@ export class AuthService {
         email: user.user_email,
         rolIds,
         avatar: user.avatar_url || null,
+        logo_url,
+        verified,
       };
     } catch (error) {
       if (error instanceof NotFoundException) {
