@@ -566,21 +566,37 @@ export const getOwnersWithUserDetails = async () => {
     ]);
     
     console.log('Businesses obtenidos:', businesses);
-    console.log('Users obtenidos:', users);
+    console.log('Users obtenidos para mapping:', users);
     
     // Crear un mapa de usuarios por ID para búsqueda rápida
     const userMap = new Map();
     users.forEach(user => {
+      console.log(`📌 Agregando usuario al mapa - ID: ${user.id}, Email: ${user.email}`);
       userMap.set(user.id, user);
     });
+    
+    console.log('Mapa de usuarios creado:', userMap);
     
     // Intentar relacionar negocios con usuarios
     const businessesWithUsers = businesses.map((business: any) => {
       let relatedUser = null;
       
-      // Si el business ya tiene user, usarlo
+      // Si el business ya tiene user, usarlo y completar con datos del mapa
       if (business.user && business.user.id) {
-        relatedUser = business.user;
+        console.log(`🔍 Buscando usuario ${business.user.id} en el mapa para negocio "${business.name}"`);
+        
+        const userFromMap = userMap.get(business.user.id);
+        if (userFromMap) {
+          console.log(`✅ Usuario encontrado en mapa:`, userFromMap);
+          relatedUser = {
+            ...business.user,
+            email: userFromMap.email || business.user.email,
+            user_email: userFromMap.user_email || userFromMap.email || business.user.user_email,
+          };
+        } else {
+          console.log(`❌ Usuario ${business.user.id} NO encontrado en el mapa`);
+          relatedUser = business.user;
+        }
       } else {
         // Buscar usuario que tenga rol de propietario (rol id 3) o business owner
         const potentialOwner = users.find(user => 
@@ -604,12 +620,20 @@ export const getOwnersWithUserDetails = async () => {
     
     console.log('Businesses con usuarios relacionados:', businessesWithUsers);
     
-    // Filtrar administradores
+    // Filtrar: 
+    // 1. Debe tener usuario asociado
+    // 2. Excluir administradores (rol 1)
+    // 3. Incluir solo propietarios (rol 3)
     const filtered = businessesWithUsers.filter((b: any) => {
+      const hasUser = b.user && b.user.id;
       const isAdmin = hasRoleId(b?.user?.roles, 1);
-      return !isAdmin;
+      const isOwner = hasRoleId(b?.user?.roles, 3);
+      console.log(`📊 Business "${b.name}" - Tiene usuario: ${hasUser}, Es admin: ${isAdmin}, Es propietario: ${isOwner}`);
+      // Mostrar solo si TIENE usuario Y NO es admin Y SÍ es propietario
+      return hasUser && !isAdmin && isOwner;
     });
     
+    console.log(`✅ Propietarios filtrados: ${filtered.length} de ${businessesWithUsers.length}`);
     return filtered;
   } catch (error) {
     console.error('Error en getOwnersWithUserDetails:', error);
@@ -618,28 +642,45 @@ export const getOwnersWithUserDetails = async () => {
 };
 
 /**
- * Devuelve negocios/propietarios y descarta administradores si llegan anidados.
+ * Devuelve TODOS los negocios (propietarios y sin propietario)
+ * Descarta administradores si llegan anidados.
  */
 export const getOwners = async () => {
-  const all = await getAllBusinesses();
-  console.log('Todos los businesses antes del filtro:', all);
-  
-  const filtered = all.filter((b: any) => {
-    const isAdmin = hasRoleId(b?.user?.roles, 1);
-    console.log(`Business ${b.name} - Es admin:`, isAdmin, 'Roles:', b?.user?.roles);
-    return !isAdmin;
-  });
-  
-  console.log('Businesses filtrados (propietarios):', filtered);
-  
-  // Si no encontramos usuarios en los businesses, intentar la función alternativa
-  const hasValidUsers = filtered.some((b: any) => b.user && b.user.email);
-  if (!hasValidUsers && filtered.length > 0) {
-    console.log('No se encontraron usuarios válidos en businesses, intentando método alternativo...');
-    return await getOwnersWithUserDetails();
+  try {
+    const all = await getAllBusinesses();
+    console.log('Todos los businesses antes del filtro:', all);
+    
+    // Filtrar: 
+    // 1. Si TIENE usuario, NO debe ser admin (rol 1)
+    // 2. Incluir negocios sin usuario (degradados)
+    const filtered = all.filter((b: any) => {
+      const hasUser = b.user && b.user.id;
+      const isAdmin = hasRoleId(b?.user?.roles, 1);
+      
+      // Si no tiene usuario, incluirlo (negocio sin propietario)
+      if (!hasUser) {
+        console.log(`Business "${b.name}" - Sin propietario, INCLUIR`);
+        return true;
+      }
+      
+      // Si tiene usuario pero es admin, excluirlo
+      if (isAdmin) {
+        console.log(`Business "${b.name}" - Es administrador, EXCLUIR`);
+        return false;
+      }
+      
+      // Cualquier otro caso, incluir
+      console.log(`Business "${b.name}" - Tiene propietario (no admin), INCLUIR`);
+      return true;
+    });
+    
+    console.log(`Businesses filtrados: ${filtered.length} (incluyendo sin propietario)`);
+    
+    return filtered;
+  } catch (error) {
+    console.error('Error en getOwners:', error);
+    throw error;
   }
-  
-  return filtered;
 };
 
 // Tipos para modales de edición

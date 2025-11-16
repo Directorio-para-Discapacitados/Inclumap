@@ -115,6 +115,9 @@ export class BusinessService {
         const userWithRoles = negocio.user
           ? {
               user_id: negocio.user.user_id,
+              id: negocio.user.user_id,
+              email: negocio.user.user_email,
+              user_email: negocio.user.user_email,
               roles:
                 negocio.user.userroles?.map((userRole) => ({
                   id: userRole.rol.rol_id,
@@ -134,7 +137,9 @@ export class BusinessService {
           : null;
 
         return {
+          id: negocio.business_id,
           business_id: negocio.business_id,
+          name: negocio.business_name,
           business_name: negocio.business_name,
           address: negocio.address,
           NIT: negocio.NIT,

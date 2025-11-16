@@ -543,3 +543,9 @@ html {
 .error-message button:hover {
   box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
 }
+
+/* Estilos específicos del Toast para GestionUsuarios */
+.gestion-container .toast {
+  top: 80px !important;
+  right: 20px !important;
+}
