@@ -70,21 +70,16 @@ export default function AvatarModal({
     setLoading(true);
     try {
       const response = await avatarService.uploadAvatar(user.user_id, selectedFile);
-      console.log('Avatar upload response:', response);
       
       // Actualizar el contexto de usuario primero
-      console.log('Calling refreshUser...');
       await refreshUser();
-      console.log('refreshUser completed');
       
       // Luego actualizar el avatar en el componente padre
       onAvatarUpdate(response.avatar_url);
-      console.log('onAvatarUpdate called with:', response.avatar_url);
       
       toast.success(response.message || 'Avatar actualizado exitosamente');
       handleClose();
     } catch (error) {
-      console.error('Error uploading avatar:', error);
       toast.error(error instanceof Error ? error.message : 'Error al subir la imagen');
     } finally {
       setLoading(false);
@@ -111,7 +106,6 @@ export default function AvatarModal({
       toast.success(response.message || 'Avatar eliminado exitosamente');
       handleClose();
     } catch (error) {
-      console.error('Error deleting avatar:', error);
       toast.error(error instanceof Error ? error.message : 'Error al eliminar la imagen');
     } finally {
       setLoading(false);

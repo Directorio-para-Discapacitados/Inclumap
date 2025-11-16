@@ -30,10 +30,6 @@ export default function IncompleteProfileNotification({
       }
 
       if (missing.length > 0) {
-        console.log("📢 [IncompleteProfileNotification] Mostrando notificación. Items faltantes:", missing, "User data:", {
-          logo_url: user?.logo_url,
-          verified: user?.verified,
-        });
         setMissingItems(missing);
         setShow(true);
       } else {
@@ -49,7 +45,6 @@ export default function IncompleteProfileNotification({
   }
 
   const handleClick = () => {
-    console.log("🔗 [IncompleteProfileNotification] Navegando al perfil del usuario");
     navigate("/perfil");
   };
 

@@ -47,19 +47,6 @@ const GestionUsuarios: React.FC = () => {
           getUsersOnly(),
           getAllPeople()
         ]);
-        console.log('Usuarios filtrados por getUsersOnly:', usersData);
-        console.log('Total de usuarios después del filtro:', usersData.length);
-        console.log('Personas:', peopleData);
-        
-        // Log detallado de cada usuario
-        usersData.forEach((user, index) => {
-          console.log(`Usuario ${index + 1}:`, {
-            id: user.id,
-            email: user.email,
-            roles: user.roles,
-            rolesNames: user.roles?.map(r => r.name).join(', ')
-          });
-        });
         
         const rows = usersData.map((u: any) => {
           const persona = peopleData.find((p: any) => {
@@ -84,9 +71,7 @@ const GestionUsuarios: React.FC = () => {
         try {
           const businesses = await obtenerNegociosDisponibles();
           setAvailableBusinessCount(businesses.length);
-          console.log(`📊 ${businesses.length} negocios disponibles para asignar`);
         } catch (err) {
-          console.warn('No se pudieron obtener negocios disponibles:', err);
           setAvailableBusinessCount(0);
         }
       } catch (err) {
@@ -129,7 +114,6 @@ const GestionUsuarios: React.FC = () => {
     if (!selectedUserId) return;
 
     try {
-      console.log(`🗑️ Eliminando usuario ${selectedUserId}...`);
       await eliminarUsuario(selectedUserId);
       
       showToast('Usuario eliminado exitosamente', 'success');
@@ -138,7 +122,6 @@ const GestionUsuarios: React.FC = () => {
       // Recargar la lista de usuarios
       handleModalSuccess();
     } catch (error) {
-      console.error('❌ Error al eliminar usuario:', error);
       
       let errorMessage = 'Error desconocido al eliminar usuario';
       
@@ -184,7 +167,6 @@ const GestionUsuarios: React.FC = () => {
     const fetchUsers = async () => {
       try {
         setLoading(true);
-        console.log('Recargando lista de usuarios después de la actualización...');
         
         // Esperar un poco para que el backend procese los cambios
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -193,9 +175,6 @@ const GestionUsuarios: React.FC = () => {
           getUsersOnly(),
           getAllPeople()
         ]);
-        
-        console.log('Usuarios después de la actualización:', usersData);
-        console.log('Personas después de la actualización:', peopleData);
         
         const rows = usersData.map((u: any) => {
           const persona = peopleData.find((p: any) => {
@@ -220,15 +199,12 @@ const GestionUsuarios: React.FC = () => {
         try {
           const businesses = await obtenerNegociosDisponibles();
           setAvailableBusinessCount(businesses.length);
-          console.log(`📊 ${businesses.length} negocios disponibles después de actualización`);
         } catch (err) {
-          console.warn('No se pudieron obtener negocios disponibles:', err);
           setAvailableBusinessCount(0);
         }
 
         showToast('Cambios aplicados exitosamente', 'success');
       } catch (err) {
-        console.error('Error al recargar usuarios:', err);
         setError(err instanceof Error ? err.message : 'Ocurrió un error desconocido');
         showToast('Error al recargar la lista de usuarios', 'error');
       } finally {

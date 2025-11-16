@@ -37,92 +37,14 @@ export const checkServerHealth = async (): Promise<boolean> => {
  * Se puede usar desde la consola del navegador
  */
 export const diagnosticConnection = async (): Promise<void> => {
-  console.group('🔍 Diagnóstico de Conexión');
-  
-  console.log('🌐 URL del API:', API_URL);
-  console.log('📶 Estado de red:', navigator.onLine ? '✅ Conectado' : '❌ Sin conexión');
-  
-  // Verificar token de autenticación
-  const token = localStorage.getItem('token');
-  console.log('🔑 Token de auth:', token ? '✅ Presente' : '❌ No encontrado');
-  
-  // Intentar conectar al backend
-  console.log('🔄 Verificando conexión al backend...');
-  
-  try {
-    const response = await fetch(`${API_URL}/user-rol`, {
-      method: 'GET',
-      headers: token ? {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      } : {
-        'Content-Type': 'application/json'
-      }
-    });
-    
-    console.log('📡 Respuesta del servidor:', response.status, response.statusText);
-    
-    if (response.status === 401) {
-      console.log('🔒 Problema de autenticación - Token inválido o expirado');
-    } else if (response.status === 404) {
-      console.log('❓ Endpoint no encontrado - Verificar rutas del backend');
-    } else if (response.status >= 500) {
-      console.log('💥 Error del servidor - Verificar logs del backend');
-    }
-    
-  } catch (error) {
-    console.log('❌ Error de conexión:', error);
-    console.log('💡 Posibles causas:');
-    console.log('   - Backend no está ejecutándose');
-    console.log('   - Puerto incorrecto (verificar que sea 9080)');
-    console.log('   - Firewall bloqueando la conexión');
-    console.log('   - CORS no configurado correctamente');
-  }
-  
-  console.groupEnd();
+  // Función de diagnóstico - aquí se pueden mantener logs si se necesita debugging
 };
 
 /**
  * Función de prueba para verificar login de admin
  */
 export const testAdminLogin = async (): Promise<void> => {
-  console.group('🔍 Test Login Admin');
-  
-  try {
-    console.log('🔄 Probando endpoint de login...');
-    
-    const response = await fetch(`${API_URL}/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        user_email: 'test@test.com',
-        user_password: 'test123'
-      })
-    });
-    
-    console.log('📡 Respuesta del login:', response.status, response.statusText);
-    
-    if (response.status === 401) {
-      console.log('🔒 Credenciales incorrectas (normal para test)');
-    } else if (response.status === 404) {
-      console.log('❓ Endpoint de login no encontrado');
-    } else if (response.status >= 500) {
-      console.log('💥 Error del servidor');
-    } else if (response.ok) {
-      console.log('✅ Login funcionando correctamente');
-    }
-    
-  } catch (error) {
-    console.log('❌ Error de conexión:', error);
-    console.log('💡 Posibles causas:');
-    console.log('   - Backend no está ejecutándose');
-    console.log('   - CORS no configurado correctamente');
-    console.log('   - Firewall bloqueando la conexión');
-  }
-  
-  console.groupEnd();
+  // Función de prueba de login - aquí se pueden mantener logs si se necesita debugging
 };
 
 // Hacer las funciones disponibles globalmente para debugging
@@ -170,8 +92,7 @@ export const getAllUsers = async (): Promise<AdminUser[]> => {
 
     return users;
   } catch (error) {
-    console.error('Error en getAllUsers:', error);
-    throw error; // Re-lanzamos el error para que el componente que llama lo maneje
+    throw error;
   }
 };
 
@@ -189,18 +110,9 @@ export const getAllBusinesses = async () => {
     }
 
     const raw = await response.json();
-    console.log('🔍 Datos raw del backend para businesses:', raw);
-    console.log('🔍 Cantidad de businesses recibidos:', raw.length);
     
     // Normalizamos estructura esperada del negocio con su usuario
     const businesses = (raw || []).map((b: any) => {
-      console.log('🔍 Procesando business completo:', b);
-      console.log('🔍 Usuario del business:', b.user);
-      if (b.user) {
-        console.log('🔍 Roles del usuario en business:', b.user.roles);
-        console.log('🔍 ¿Roles es array?:', Array.isArray(b.user.roles));
-      }
-      
       const normalizedBusiness = {
         id: b.id ?? b.business_id,
         business_id: b.business_id ?? b.id,
@@ -226,14 +138,12 @@ export const getAllBusinesses = async () => {
         } : null,
       };
       
-      console.log('Business normalizado:', normalizedBusiness);
       return normalizedBusiness;
     });
 
     return businesses;
   } catch (error) {
-    console.error('Error en getAllBusinesses:', error);
-    throw error; // Re-lanzamos el error para que el componente que llama lo maneje
+    throw error;
   }
 };
 
@@ -252,8 +162,6 @@ export const removeUserRole = async (userId: number, roleIdToRemove: number): Pr
       'Authorization': `Bearer ${token}`
     };
 
-    console.log(`🔄 Verificando y quitando rol ${roleIdToRemove} del usuario ${userId}`);
-
     // Primero, verificar si el usuario tiene el rol
     const userRolesResponse = await fetch(`${API_URL}/user-rol/user/${userId}`, {
       method: 'GET',
@@ -265,7 +173,6 @@ export const removeUserRole = async (userId: number, roleIdToRemove: number): Pr
       const hasRole = userRoles.some((role: any) => role.rol_id === roleIdToRemove);
       
       if (!hasRole) {
-        console.log(`ℹ️ El usuario ${userId} ya no tiene el rol ${roleIdToRemove}`);
         return; // No hay error, simplemente ya no tiene el rol
       }
     }
@@ -281,36 +188,15 @@ export const removeUserRole = async (userId: number, roleIdToRemove: number): Pr
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Error en respuesta del servidor:', errorText);
       
       // Si el error es que no tiene el rol, no es realmente un error
       if (errorText.includes('no tiene asignado este rol')) {
-        console.log(`ℹ️ El usuario ${userId} ya no tiene el rol ${roleIdToRemove}`);
         return;
       }
       
       throw new Error(`Error al quitar rol: ${errorText || response.statusText}`);
     }
-    
-    console.log(`✅ Rol ${roleIdToRemove} quitado exitosamente del usuario ${userId}`);
-    
-    // Verificar qué roles le quedan al usuario
-    try {
-      const userRolesAfter = await fetch(`${API_URL}/user-rol/user/${userId}`, {
-        method: 'GET',
-        headers
-      });
-      
-      if (userRolesAfter.ok) {
-        const rolesRemaining = await userRolesAfter.json();
-        console.log(`🔍 Roles restantes para usuario ${userId}:`, rolesRemaining);
-      }
-    } catch (verifyError) {
-      console.log('No se pudo verificar roles restantes:', verifyError);
-    }
   } catch (error) {
-    console.error('Error en removeUserRole:', error);
-    
     if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
       throw new Error('Error de conexión: No se puede conectar al servidor');
     }
@@ -332,29 +218,19 @@ export const removeBusinessOwner = async (businessId: number): Promise<void> => 
       'Authorization': `Bearer ${token}`
     };
 
-    console.log(`🔄 Removiendo propietario del negocio ${businessId}`);
-    console.log('🔄 URL del endpoint:', `${API_URL}/business/${businessId}/clear-owner`);
-
     // Usar el endpoint específico para limpiar propietario (solo admins)
     const response = await fetch(`${API_URL}/business/${businessId}/clear-owner`, {
       method: 'PATCH',
       headers
     });
 
-    console.log('🔄 Response status:', response.status, response.statusText);
-
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ Error en respuesta del servidor:', errorText);
       throw new Error(`Error al remover propietario del negocio: ${errorText || response.statusText}`);
     }
 
-    const responseData = await response.json();
-    console.log('✅ Response del servidor:', responseData);
-    console.log(`✅ ${responseData.message || 'Propietario removido exitosamente'}`);
+    await response.json();
   } catch (error) {
-    console.error('Error en removeBusinessOwner:', error);
-    
     if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
       throw new Error('Error de conexión: No se puede conectar al servidor');
     }
@@ -366,19 +242,12 @@ export const removeBusinessOwner = async (businessId: number): Promise<void> => 
 // Función completa para degradar propietario conservando negocio
 export const demoteOwnerKeepBusiness = async (userId: number, businessId: number): Promise<void> => {
   try {
-    console.log(`🔄 Iniciando degradación de propietario - Usuario: ${userId}, Negocio: ${businessId}`);
-    
     // 1. Remover rol de propietario del usuario
     await removeUserRole(userId, 3);
-    console.log('✅ Rol de propietario removido');
     
     // 2. Remover la asociación usuario-negocio
     await removeBusinessOwner(businessId);
-    console.log('✅ Asociación usuario-negocio removida');
-    
-    console.log('🎉 Degradación de propietario completada exitosamente');
   } catch (error) {
-    console.error('❌ Error en degradación de propietario:', error);
     throw error;
   }
 };
@@ -396,8 +265,6 @@ export const getAvailableBusinesses = async (): Promise<any[]> => {
       'Authorization': `Bearer ${token}`
     };
 
-    console.log('🔄 Obteniendo negocios disponibles sin propietario...');
-
     const response = await fetch(`${API_URL}/business/available/unowned`, {
       method: 'GET',
       headers
@@ -409,10 +276,8 @@ export const getAvailableBusinesses = async (): Promise<any[]> => {
     }
 
     const businesses = await response.json();
-    console.log('✅ Negocios disponibles obtenidos:', businesses);
     return businesses;
   } catch (error) {
-    console.error('Error en getAvailableBusinesses:', error);
     throw error;
   }
 };
@@ -429,8 +294,6 @@ export const assignBusinessToUser = async (businessId: number, userId: number): 
       'Authorization': `Bearer ${token}`
     };
 
-    console.log(`🔄 Asignando negocio ${businessId} al usuario ${userId}...`);
-
     const response = await fetch(`${API_URL}/business/${businessId}/assign-owner/${userId}`, {
       method: 'PATCH',
       headers
@@ -442,10 +305,8 @@ export const assignBusinessToUser = async (businessId: number, userId: number): 
     }
 
     const result = await response.json();
-    console.log('✅ Negocio asignado exitosamente:', result);
     return result;
   } catch (error) {
-    console.error('Error en assignBusinessToUser:', error);
     throw error;
   }
 };
@@ -463,8 +324,6 @@ export const deleteBusinessCompletely = async (businessId: number, deleteOwner: 
       'Authorization': `Bearer ${token}`
     };
 
-    console.log(`🗑️ Eliminando negocio ${businessId} completamente. Eliminar propietario: ${deleteOwner}`);
-
     // Usar el endpoint completo que maneja todo: negocio, business_accessibility, rol y opcionalmente usuario
     const response = await fetch(`${API_URL}/business/${businessId}/complete?deleteOwner=${deleteOwner}`, {
       method: 'DELETE',
@@ -477,11 +336,9 @@ export const deleteBusinessCompletely = async (businessId: number, deleteOwner: 
     }
 
     const result = await response.json(); // El endpoint complete devuelve JSON
-    console.log('✅ Negocio eliminado completamente:', result);
     
     return result;
   } catch (error) {
-    console.error('Error en deleteBusinessCompletely:', error);
     throw error;
   }
 };
@@ -495,7 +352,6 @@ const hasRoleId = (roles: AdminRole[] | undefined, id: number) =>
  */
 export const getUsersOnly = async (): Promise<AdminUser[]> => {
   const all = await getAllUsers();
-  console.log('Todos los usuarios antes del filtro:', all);
   
   const filtered = all.filter((u) => {
     const isUser = hasRoleId(u.roles, 2); // Tiene rol de usuario
@@ -509,13 +365,10 @@ export const getUsersOnly = async (): Promise<AdminUser[]> => {
       role.name?.toLowerCase().includes('owner')
     );
     
-    console.log(`Usuario ${u.email}: User=${isUser}, Admin=${isAdmin}, Owner=${isOwner}, OwnerByName=${isOwnerByName}`, u.roles);
-    
     // Incluir solo si es usuario Y NO es admin Y NO es propietario
     return isUser && !isAdmin && !isOwner && !isOwnerByName;
   });
   
-  console.log('Usuarios filtrados (solo usuarios finales):', filtered);
   return filtered;
 };
 
@@ -524,16 +377,10 @@ export const getUsersOnly = async (): Promise<AdminUser[]> => {
  */
 export const getAllUsersWithRoleDetails = async () => {
   const all = await getAllUsers();
-  console.log('=== ANÁLISIS DETALLADO DE TODOS LOS USUARIOS ===');
   
   all.forEach((user, index) => {
     const roleNames = user.roles?.map(r => r.name).join(', ') || 'Sin roles';
     const roleIds = user.roles?.map(r => r.id).join(', ') || 'Sin IDs';
-    
-    console.log(`${index + 1}. ${user.email}:`);
-    console.log(`   - Roles: ${roleNames}`);
-    console.log(`   - IDs de roles: ${roleIds}`);
-    console.log(`   - Objeto roles completo:`, user.roles);
     
     // Análisis de filtros
     const isUser = hasRoleId(user.roles, 2);
@@ -544,10 +391,6 @@ export const getAllUsersWithRoleDetails = async () => {
       role.name?.toLowerCase().includes('business') ||
       role.name?.toLowerCase().includes('owner')
     );
-    
-    console.log(`   - Análisis: User=${isUser}, Admin=${isAdmin}, Owner=${isOwner}, OwnerByName=${isOwnerByName}`);
-    console.log(`   - ¿Aparecería en usuarios?: ${isUser && !isAdmin && !isOwner && !isOwnerByName}`);
-    console.log('---');
   });
   
   return all;
@@ -565,17 +408,11 @@ export const getOwnersWithUserDetails = async () => {
       getAllUsers()
     ]);
     
-    console.log('Businesses obtenidos:', businesses);
-    console.log('Users obtenidos para mapping:', users);
-    
     // Crear un mapa de usuarios por ID para búsqueda rápida
     const userMap = new Map();
     users.forEach(user => {
-      console.log(`📌 Agregando usuario al mapa - ID: ${user.id}, Email: ${user.email}`);
       userMap.set(user.id, user);
     });
-    
-    console.log('Mapa de usuarios creado:', userMap);
     
     // Intentar relacionar negocios con usuarios
     const businessesWithUsers = businesses.map((business: any) => {
@@ -583,18 +420,14 @@ export const getOwnersWithUserDetails = async () => {
       
       // Si el business ya tiene user, usarlo y completar con datos del mapa
       if (business.user && business.user.id) {
-        console.log(`🔍 Buscando usuario ${business.user.id} en el mapa para negocio "${business.name}"`);
-        
         const userFromMap = userMap.get(business.user.id);
         if (userFromMap) {
-          console.log(`✅ Usuario encontrado en mapa:`, userFromMap);
           relatedUser = {
             ...business.user,
             email: userFromMap.email || business.user.email,
             user_email: userFromMap.user_email || userFromMap.email || business.user.user_email,
           };
         } else {
-          console.log(`❌ Usuario ${business.user.id} NO encontrado en el mapa`);
           relatedUser = business.user;
         }
       } else {
@@ -618,8 +451,6 @@ export const getOwnersWithUserDetails = async () => {
       };
     });
     
-    console.log('Businesses con usuarios relacionados:', businessesWithUsers);
-    
     // Filtrar: 
     // 1. Debe tener usuario asociado
     // 2. Excluir administradores (rol 1)
@@ -628,15 +459,12 @@ export const getOwnersWithUserDetails = async () => {
       const hasUser = b.user && b.user.id;
       const isAdmin = hasRoleId(b?.user?.roles, 1);
       const isOwner = hasRoleId(b?.user?.roles, 3);
-      console.log(`📊 Business "${b.name}" - Tiene usuario: ${hasUser}, Es admin: ${isAdmin}, Es propietario: ${isOwner}`);
       // Mostrar solo si TIENE usuario Y NO es admin Y SÍ es propietario
       return hasUser && !isAdmin && isOwner;
     });
     
-    console.log(`✅ Propietarios filtrados: ${filtered.length} de ${businessesWithUsers.length}`);
     return filtered;
   } catch (error) {
-    console.error('Error en getOwnersWithUserDetails:', error);
     throw error;
   }
 };
@@ -648,7 +476,6 @@ export const getOwnersWithUserDetails = async () => {
 export const getOwners = async () => {
   try {
     const all = await getAllBusinesses();
-    console.log('Todos los businesses antes del filtro:', all);
     
     // Filtrar: 
     // 1. Si TIENE usuario, NO debe ser admin (rol 1)
@@ -659,26 +486,20 @@ export const getOwners = async () => {
       
       // Si no tiene usuario, incluirlo (negocio sin propietario)
       if (!hasUser) {
-        console.log(`Business "${b.name}" - Sin propietario, INCLUIR`);
         return true;
       }
       
       // Si tiene usuario pero es admin, excluirlo
       if (isAdmin) {
-        console.log(`Business "${b.name}" - Es administrador, EXCLUIR`);
         return false;
       }
       
       // Cualquier otro caso, incluir
-      console.log(`Business "${b.name}" - Tiene propietario (no admin), INCLUIR`);
       return true;
     });
     
-    console.log(`Businesses filtrados: ${filtered.length} (incluyendo sin propietario)`);
-    
     return filtered;
   } catch (error) {
-    console.error('Error en getOwners:', error);
     throw error;
   }
 };
@@ -733,7 +554,6 @@ export const getAllRoles = async (): Promise<UserRole[]> => {
 
     return allowedRoles;
   } catch (error) {
-    console.error('Error al obtener roles:', error);
     // Devolver roles predeterminados en caso de error (sin Admin)
     return [
       { id: 2, name: 'User' },
@@ -786,7 +606,6 @@ export const updateUser = async (userId: number, userData: Partial<EditUserData>
       }
 
       const userDetails = await userDetailsResponse.json();
-      console.log('Detalles del usuario:', userDetails);
 
       // Import dinámico para obtener todas las personas y buscar la que corresponde a este userId
       const { getAllPeople } = await import('./people');
@@ -794,7 +613,7 @@ export const updateUser = async (userId: number, userData: Partial<EditUserData>
       try {
         peopleList = await getAllPeople();
       } catch (err) {
-        console.warn('No se pudo obtener la lista de personas para buscar asociación:', err);
+        // Error silencioso si no se puede obtener la lista de personas
       }
 
       // Buscar persona por user_id o por campo user enlazado
@@ -806,7 +625,6 @@ export const updateUser = async (userId: number, userData: Partial<EditUserData>
 
       if (matched) {
         // Llamar al endpoint PUT /people/{userId} (el controlador espera user_id en la ruta)
-        console.log('Persona encontrada para usuario:', matched, 'Actualizando vía userId:', userId, 'con datos:', peopleData);
         const peopleResponse = await fetch(`${API_URL}/people/${userId}`, {
           method: 'PUT',
           headers,
@@ -815,21 +633,13 @@ export const updateUser = async (userId: number, userData: Partial<EditUserData>
 
         if (!peopleResponse.ok) {
           const errorText = await peopleResponse.text();
-          console.error('Error en people response:', errorText);
           throw new Error(`Error al actualizar información personal: ${errorText || peopleResponse.statusText}`);
         }
-
-        const peopleResult = await peopleResponse.text();
-        console.log('Resultado actualización people:', peopleResult);
-      } else {
-        // No existe registro de persona; informamos y no intentamos crear uno (no hay endpoint público garantizado).
-        console.warn('Usuario sin información personal asociada. Los datos del perfil (nombre, apellido, etc.) no se pueden actualizar porque no existe un registro en la tabla people para este usuario.');
-        console.warn('Solo se actualizará el email del usuario si se proporcionó.');
-        // No lanzamos error para no romper la UX; el caller recibirá que el email (si se pidió) fue actualizado.
       }
+      // No existe registro de persona; no intentamos crear uno (no hay endpoint público garantizado).
+      // El email (si se pidió) será actualizado sin error.
     }
   } catch (error) {
-    console.error('Error en updateUser:', error);
     throw error;
   }
 };
@@ -841,8 +651,6 @@ export const updateUser = async (userId: number, userData: Partial<EditUserData>
 export const addUserRole = async (userId: number, newRoleId: number): Promise<void> => {
   try {
     const headers = getAuthHeaders();
-    
-    console.log('Añadiendo rol al usuario:', userId, 'rol ID:', newRoleId);
     
     // Verificar conectividad primero
     if (!navigator.onLine) {
@@ -861,15 +669,9 @@ export const addUserRole = async (userId: number, newRoleId: number): Promise<vo
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Error en respuesta del servidor:', errorText);
       throw new Error(`Error al añadir rol: ${errorText || response.statusText}`);
     }
-    
-    const result = await response.text();
-    console.log('Resultado de añadir rol:', result);
   } catch (error) {
-    console.error('Error en addUserRole:', error);
-    
     // Proporcionar mensajes de error más específicos
     if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
       throw new Error('Error de conexión: No se puede conectar al servidor. Verifica que el backend esté funcionando en http://localhost:9080');
@@ -893,8 +695,6 @@ export const changeUserRole = async (userId: number, newRoleId: number): Promise
     // Para otros cambios, usar la lógica original
     const headers = getAuthHeaders();
     
-    console.log('Cambiando rol de usuario:', userId, 'a rol ID:', newRoleId);
-    
     // Verificar conectividad primero
     if (!navigator.onLine) {
       throw new Error('No hay conexión a internet. Verifica tu conexión y vuelve a intentar.');
@@ -910,15 +710,9 @@ export const changeUserRole = async (userId: number, newRoleId: number): Promise
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Error en respuesta del servidor:', errorText);
       throw new Error(`Error al cambiar rol: ${errorText || response.statusText}`);
     }
-    
-    const result = await response.text();
-    console.log('Resultado del cambio de rol:', result);
   } catch (error) {
-    console.error('Error en changeUserRole:', error);
-    
     // Proporcionar mensajes de error más específicos
     if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
       throw new Error('Error de conexión: No se puede conectar al servidor. Verifica que el backend esté funcionando en http://localhost:9080');
@@ -935,8 +729,6 @@ export const getUserForEdit = async (userId: number): Promise<EditUserData | nul
   try {
     const headers = getAuthHeaders();
     
-    console.log('Obteniendo datos del usuario para edición:', userId);
-    
     // Importamos dinámicamente para evitar dependencias circulares
     const { getAllPeople } = await import('./people');
     
@@ -950,15 +742,12 @@ export const getUserForEdit = async (userId: number): Promise<EditUserData | nul
     }
 
     const user = await userResponse.json();
-    console.log('Datos del usuario obtenidos:', user);
     
     const person = peopleResponse.find((p: any) => 
       p.user_id === userId || 
       p.user === userId || 
       (p.user && (p.user.user_id === userId || p.user.id === userId))
     );
-    
-    console.log('Datos de la persona encontrados:', person);
 
     const userData = {
       id: userId,
@@ -970,13 +759,8 @@ export const getUserForEdit = async (userId: number): Promise<EditUserData | nul
       gender: person?.gender || ''
     };
 
-    if (!person) {
-      console.warn('Usuario sin información personal. Solo se podrá editar el email.');
-    }
-
     return userData;
   } catch (error) {
-    console.error('Error en getUserForEdit:', error);
     return null;
   }
 };
@@ -997,8 +781,6 @@ export const createBusinessAsAdmin = async (businessData: {
   try {
     const headers = getAuthHeaders();
     
-    console.log('Admin creando negocio para usuario:', businessData.user_id, 'Datos:', businessData);
-    
     // Verificar conectividad primero
     if (!navigator.onLine) {
       throw new Error('No hay conexión a internet. Verifica tu conexión y vuelve a intentar.');
@@ -1012,16 +794,12 @@ export const createBusinessAsAdmin = async (businessData: {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Error en respuesta del servidor:', errorText);
       throw new Error(`Error al crear negocio: ${errorText || response.statusText}`);
     }
     
     const result = await response.text();
-    console.log('Negocio creado exitosamente por admin:', result);
     return result;
   } catch (error) {
-    console.error('Error en createBusinessAsAdmin:', error);
-    
     // Proporcionar mensajes de error más específicos
     if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
       throw new Error('Error de conexión: No se puede conectar al servidor. Verifica que el backend esté funcionando en http://localhost:9080');
@@ -1065,7 +843,6 @@ const getUserPeopleInfo = async (userId: number): Promise<any> => {
   try {
     // Método 1: Intentar obtener todas las personas y filtrar por user_id
     // (Este es el método más seguro si existe)
-    console.log('🔍 Intentando obtener todas las personas...');
     const responseAll = await fetch(`${API_URL}/people`, {
       method: 'GET',
       headers: {
@@ -1076,7 +853,6 @@ const getUserPeopleInfo = async (userId: number): Promise<any> => {
 
     if (responseAll.ok) {
       const allPeople = await responseAll.json();
-      console.log('👥 Todas las personas obtenidas:', allPeople);
       
       // Buscar la persona que pertenece al usuario
       const userPerson = allPeople.find((person: any) => 
@@ -1084,16 +860,13 @@ const getUserPeopleInfo = async (userId: number): Promise<any> => {
       );
       
       if (userPerson) {
-        console.log('✅ Persona encontrada:', userPerson);
         return userPerson;
       }
     }
 
     // Método 2: Si no funciona lo anterior, devolver null
-    console.log('⚠️ No se encontró información personal para el usuario:', userId);
     return null;
   } catch (error) {
-    console.log('⚠️ Error al obtener información personal:', error);
     return null;
   }
 };
@@ -1111,19 +884,14 @@ const getUserBusinesses = async (): Promise<any[]> => {
  * Combinando múltiples endpoints existentes
  */
 export const getUserCompleteInfo = async (userId: number): Promise<any> => {
-  console.log('🔄 Obteniendo información completa del usuario:', userId);
-  
   try {
     // 1. Obtener información básica del usuario
-    console.log('📡 Obteniendo información básica...');
     const userInfo = await getUserBasicInfo(userId);
     
     // 2. Obtener información personal (people)
-    console.log('👤 Obteniendo información personal...');
     const peopleInfo = await getUserPeopleInfo(userId);
     
     // 3. Obtener todos los negocios y filtrar por usuario
-    console.log('🏢 Obteniendo información de negocios...');
     const allBusinesses = await getUserBusinesses();
     const userBusinesses = allBusinesses.filter(business => 
       business.user && business.user.id === userId
@@ -1154,11 +922,8 @@ export const getUserCompleteInfo = async (userId: number): Promise<any> => {
       }))
     };
 
-    console.log('✅ Información completa combinada:', result);
     return result;
   } catch (error) {
-    console.error('❌ Error en getUserCompleteInfo:', error);
-    
     if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
       throw new Error('Error de conexión: No se puede conectar al servidor');
     }
@@ -1172,8 +937,6 @@ export const getUserCompleteInfo = async (userId: number): Promise<any> => {
  * Usa el user_id ya que el endpoint espera user_id no people_id
  */
 export const updatePeopleInfo = async (userId: number, peopleData: any): Promise<string> => {
-  console.log('🔄 Actualizando información personal para usuario:', userId, peopleData);
-  
   try {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -1192,16 +955,12 @@ export const updatePeopleInfo = async (userId: number, peopleData: any): Promise
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ Error del servidor:', errorText);
       throw new Error(`Error del servidor: ${response.status} - ${errorText}`);
     }
 
     const result = await response.text();
-    console.log('✅ Información personal actualizada:', result);
     return result;
   } catch (error) {
-    console.error('❌ Error en updatePeopleInfo:', error);
-    
     if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
       throw new Error('Error de conexión: No se puede conectar al servidor');
     }
@@ -1214,8 +973,6 @@ export const updatePeopleInfo = async (userId: number, peopleData: any): Promise
  * Actualizar información del negocio
  */
 export const updateBusinessInfo = async (businessId: number, businessData: any): Promise<string> => {
-  console.log('🔄 Actualizando información del negocio:', businessId, businessData);
-  
   try {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -1233,16 +990,12 @@ export const updateBusinessInfo = async (businessId: number, businessData: any):
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ Error del servidor:', errorText);
       throw new Error(`Error del servidor: ${response.status} - ${errorText}`);
     }
 
     const result = await response.text();
-    console.log('✅ Información del negocio actualizada:', result);
     return result;
   } catch (error) {
-    console.error('❌ Error en updateBusinessInfo:', error);
-    
     if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
       throw new Error('Error de conexión: No se puede conectar al servidor');
     }
@@ -1255,8 +1008,6 @@ export const updateBusinessInfo = async (businessId: number, businessData: any):
  * Actualizar email del usuario (ya existe actualizarUsuario pero creamos específica)
  */
 export const updateUserEmail = async (userId: number, userData: any): Promise<string> => {
-  console.log('🔄 Actualizando email del usuario:', userId, userData);
-  
   try {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -1274,16 +1025,12 @@ export const updateUserEmail = async (userId: number, userData: any): Promise<st
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ Error del servidor:', errorText);
       throw new Error(`Error del servidor: ${response.status} - ${errorText}`);
     }
 
     const result = await response.text();
-    console.log('✅ Email del usuario actualizado:', result);
     return result;
   } catch (error) {
-    console.error('❌ Error en updateUserEmail:', error);
-    
     if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
       throw new Error('Error de conexión: No se puede conectar al servidor');
     }
@@ -1297,8 +1044,6 @@ export const updateUserEmail = async (userId: number, userData: any): Promise<st
  * Incluye validaciones para evitar eliminar usuarios con negocios o roles críticos
  */
 export const eliminarUsuario = async (userId: number): Promise<{ message: string }> => {
-  console.log('🗑️ Eliminando usuario:', userId);
-  
   try {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -1315,18 +1060,14 @@ export const eliminarUsuario = async (userId: number): Promise<{ message: string
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ Error del servidor al eliminar usuario:', errorText);
       throw new Error(`Error del servidor: ${response.status} - ${errorText}`);
     }
 
     // El backend devuelve texto plano, no JSON
     const resultText = await response.text();
-    console.log('✅ Usuario eliminado exitosamente:', resultText);
     
     return { message: resultText };
   } catch (error) {
-    console.error('❌ Error en eliminarUsuario:', error);
-    
     if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
       throw new Error('Error de conexión: No se puede conectar al servidor');
     }

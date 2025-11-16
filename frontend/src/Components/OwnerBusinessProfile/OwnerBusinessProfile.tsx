@@ -80,7 +80,6 @@ export default function OwnerBusinessProfile() {
           logoPreview: userBusiness.logo_url,
         });
       } catch (error: any) {
-        console.error("Error al cargar datos del negocio:", error);
         toast.error("Error al cargar los datos del negocio");
       } finally {
         setIsLoading(false);
@@ -140,7 +139,6 @@ export default function OwnerBusinessProfile() {
       });
       
       const result = await localRecognitionService.recognizeLocal(file);
-      console.log("🔍 Resultado de validación de logo:", result);
       
       toast.dismiss(toastId);
       
@@ -170,7 +168,6 @@ export default function OwnerBusinessProfile() {
         }));
       }
     } catch (error: any) {
-      console.error("❌ Error validando imagen:", error);
       toast.error("❌ Error al validar. Intenta de nuevo.", { 
         autoClose: 3000,
         closeButton: false,
@@ -203,8 +200,6 @@ export default function OwnerBusinessProfile() {
       // Solo modificarlo si hay imagen NUEVA
       let verificationStatus = businessData?.verified || false;
 
-      console.log('🔄 [OwnerBusinessProfile] Estado verificación del backend:', { currentVerified: businessData?.verified, hasNewLogo: !!editData.logo });
-
       // Si hay una NUEVA imagen, re-validarla
       if (editData.logo) {
         try {
@@ -214,7 +209,6 @@ export default function OwnerBusinessProfile() {
           });
           
           const validationResult = await localRecognitionService.recognizeLocal(editData.logo);
-          console.log('✅ [OwnerBusinessProfile] Validation result:', validationResult);
           
           toast.dismiss(processingToastId);
           
@@ -226,8 +220,6 @@ export default function OwnerBusinessProfile() {
               closeButton: false,
               position: "top-right"
             });
-            
-            console.log('📤 [OwnerBusinessProfile] Subiendo logo verificado...');
             try {
               await businessLogoService.uploadLogo(editData.logo);
               toast.success("✅ Logo subido", { 
@@ -236,7 +228,6 @@ export default function OwnerBusinessProfile() {
                 closeButton: false
               });
             } catch (logoError) {
-              console.warn("❌ Error al subir logo:", logoError);
               toast.warning("⚠️ Error al subir logo", { 
                 autoClose: 2500,
                 position: "top-right",
@@ -255,7 +246,6 @@ export default function OwnerBusinessProfile() {
             return;
           }
         } catch (error) {
-          console.warn("Error en validación final de imagen:", error);
           toast.error("❌ Error al validar imagen - Guardado cancelado", { 
             autoClose: 3500, 
             position: "top-right",
@@ -279,10 +269,6 @@ export default function OwnerBusinessProfile() {
         requestBody.verified = verificationStatus;
       }
       
-      console.log('📤 [OwnerBusinessProfile] Estado FINAL verificación:', { verificationStatus, hasNewLogo: !!editData.logo });
-      console.log('📤 [OwnerBusinessProfile] Sending update request:', requestBody);
-      console.log('🔗 [OwnerBusinessProfile] URL:', `${API_URL}/business/${businessData?.business_id}`);
-      
       const response = await fetch(
         `${API_URL}/business/${businessData?.business_id}`,
         {
@@ -295,22 +281,17 @@ export default function OwnerBusinessProfile() {
         }
       );
 
-      console.log('📥 [OwnerBusinessProfile] Response status:', response.status);
-
       if (!response.ok) {
         const errorData = await response.text();
-        console.error('❌ [OwnerBusinessProfile] Response error:', errorData);
         throw new Error("Error al actualizar el negocio");
       }
 
       const updatedData = await response.json();
-      console.log('✅ [OwnerBusinessProfile] Updated data:', updatedData);
       setBusinessData(updatedData);
       setIsEditing(false);
       
       // Actualizar el contexto de autenticación para reflejar los cambios
       if (refreshUser) {
-        console.log('🔄 [OwnerBusinessProfile] Refreshing user context...');
         await refreshUser();
       }
       
@@ -333,7 +314,6 @@ export default function OwnerBusinessProfile() {
         closeButton: false,
         position: "top-right"
       });
-      console.error("Error al guardar:", error);
     } finally {
       setIsSaving(false);
     }

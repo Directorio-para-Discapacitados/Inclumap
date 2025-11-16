@@ -38,9 +38,6 @@ class LocalRecognitionService {
         const token = localStorage.getItem("token") || localStorage.getItem("access_token");
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
-          console.log("Token enviado:", token.substring(0, 20) + "...");
-        } else {
-          console.log("No hay token en localStorage");
         }
         return config;
       },
@@ -53,7 +50,6 @@ class LocalRecognitionService {
     this.api.interceptors.response.use(
       (response) => response,
       (error) => {
-        console.error("LocalRecognition Error:", error.response?.status, error.response?.data);
         // NO redirigir al login aquí, dejar que el componente maneje el error
         return Promise.reject(error);
       }
@@ -156,10 +152,6 @@ class LocalRecognitionService {
    * Maneja los errores de la API
    */
   private handleError(error: any): string {
-    console.log("Error completo:", error);
-    console.log("Error status:", error.response?.status);
-    console.log("Error data:", error.response?.data);
-    
     // Error de la API
     if (error.response?.data?.message) {
       return error.response.data.message;

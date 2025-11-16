@@ -127,7 +127,6 @@ export default function Registro() {
       });
     } catch (error) {
       toast.error("❌ Error al registrar", { position: "top-center", autoClose: 4000 });
-      console.error(error);
     }
   };
 
