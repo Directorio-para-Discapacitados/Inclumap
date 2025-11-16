@@ -7,6 +7,11 @@ import {
   Post,
   UseGuards,
   Patch,
+  Query,
+  Delete,
+  HttpCode,
+  HttpStatus,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { User } from 'src/auth/decorators/user.decorator';
@@ -15,6 +20,8 @@ import { CreateReviewDto } from './dto/create-review.dto';
 import { ReviewService } from './review.service';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 
 @ApiTags('reviews')
 @Controller('reviews')
@@ -40,5 +47,38 @@ export class ReviewController {
     @User() user: UserEntity,
   ) {
     return this.reviewService.update(review_id, updateReviewDto, user);
+  }
+
+  @Get()
+  getAllReviews() {
+    return this.reviewService.getAllReviews();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('my') 
+  getMyReviews(@User() user: UserEntity) {
+    return this.reviewService.getMyReviews(user.user_id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1) 
+  @Get('all')
+  getPaginatedReviews(
+
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+  ) {
+    if (limit > 100) limit = 100;
+    return this.reviewService.getAllPaginated(page, limit);
+  }
+
+@UseGuards(JwtAuthGuard)
+  @Delete(':id') 
+  @HttpCode(HttpStatus.OK)
+  delete(
+    @Param('id', ParseIntPipe) review_id: number,
+    @User() user: UserEntity,
+  ) {
+    return this.reviewService.delete(review_id, user);
   }
 }

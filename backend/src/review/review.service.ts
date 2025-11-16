@@ -179,4 +179,117 @@ export class ReviewService {
 
     return review;
   }
+
+  async getAllReviews(): Promise<any[]> {
+    const reviews = await this.reviewRepository
+      .createQueryBuilder('review')
+      .leftJoin('review.business', 'business')
+      .leftJoin('review.user', 'user')
+      .leftJoin('user.people', 'people') 
+      .select([
+        'review.review_id', 'review.rating', 'review.comment', 'review.created_at',
+        'business.business_id', 'business.business_name', 'business.average_rating',
+        'user.user_id',
+        'people.firstName', 
+        'people.firstLastName', 
+      ])
+      .orderBy('review.created_at', 'DESC')
+      .getMany();
+
+    // Mapear para la estructura de usuario deseada
+    return reviews.map(review => ({
+      review_id: review.review_id,
+      rating: review.rating,
+      comment: review.comment,
+      created_at: review.created_at,
+      business: review.business, 
+      user: {
+        user_id: review.user.user_id,
+        name: review.user.people?.firstName,
+        lastname: review.user.people?.firstLastName,
+      }
+    }));
+  }
+
+  async getMyReviews(userId: number): Promise<ReviewEntity[]> {
+    return this.reviewRepository
+      .createQueryBuilder('review')
+      .leftJoin('review.business', 'business')
+      .leftJoin('review.user', 'user')
+      .select([
+        // Reseña
+        'review.review_id', 'review.rating', 'review.comment', 'review.created_at',
+        // Local (Business) - Campos mínimos
+        'business.business_id', 'business.business_name', 'business.average_rating',
+        // Usuario (User) - Solo ID
+        'user.user_id',
+      ])
+      .where('user.user_id = :userId', { userId })
+      .orderBy('review.created_at', 'DESC')
+      .getMany();
+  }
+
+  async delete(
+    review_id: number,
+    user: UserEntity,
+  ): Promise<{ message: string; newAverageRating: number }> {
+    const review = await this.reviewRepository.findOne({
+      where: { review_id },
+      relations: ['user', 'business'],
+    });
+
+    if (!review) {
+      throw new NotFoundException(`Reseña con ID ${review_id} no encontrada.`);
+    }
+
+    if (review.user.user_id !== user.user_id) {
+      throw new ForbiddenException(
+        'No tienes permiso para eliminar esta reseña.',
+      );
+    }
+
+    const business_id = review.business.business_id;
+    await this.reviewRepository.delete(review_id);
+    const newAverage = await this.updateBusinessAverageRating(business_id);
+
+    return {
+      message: `Reseña ${review_id} eliminada exitosamente.`,
+      newAverageRating: newAverage,
+    };
+  }
+
+  async getAllPaginated(page: number, limit: number) {
+    const skip = (page - 1) * limit;
+
+    const [reviews, total] = await this.reviewRepository.findAndCount({
+      relations: ['user', 'business'],
+      skip: skip,
+      take: limit,
+      order: { created_at: 'DESC' },
+    });
+
+    const cleanReviews = reviews.map((review) => ({
+      review_id: review.review_id,
+      rating: review.rating,
+      comment: review.comment,
+      created_at: review.created_at,
+      business: {
+        business_id: review.business.business_id,
+        business_name: review.business.business_name,
+      },
+      user: {
+        user_id: review.user.user_id,
+        user_email: review.user.user_email,
+      },
+    }));
+
+    return {
+      data: cleanReviews,
+      total_items: total,
+      total_pages: Math.ceil(total / limit),
+      current_page: page,
+    };
+  }
+
+
 }
