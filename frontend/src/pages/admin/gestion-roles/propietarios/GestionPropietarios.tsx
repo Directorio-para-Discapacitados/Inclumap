@@ -164,17 +164,16 @@ const GestionPropietarios: React.FC = () => {
       console.log('✅ Degradación completada exitosamente');
       
       showToastMessage(
-        `🎉 ¡Cambio de rol exitoso! El negocio "${selectedBusiness.name}" se conservó sin propietario.`,
+        `🎉 ¡Cambio de rol exitoso! El negocio "${selectedBusiness.name}" ahora está sin propietario.`,
         'success'
       );
       
+      // Limpiar estado
       setShowDemoteModal(false);
       setSelectedBusiness(null);
       
-      // Refrescar lista después de un breve delay para que se vea el toast
-      setTimeout(() => {
-        fetchBusinesses();
-      }, 1500);
+      // Refrescar lista para actualizar el negocio sin propietario
+      await fetchBusinesses();
     } catch (error) {
       console.error('❌ Error al cambiar rol:', error);
       showToastMessage(
@@ -205,6 +204,12 @@ const GestionPropietarios: React.FC = () => {
     if (!selectedBusiness || !confirmAction) return;
 
     setShowConfirmModal(false);
+    
+    // Guardar ID del negocio para removarlo del estado después si es necesario
+    const businessIdToRemove = selectedBusiness.id;
+    
+    // Limpiar estado inmediatamente
+    setSelectedBusiness(null);
 
     try {
       if (confirmAction === 'delete') {
@@ -218,6 +223,9 @@ const GestionPropietarios: React.FC = () => {
           : `🗑️ Negocio "${selectedBusiness.name}" eliminado completamente (incluyendo accesibilidades) exitosamente`;
         
         showToastMessage(message, 'success');
+        
+        // Remover negocio del estado local solo si fue eliminado
+        setBusinesses(prev => prev.filter(b => b.id !== businessIdToRemove));
       } else if (confirmAction === 'demote') {
         console.log('Degradando propietario pero manteniendo negocio...');
         
@@ -229,14 +237,15 @@ const GestionPropietarios: React.FC = () => {
             `👤 Usuario degradado exitosamente. El negocio "${selectedBusiness.name}" ahora está disponible para asignar.`,
             'success'
           );
+          
+          // Refrescar la lista para mostrar el negocio actualizado sin propietario
+          await fetchBusinesses();
         }
       }
       
-      // Limpiar estados y refrescar
-      setSelectedBusiness(null);
+      // Limpiar estados
       setConfirmAction(null);
-      setDeleteOwnerToo(false); // Resetear checkbox
-      fetchBusinesses();
+      setDeleteOwnerToo(false);
     } catch (error) {
       console.error('Error en la acción:', error);
       showToastMessage(
