@@ -557,27 +557,26 @@ export class AuthService {
   }
 
   //Metodo refrescarToken
-  refreshToken(dto: TokenDto): string {
+  refreshToken(payload: PayloadInterface): string { 
     try {
-      const usuario = this.jwtService.decode(dto.token);
-
-      const payload: PayloadInterface = {
-        user_id: usuario.user_id,
-        user_email: usuario.user_email,
-        firstName: usuario.firstName,
-        firstLastName: usuario.firstLastName,
-        cellphone: usuario.cellphone,
-        address: usuario.address,
-        rolIds: usuario.rolIds,
-        business_id: usuario.business_id,
-        business_name: usuario.business_name,
-        business_address: usuario.business_address || null,
-        NIT: usuario.NIT || null,
+      const newPayload: PayloadInterface = {
+        user_id: payload.user_id,
+        user_email: payload.user_email,
+        firstName: payload.firstName,
+        firstLastName: payload.firstLastName,
+        cellphone: payload.cellphone,
+        address: payload.address,
+        rolIds: payload.rolIds,
+        business_id: payload.business_id,
+        business_name: payload.business_name,
+        business_address: payload.business_address || null,
+        NIT: payload.NIT || null,
       };
 
-      const token = this.jwtService.sign(payload);
+      const token = this.jwtService.sign(newPayload);
 
       return token;
+      
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;
