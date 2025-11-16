@@ -96,4 +96,18 @@ export class AuthController {
   async postLoginStatus(@User() user: PayloadInterface): Promise<any> {
     return this.authService.getPostLoginStatus(user.user_id);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('refresh')
+  async refresh(
+    @User() userPayload: PayloadInterface, 
+  ): Promise<{ message: string; token: string }> {
+    
+    const newToken = this.authService.refreshToken(userPayload); 
+    
+    return {
+      message: 'Token refrescado exitosamente',
+      token: newToken,
+    };
+  }
 }
