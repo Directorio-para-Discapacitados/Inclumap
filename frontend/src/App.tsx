@@ -18,6 +18,9 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Footer from "./Components/Footer";
 import LocalRecognitionPage from './pages/LocalRecognition/LocalRecognition';
+import ReviewsPage from "./pages/reviews/ReviewsPage";
+
+
 
 function App() {
   return (
@@ -31,6 +34,9 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/registro" element={<Registro />} />
             <Route path="/admin" element={<AdminLoginPage />} />
+
+            <Route path="/reviews" element={<ReviewsPage />} />
+            <Route path="/reviews/:businessId" element={<ReviewsPage />} />
 
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
