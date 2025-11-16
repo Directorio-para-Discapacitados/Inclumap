@@ -6,6 +6,7 @@ import { CreateFullBusinessDto } from './dtos/createFullBusiness.dto';
 import { UpgradeToBusinessDto } from './dtos/upgradeToBusiness.dto';
 import { User } from './decorators/user.decorator';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { usuarioEmailResetPasswordDto } from './dtos/usuario-email-resetpassword.dto';
 import { ChangePasswordDto } from './dtos/change-password.dto';
 import { GoogleAuthDto } from './dtos/google-auth.dto';
@@ -97,7 +98,7 @@ export class AuthController {
     return this.authService.getPostLoginStatus(user.user_id);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtRefreshGuard)
   @Post('refresh')
   async refresh(
     @User() userPayload: PayloadInterface, 

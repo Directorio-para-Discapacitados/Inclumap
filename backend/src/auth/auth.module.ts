@@ -8,12 +8,14 @@ import { RolEntity } from 'src/roles/entity/rol.entity';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { BusinessEntity } from 'src/business/entity/business.entity';
 import { BusinessAccessibilityEntity } from 'src/business_accessibility/entity/business_accessibility.entity';
 import { AccessibilityEntity } from 'src/accessibility/entity/accesibility.entity';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { MailsService } from 'src/mails/mails.service';
 import { MapsModule } from 'src/maps/maps.module';
@@ -41,7 +43,7 @@ import { MapsModule } from 'src/maps/maps.module';
       AccessibilityEntity,
     ]),
   ],
-  providers: [AuthService, JwtStrategy, JwtAuthGuard, RolesGuard, MailsService],
+  providers: [AuthService, JwtStrategy, JwtRefreshStrategy, JwtAuthGuard, JwtRefreshGuard, RolesGuard, MailsService],
   controllers: [AuthController],
   exports: [JwtAuthGuard, RolesGuard],
 })
