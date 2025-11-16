@@ -21,6 +21,8 @@ interface AuthContextType {
   login: (token: string) => void;
   logout: () => void;
   refreshUser: () => Promise<void>;
+  updateToken: (newToken: string) => void;
+  refreshToken: () => Promise<string | null>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -168,8 +170,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateToken = (newToken: string) => {
+    localStorage.setItem('token', newToken);
+    fetchUserFromServer(newToken);
+  };
+
+  const refreshToken = async (): Promise<string | null> => {
+    try {
+      const currentToken = localStorage.getItem('token');
+      if (!currentToken) {
+        return null;
+      }
+
+      const response = await fetch(`${API_URL}/auth/refresh`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${currentToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        // Si el refresh falla, deslogueamos al usuario
+        logout();
+        return null;
+      }
+
+      const data = await response.json();
+      const newToken = data.access_token || data.token;
+
+      if (newToken) {
+        updateToken(newToken);
+        return newToken;
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error al refrescar el token:', error);
+      logout();
+      return null;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, refreshUser, updateToken, refreshToken }}>
       {children}
     </AuthContext.Provider>
   );

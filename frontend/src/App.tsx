@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useEffect, useState } from "react";
 import Navbar from "./Components/Navbar";
 import Inicio from "./pages/inicio/inicio";
 import Login from "./pages/login/login";
@@ -19,10 +20,44 @@ import 'react-toastify/dist/ReactToastify.css';
 import Footer from "./Components/Footer";
 import LocalRecognitionPage from './pages/LocalRecognition/LocalRecognition';
 import ReviewsPage from "./pages/reviews/ReviewsPage";
+import SessionModal from "./Components/SessionModal/SessionModal";
+import { setSessionModalCallback } from "./config/api";
 
 
 
 function App() {
+  const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
+  const [sessionPromiseResolve, setSessionPromiseResolve] = useState<((value: boolean) => void) | null>(null);
+
+  useEffect(() => {
+    // Configurar el callback que usará el interceptor para mostrar el modal
+    const callback = () => {
+      return new Promise<boolean>((resolve) => {
+        setIsSessionModalOpen(true);
+        // Guardar el resolve para usarlo cuando el usuario haga clic
+        setSessionPromiseResolve(() => resolve);
+      });
+    };
+    
+    setSessionModalCallback(callback);
+  }, []);
+
+  const handleKeepSession = () => {
+    setIsSessionModalOpen(false);
+    if (sessionPromiseResolve) {
+      sessionPromiseResolve(true); // Usuario quiere mantener la sesión
+      setSessionPromiseResolve(null);
+    }
+  };
+
+  const handleCloseSession = () => {
+    setIsSessionModalOpen(false);
+    if (sessionPromiseResolve) {
+      sessionPromiseResolve(false); // Usuario quiere cerrar la sesión
+      setSessionPromiseResolve(null);
+    }
+  };
+
   return (
     <AuthProvider>
       <Router>
@@ -73,6 +108,12 @@ function App() {
         </main>
         <Footer />
         <ChatWidget />
+        <SessionModal
+          isOpen={isSessionModalOpen}
+          onKeepSession={handleKeepSession}
+          onCloseSession={handleCloseSession}
+          countdown={60}
+        />
         <ToastContainer
           position="top-right"
           autoClose={5000}

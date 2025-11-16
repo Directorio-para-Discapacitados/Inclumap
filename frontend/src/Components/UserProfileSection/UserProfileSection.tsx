@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import AvatarModal from "../AvatarModal/AvatarModal";
 import Avatar from "../Avatar/Avatar";
-import { API_URL } from "../../config/api";
+import { API_URL, api } from "../../config/api";
 import "./UserProfileSection.css";
 
 type Profile = {
@@ -48,26 +48,15 @@ export default function UserProfileSection() {
     }
 
     try {
-      const res = await fetch(`${API_URL}/people/my-profile`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const contentType = res.headers.get("content-type") || "";
-      const data = contentType.includes("application/json") ? await res.json() : await res.text();
-
-      if (!res.ok) {
-        showFeedback("error", (data && (data as any).message) || "Error al obtener perfil");
-        if (res.status === 401 || res.status === 403) {
-          localStorage.removeItem("token");
-          navigate("/login", { replace: true });
-        }
+      const res = await api.get('/people/my-profile');
+      setProfile(res.data as Profile);
+      setEditedProfile(res.data as Profile);
+    } catch (error: any) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        // El interceptor manejará esto automáticamente
         return;
       }
-
-      setProfile(data as Profile);
-      setEditedProfile(data as Profile);
-    } catch (error) {
-      showFeedback("error", "Error al obtener perfil. Verifica la conexión.");
+      showFeedback("error", error.response?.data?.message || "Error al obtener perfil. Verifica la conexión.");
     } finally {
       setLoading(false);
     }
