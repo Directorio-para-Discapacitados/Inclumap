@@ -22,6 +22,7 @@ import LocalRecognitionPage from './pages/LocalRecognition/LocalRecognition';
 import ReviewsPage from "./pages/reviews/ReviewsPage";
 import SessionModal from "./Components/SessionModal/SessionModal";
 import { setSessionModalCallback } from "./config/api";
+import Accesibilidad from "./pages/accesibilidad/Accesibilidad";
 
 
 
@@ -66,6 +67,7 @@ function App() {
           <Routes>
             
             <Route path="/" element={<Inicio />} />
+            <Route path="/accesibilidad/:id" element={<Accesibilidad />} />
             <Route path="/login" element={<Login />} />
             <Route path="/registro" element={<Registro />} />
             <Route path="/admin" element={<AdminLoginPage />} />

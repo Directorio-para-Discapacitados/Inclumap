@@ -1,11 +1,18 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { BusinessService } from './business.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { BusinessAccessibilityEntity } from '../business_accessibility/entity/business_accessibility.entity';
 
 @ApiTags('business-public')
 @Controller('business/public')
 export class BusinessPublicController {
-  constructor(private readonly businessService: BusinessService) {}
+  constructor(
+    private readonly businessService: BusinessService,
+    @InjectRepository(BusinessAccessibilityEntity)
+    private readonly businessAccessibilityRepository: Repository<BusinessAccessibilityEntity>,
+  ) {}
 
   @Get('search')
   async searchPublic(@Query('q') q?: string): Promise<any[]> {
@@ -39,6 +46,36 @@ export class BusinessPublicController {
     });
 
     return filtered.map(mapPublic);
+  }
+
+  @Get('by-accessibility/:accessibilityId')
+  async getByAccessibility(@Param('accessibilityId') accessibilityId: string): Promise<any[]> {
+    // Consultar directamente la tabla business_accessibility para obtener los business_id
+    const accessibilityIdNum = parseInt(accessibilityId, 10);
+    
+    const businessAccessibilities = await this.businessAccessibilityRepository.find({
+      where: { accessibility: { accessibility_id: accessibilityIdNum } },
+      relations: ['business', 'business.user', 'business.user.people'],
+    });
+
+    // Mapear a formato público
+    return businessAccessibilities.map((ba) => {
+      const b = ba.business;
+      return {
+        business_id: b.business_id,
+        business_name: b.business_name,
+        address: b.address,
+        description: b.description,
+        coordinates: b.coordinates,
+        latitude: b.latitude,
+        longitude: b.longitude,
+        average_rating: b.average_rating,
+        logo_url: b.logo_url || 'https://res.cloudinary.com/demo/image/upload/sample.jpg',
+        owner_name: b.user?.people
+          ? `${b.user.people.firstName || ''} ${b.user.people.firstLastName || ''}`.trim()
+          : null,
+      };
+    });
   }
 
   @Get(':id')
