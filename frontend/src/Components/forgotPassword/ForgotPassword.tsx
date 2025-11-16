@@ -39,7 +39,6 @@ export const ForgotPassword = ({ onCodeSent }: ForgotPasswordProps) => {
     } catch (err) {
       setLoading(false);
       setError('Error al enviar la solicitud. Verifica tu correo.');
-      console.error(err);
     }
   };
 

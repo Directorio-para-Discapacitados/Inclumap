@@ -36,7 +36,6 @@ export const CodeVerification = ({ email, onCodeVerified }: CodeVerificationProp
     } catch (err) {
       setLoading(false);
       setError('Código inválido o expirado. Intenta de nuevo.');
-      console.error(err);
     }
   };
 

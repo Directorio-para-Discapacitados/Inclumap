@@ -55,7 +55,6 @@ export const ResetPassword = ({ code }: ResetPasswordProps) => {
     } catch (err) {
       setLoading(false);
       setError('Error al restablecer. El código puede haber expirado.');
-      console.error(err);
     }
   };
 

@@ -140,7 +140,6 @@ export default function CrearNegocio() {
         position: "top-center", 
         autoClose: 4000 
       });
-      console.error(error);
     } finally {
       setIsLoading(false);
     }

@@ -69,7 +69,6 @@ const AdminLoginPage = () => {
 
     } catch (err: any) {
       setError(err.message || 'Email o contraseña incorrectos');
-      console.error(err);
     } finally {
       setLoading(false);
     }

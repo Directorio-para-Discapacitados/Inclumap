@@ -67,7 +67,6 @@ export default function UserProfileSection() {
       setProfile(data as Profile);
       setEditedProfile(data as Profile);
     } catch (error) {
-      console.error("Error obteniendo perfil:", error);
       showFeedback("error", "Error al obtener perfil. Verifica la conexión.");
     } finally {
       setLoading(false);
@@ -123,7 +122,6 @@ export default function UserProfileSection() {
       showFeedback("success", "Perfil actualizado exitosamente");
       await refreshUser();
     } catch (error) {
-      console.error("Error guardando perfil:", error);
       showFeedback("error", "Error al guardar perfil. Verifica la conexión.");
     } finally {
       setSaving(false);

@@ -76,18 +76,13 @@ const ChangeRoleModal: React.FC<ChangeRoleModalProps> = ({
     setError(null);
 
     try {
-      console.log('Cambiando rol del usuario:', userId, 'al rol:', selectedRoleId);
       await changeUserRole(userId, selectedRoleId);
-      console.log('Rol cambiado exitosamente');
       
       // Verificar si se está promoviendo a Propietario
       const newRole = roles.find(role => role.id === selectedRoleId);
       const isPromotingToBusiness = newRole?.name.toLowerCase() === 'propietario' || selectedRoleId === 3;
       
-      console.log('Rol seleccionado:', newRole, 'Es promoción a propietario:', isPromotingToBusiness);
-      
       if (isPromotingToBusiness && onPromoteToBusiness && userId) {
-        console.log('Abriendo modal de datos del negocio para usuario:', userId, userName);
         // Cerrar este modal primero
         onClose();
         // Abrir modal de datos de negocio
@@ -98,7 +93,6 @@ const ChangeRoleModal: React.FC<ChangeRoleModalProps> = ({
         onClose();
       }
     } catch (err) {
-      console.error('Error al cambiar rol:', err);
       
       // Mensajes de error más específicos
       let errorMessage = 'Error al cambiar rol';

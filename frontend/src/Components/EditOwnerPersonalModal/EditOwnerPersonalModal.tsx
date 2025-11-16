@@ -79,10 +79,7 @@ const EditOwnerPersonalModal: React.FC<EditOwnerPersonalModalProps> = ({
         throw new Error('ID de usuario no proporcionado');
       }
 
-      console.log('🔄 Cargando datos completos del usuario:', userId);
       const data = await getUserCompleteInfo(userId);
-      
-      console.log('📋 Datos recibidos:', data);
       
       // Guardar el peopleId para las actualizaciones (usar userId si no hay peopleId)
       if (data.people?.people_id) {
@@ -105,7 +102,6 @@ const EditOwnerPersonalModal: React.FC<EditOwnerPersonalModalProps> = ({
       });
       
     } catch (error) {
-      console.error('❌ Error al cargar datos del usuario:', error);
       setError(error instanceof Error ? error.message : 'Error al cargar los datos del usuario');
     } finally {
       setLoading(false);
@@ -160,9 +156,6 @@ const EditOwnerPersonalModal: React.FC<EditOwnerPersonalModalProps> = ({
     setError(null);
 
     try {
-      console.log('🔄 Actualizando información personal del usuario:', userId);
-      console.log('📋 Datos a actualizar:', formData);
-
       // 1. Actualizar información personal (people) usando userId
       if (userId) {
         const peopleData = {
@@ -173,7 +166,6 @@ const EditOwnerPersonalModal: React.FC<EditOwnerPersonalModalProps> = ({
           gender: formData.gender
         };
         
-        console.log('📝 Actualizando datos personales...');
         await updatePeopleInfo(userId, peopleData);
       }
 
@@ -188,15 +180,11 @@ const EditOwnerPersonalModal: React.FC<EditOwnerPersonalModalProps> = ({
           userData.user_password = formData.newPassword;
         }
         
-        console.log('📧 Actualizando email/contraseña...');
         await updateUserEmail(userId, userData);
       } else if (formData.changePassword && formData.newPassword) {
         // Solo cambio de contraseña
-        console.log('🔐 Actualizando solo contraseña...');
         await updateUserEmail(userId, { user_password: formData.newPassword });
       }
-      
-      console.log('✅ Información personal actualizada exitosamente');
       
       // Mostrar toast de éxito con animación
       showToastMessage('🎉 ¡Información personal actualizada exitosamente!', 'success');
@@ -208,7 +196,6 @@ const EditOwnerPersonalModal: React.FC<EditOwnerPersonalModalProps> = ({
       }, 1500);
       
     } catch (err) {
-      console.error('❌ Error al actualizar información personal:', err);
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido al actualizar la información';
       setError(errorMessage);
       showToastMessage(`❌ Error: ${errorMessage}`, 'error');

@@ -121,24 +121,14 @@ const BusinessDataModal: React.FC<BusinessDataModalProps> = ({
         user_id: userId
       };
 
-      console.log('Admin creando negocio para usuario recién promovido:', userId, 'Payload:', payload);
-
       // Validar que todos los campos requeridos estén presentes
       if (!payload.business_name || !payload.address || !payload.NIT || !payload.user_id) {
         throw new Error('Faltan datos obligatorios del negocio');
       }
 
-      console.log('📤 Enviando petición para crear negocio...');
       
       // Usar función de admin que tiene los permisos necesarios
       const result = await createBusinessAsAdmin(payload);
-      console.log('✅ Negocio creado exitosamente:', result);
-      console.log('📋 Detalles del negocio creado:', {
-        nombre: payload.business_name,
-        usuario_id: payload.user_id,
-        nit: payload.NIT,
-        direccion: payload.address
-      });
 
       // Emitir evento personalizado para notificar que se creó un nuevo negocio
       window.dispatchEvent(new CustomEvent('businessCreated', { 
@@ -148,7 +138,6 @@ const BusinessDataModal: React.FC<BusinessDataModalProps> = ({
           userId: userId 
         } 
       }));
-      console.log('🎉 Evento businessCreated emitido para actualizar lista de propietarios');
 
       onSuccess();
       onClose();
@@ -164,15 +153,6 @@ const BusinessDataModal: React.FC<BusinessDataModalProps> = ({
       });
       setStep(1);
     } catch (err) {
-      console.error('❌ Error al crear negocio:', err);
-      console.error('❌ Detalles completos del error:', {
-        error: err,
-        mensaje: err instanceof Error ? err.message : 'Error desconocido',
-        formData: formData,
-        userId: userId
-      });
-      
-      // Manejo de errores más específico
       let errorMessage = 'Error al crear el negocio';
       
       if (err instanceof Error) {
@@ -196,7 +176,6 @@ const BusinessDataModal: React.FC<BusinessDataModalProps> = ({
   // Función de diagnóstico temporal para verificar el flujo
   const testBusinessCreation = async () => {
     if (!userId) {
-      console.error('❌ No hay userId para probar');
       return;
     }
 
@@ -210,15 +189,10 @@ const BusinessDataModal: React.FC<BusinessDataModalProps> = ({
       user_id: userId
     };
 
-    console.log('🧪 Iniciando prueba de creación de negocio...');
-    console.log('🧪 Datos de prueba:', testPayload);
-
     try {
       const result = await createBusinessAsAdmin(testPayload);
-      console.log('✅ Prueba exitosa! Negocio creado:', result);
       alert('✅ Prueba exitosa! Negocio creado correctamente.');
     } catch (error) {
-      console.error('❌ Prueba falló:', error);
       alert('❌ Prueba falló: ' + (error instanceof Error ? error.message : 'Error desconocido'));
     }
   };

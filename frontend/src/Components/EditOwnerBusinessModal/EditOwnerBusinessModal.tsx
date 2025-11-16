@@ -80,10 +80,7 @@ const EditOwnerBusinessModal: React.FC<EditOwnerBusinessModalProps> = ({
         throw new Error('ID de usuario no proporcionado');
       }
 
-      console.log('🔄 Cargando datos completos del negocio para usuario:', userId);
       const data = await getUserCompleteInfo(userId);
-      
-      console.log('📋 Datos recibidos:', data);
       
       // Buscar el negocio específico si hay múltiples
       const business = data.businesses?.find((b: any) => b.business_id === businessId) || data.businesses?.[0];
@@ -110,7 +107,6 @@ const EditOwnerBusinessModal: React.FC<EditOwnerBusinessModalProps> = ({
       }
       
     } catch (error) {
-      console.error('❌ Error al cargar datos del negocio:', error);
       setError(error instanceof Error ? error.message : 'Error al cargar los datos del negocio');
     } finally {
       setLoading(false);
@@ -131,7 +127,7 @@ const EditOwnerBusinessModal: React.FC<EditOwnerBusinessModalProps> = ({
       
       setAccessibilityOptions(mockAccessibilities);
     } catch (error) {
-      console.error('Error al cargar opciones de accesibilidad:', error);
+      // Error silencioso - usar opciones por defecto
     }
   };
 
@@ -181,9 +177,6 @@ const EditOwnerBusinessModal: React.FC<EditOwnerBusinessModalProps> = ({
     setError(null);
 
     try {
-      console.log('🔄 Actualizando información del negocio:', businessId);
-      console.log('📋 Datos a actualizar:', formData);
-
       // Preparar datos para el backend
       const businessData = {
         business_name: formData.businessName,
@@ -194,10 +187,7 @@ const EditOwnerBusinessModal: React.FC<EditOwnerBusinessModalProps> = ({
         // TODO: Implementar actualización de accessibilityIds cuando esté listo el backend
       };
 
-      console.log('📤 Enviando datos al backend:', businessData);
       await updateBusinessInfo(businessId, businessData);
-      
-      console.log('✅ Información del negocio actualizada exitosamente');
       
       // Mostrar toast de éxito con animación
       showToastMessage('🏢 ¡Información del negocio actualizada exitosamente!', 'success');
@@ -209,7 +199,6 @@ const EditOwnerBusinessModal: React.FC<EditOwnerBusinessModalProps> = ({
       }, 1500);
       
     } catch (err) {
-      console.error('❌ Error al actualizar información del negocio:', err);
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido al actualizar la información del negocio';
       setError(errorMessage);
       showToastMessage(`❌ Error: ${errorMessage}`, 'error');

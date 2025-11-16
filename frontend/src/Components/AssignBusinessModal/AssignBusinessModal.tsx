@@ -57,7 +57,6 @@ const AssignBusinessModal: React.FC<AssignBusinessModalProps> = ({
       const businesses = await obtenerNegociosDisponibles();
       setAvailableBusinesses(businesses);
     } catch (error) {
-      console.error('Error al cargar negocios:', error);
       showToastMessage('Error al cargar negocios disponibles', 'error');
     } finally {
       setLoading(false);
@@ -95,7 +94,6 @@ const AssignBusinessModal: React.FC<AssignBusinessModalProps> = ({
       }, 1500);
       
     } catch (error) {
-      console.error('Error al asignar negocio:', error);
       showToastMessage(
         `❌ Error al asignar negocio: ${error instanceof Error ? error.message : 'Error desconocido'}`,
         'error'

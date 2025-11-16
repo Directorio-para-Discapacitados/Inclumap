@@ -69,21 +69,17 @@ const EditUserModal: React.FC<EditUserModalProps> = ({ isOpen, userId, onClose, 
     setError(null);
 
     try {
-      console.log('Enviando datos de actualización:', formData);
-      
       // Si no hay información personal, solo actualizar email
       const dataToUpdate = hasPersonalInfo 
         ? formData 
         : { id: formData.id, email: formData.email };
       
       await updateUser(userId, dataToUpdate);
-      console.log('Usuario actualizado exitosamente');
       
       // Cerrar modal y notificar éxito
       onSuccess();
       onClose();
     } catch (err) {
-      console.error('Error al actualizar usuario:', err);
       setError(err instanceof Error ? err.message : 'Error al actualizar usuario');
     } finally {
       setLoading(false);

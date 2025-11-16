@@ -52,37 +52,13 @@ const GestionPropietarios: React.FC = () => {
       setLoading(true);
       setError(null); // Limpiar error anterior
       const data: any[] = await getOwners();
-      console.log('Propietarios recibidos del servicio:', data);
-      console.log('Número de propietarios:', data.length);
-      
-      // Log detallado de cada propietario
-      data.forEach((business, index) => {
-        console.log(`Propietario ${index + 1}:`, business);
-        console.log(`  - ID negocio: ${business.id}`);
-        console.log(`  - Nombre negocio: ${business.name}`);
-        console.log(`  - Usuario completo:`, business.user);
-        if (business.user) {
-          console.log(`  - Email usuario: ${business.user?.email || business.user?.user_email}`);
-          console.log(`  - Roles del usuario:`, business.user?.roles);
-          console.log(`  - ¿Tiene roles array?:`, Array.isArray(business.user?.roles));
-          if (business.user?.roles) {
-            console.log(`  - Cantidad de roles:`, business.user.roles.length);
-            business.user.roles.forEach((role: any, roleIndex: number) => {
-              console.log(`    Rol ${roleIndex + 1}:`, role);
-            });
-          }
-        }
-        console.log('---');
-      });
       
       setBusinesses(data as BusinessData[]);
     } catch (err) {
-      console.error('Error al obtener propietarios:', err);
       // Solo establecer error si realmente hay un problema (no solo array vacío)
       const errorMessage = err instanceof Error ? err.message : 'Ocurrió un error desconocido';
       // Si el error es sobre "Not Found", podría ser que simplemente no hay datos
       if (errorMessage.includes('Not Found') || errorMessage.includes('404')) {
-        console.warn('Backend devolvió 404, asumiendo que no hay negocios');
         setBusinesses([]); // Establecer array vacío en lugar de error
       } else {
         setError(errorMessage);
@@ -97,7 +73,6 @@ const GestionPropietarios: React.FC = () => {
 
     // Escuchar evento personalizado para refrescar cuando se crea un nuevo negocio
     const handleBusinessCreated = () => {
-      console.log('🔄 Evento detectado: nuevo negocio creado, refrescando lista...');
       fetchBusinesses();
     };
 
@@ -112,7 +87,6 @@ const GestionPropietarios: React.FC = () => {
 
   // Función para manejar la edición de propietario
   const handleEditBusiness = (business: BusinessData) => {
-    console.log('Editando negocio:', business);
     setEditingOwner(business);
     // Mostrar ambos modales o crear un sistema de navegación entre ellos
     setShowPersonalModal(true);
@@ -153,15 +127,8 @@ const GestionPropietarios: React.FC = () => {
     if (!selectedBusiness?.user?.id || !selectedBusiness?.id) return;
     
     try {
-      console.log('🔄 Iniciando degradación de propietario...');
-      console.log('📋 Usuario ID:', selectedBusiness.user.id);
-      console.log('📋 Negocio ID:', selectedBusiness.id);
-      console.log('📋 Negocio:', selectedBusiness.name);
-      
       // Usar el nuevo servicio con parámetros en orden correcto: businessId, userId
       await degradarPropietario(selectedBusiness.id, selectedBusiness.user.id);
-      
-      console.log('✅ Degradación completada exitosamente');
       
       showToastMessage(
         `🎉 ¡Cambio de rol exitoso! El negocio "${selectedBusiness.name}" ahora está sin propietario.`,
@@ -175,7 +142,6 @@ const GestionPropietarios: React.FC = () => {
       // Refrescar lista para actualizar el negocio sin propietario
       await fetchBusinesses();
     } catch (error) {
-      console.error('❌ Error al cambiar rol:', error);
       showToastMessage(
         `❌ Error al cambiar rol: ${error instanceof Error ? error.message : 'Error desconocido'}`,
         'error'
@@ -213,8 +179,6 @@ const GestionPropietarios: React.FC = () => {
 
     try {
       if (confirmAction === 'delete') {
-        console.log(`Eliminando negocio completamente. Eliminar propietario: ${deleteOwnerToo}`);
-        
         // Eliminar el negocio y opcionalmente el propietario usando el nuevo servicio
         const result = await eliminarNegocioCompleto(selectedBusiness.id, deleteOwnerToo);
         
@@ -227,8 +191,6 @@ const GestionPropietarios: React.FC = () => {
         // Remover negocio del estado local solo si fue eliminado
         setBusinesses(prev => prev.filter(b => b.id !== businessIdToRemove));
       } else if (confirmAction === 'demote') {
-        console.log('Degradando propietario pero manteniendo negocio...');
-        
         // Para degradar, usar el nuevo servicio que maneja todo correctamente
         if (selectedBusiness.user?.id) {
           await degradarPropietario(selectedBusiness.id, selectedBusiness.user.id);
@@ -247,7 +209,6 @@ const GestionPropietarios: React.FC = () => {
       setConfirmAction(null);
       setDeleteOwnerToo(false);
     } catch (error) {
-      console.error('Error en la acción:', error);
       showToastMessage(
         `❌ Error: ${error instanceof Error ? error.message : 'Error desconocido'}`,
         'error'
@@ -375,8 +336,6 @@ const GestionPropietarios: React.FC = () => {
             </thead>
             <tbody>
               {businesses.map((business, index) => {
-                console.log('Negocio completo:', business);
-                
                 // Función helper para obtener el email
                 const getEmail = () => {
                   if (!business.user) return null;
@@ -393,9 +352,6 @@ const GestionPropietarios: React.FC = () => {
                 
                 const email = getEmail();
                 const roles = getRoles();
-                
-                console.log('Email encontrado:', email);
-                console.log('Roles encontrados:', roles);
                 
                 return (
                   <tr key={business.id} style={{ animationDelay: `${index * 0.1}s` }}>

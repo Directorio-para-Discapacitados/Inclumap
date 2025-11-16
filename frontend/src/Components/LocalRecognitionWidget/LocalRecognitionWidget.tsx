@@ -190,7 +190,6 @@ export default function LocalRecognitionWidget({ isCreatingBusiness = false, bus
         } catch (err: any) {
           // Si falla con 404 (negocio no existe aún), validar localmente
           if (err.message?.includes("404") || err.message?.includes("No se encontró")) {
-            console.log("Validación local: negocio aún no creado, validando imagen...");
             
             // Validar que la imagen no esté completamente vacía/negra
             const canvas = document.createElement('canvas');

@@ -38,7 +38,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }).join(''));
       return JSON.parse(jsonPayload);
     } catch (e) {
-      console.error('Error parsing JWT:', e);
       return null;
     }
   };
@@ -92,7 +91,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Función principal que trae datos del servidor
   const fetchUserFromServer = async (token: string) => {
     try {
-      console.log('Fetching /auth/profile with token');
       const resp = await fetch(`${API_URL}/auth/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -100,7 +98,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
 
       if (!resp.ok) {
-        console.log('Fetch /auth/profile not ok:', resp.status);
         if (resp.status === 401 || resp.status === 403) {
           localStorage.removeItem('token');
           setUser(null);
@@ -118,7 +115,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const data = await resp.json();
-      console.log('Profile data received:', data);
       
       setUser({
         user_id: data.user_id,
@@ -130,11 +126,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logo_url: data.logo_url || null,
         verified: data.verified || false,
       });
-      console.log('User updated with avatar:', data.avatar);
       setIsAuthenticated(true);
       return true;
     } catch (err) {
-      console.error('Error fetching user from server:', err);
       const tokenApplied = applyUserFromToken(token);
       if (tokenApplied) return true;
 
@@ -168,13 +162,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const refreshUser = async () => {
-    console.log('refreshUser called');
     const token = localStorage.getItem('token');
     if (token) {
-      console.log('Token found, calling fetchUserFromServer');
       await fetchUserFromServer(token);
-    } else {
-      console.log('No token found');
     }
   };
 
