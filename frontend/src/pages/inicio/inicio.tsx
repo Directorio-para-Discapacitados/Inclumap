@@ -454,22 +454,15 @@ export default function Inicio() {
       </section>
       
       {/* 5. Mapa Global de Accesibilidad (Reemplaza Validación IA) */}
-      <section className="global-map-section" style={{ padding: '3rem 5%', backgroundColor: '#f8f9fa' }}>
-        <div className="map-header" style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          <h2 style={{ color: '#333', marginBottom: '0.5rem' }}>🗺️ Mapa Global de Accesibilidad</h2>
-          <p style={{ color: '#666', maxWidth: '600px', margin: '0 auto' }}>
+      <section className="global-map-section">
+        <div className="map-header">
+          <h2>🗺️ Mapa Global de Accesibilidad</h2>
+          <p>
             Explora visualmente todos los puntos accesibles registrados. Usa el buscador superior para filtrar los resultados en el mapa.
           </p>
         </div>
         
-        <div className="map-container-wrapper" style={{ 
-          height: '500px', 
-          width: '100%', 
-          borderRadius: '20px', 
-          overflow: 'hidden', 
-          boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-          border: '1px solid #e0e0e0'
-        }}>
+        <div className="map-container-wrapper">
           <MapContainer 
             center={[4.6097, -74.0817]} // Coordenadas por defecto (ej. Bogotá)
             zoom={6} 
@@ -490,7 +483,7 @@ export default function Inicio() {
                   key={b.business_id} 
                   position={[parseFloat(b.latitude), parseFloat(b.longitude)]}
                 >
-                  <Popup>
+                  <Popup className="map-popup">
                     <div style={{ textAlign: 'center', minWidth: '200px' }}>
                       {b.logo_url && (
                         <img 
@@ -500,7 +493,7 @@ export default function Inicio() {
                         />
                       )}
                       <strong style={{ fontSize: '1.1em', display: 'block', marginBottom: '4px' }}>{b.business_name}</strong>
-                      <span style={{ fontSize: '0.9em', color: '#555', display: 'block', marginBottom: '8px' }}>{b.address}</span>
+                      <span className="popup-address" style={{ fontSize: '0.9em', display: 'block', marginBottom: '8px' }}>{b.address}</span>
                       
                       {b.average_rating && (
                         <div style={{ color: '#f39c12', marginBottom: '8px', fontWeight: 'bold' }}>

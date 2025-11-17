@@ -24,3 +24,10 @@ export const markAsRead = async (notificationId: number): Promise<Notification> 
   const response = await api.patch(`/notifications/${notificationId}/read`);
   return response.data;
 };
+
+/**
+ * Elimina una notificación
+ */
+export const deleteNotification = async (notificationId: number): Promise<void> => {
+  await api.delete(`/notifications/${notificationId}`);
+};

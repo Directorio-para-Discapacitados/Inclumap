@@ -300,6 +300,80 @@
   border-radius: 6px;
 }
 
+/* Estilos para la sección de accesibilidades */
+.negocio-accessibility-section {
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.accessibility-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 0.75rem 0;
+}
+
+.accessibility-title i {
+  color: var(--color-primary);
+  font-size: 1rem;
+}
+
+.negocio-accessibility-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.accessibility-badge {
+  display: inline-flex;
+  align-items: center;
+  background: linear-gradient(135deg, rgba(18, 50, 82, 0.08), rgba(18, 50, 82, 0.12));
+  color: var(--color-text);
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid var(--color-border);
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.accessibility-badge:hover {
+  background: var(--color-primary);
+  color: #ffffff;
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px var(--color-shadow);
+}
+
+.more-badge {
+  background: var(--color-surface);
+  border: 1px dashed var(--color-border);
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.more-badge:hover {
+  background: var(--color-primary);
+  color: #ffffff;
+  border-style: solid;
+}
+
+/* Modo oscuro específico para badges */
+body.dark-mode .accessibility-badge {
+  background: linear-gradient(135deg, rgba(74, 144, 226, 0.15), rgba(74, 144, 226, 0.2));
+  border-color: rgba(74, 144, 226, 0.3);
+}
+
+body.dark-mode .accessibility-badge:hover {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
 .btn-ver-detalles-negocio {
   width: 100%;
   padding: 0.9rem 1.5rem;
