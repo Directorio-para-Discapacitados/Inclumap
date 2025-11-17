@@ -25,6 +25,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { UserRolModule } from './user_rol/user_rol.module';
 import { ReviewModule } from './review/review.module';
 import { MapsModule } from './maps/maps.module';
+import { SentimentModule } from './sentiment/sentiment.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { MapsModule } from './maps/maps.module';
     CloudinaryModule,
     ReviewModule,
     MapsModule,
+    SentimentModule,
   ],
   controllers: [AppController],
   providers: [AppService, GoogleStrategy],
