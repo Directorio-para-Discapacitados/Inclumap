@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Patch,
+  Delete,
   Param,
   UseGuards,
   Request,
@@ -28,5 +29,12 @@ export class NotificationController {
   @ApiOperation({ summary: 'Marcar una notificación como leída' })
   async markAsRead(@Param('id') id: string) {
     return await this.notificationService.markAsRead(Number(id));
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Eliminar una notificación' })
+  async deleteNotification(@Param('id') id: string, @Request() req) {
+    const userId = req.user.user_id;
+    return await this.notificationService.deleteNotification(Number(id), userId);
   }
 }

@@ -29,11 +29,17 @@ export class BusinessPublicController {
       owner_name: b.user?.people
         ? `${b.user.people.firstName || ''} ${b.user.people.firstLastName || ''}`.trim()
         : null,
-        
- 
       latitude: b.latitude,
       longitude: b.longitude,
-      coordinates: b.coordinates, 
+      coordinates: b.coordinates,
+      verified: b.verified || false,
+      business_accessibility: Array.isArray(b.business_accessibility)
+        ? b.business_accessibility.map((ba: any) => ({
+            accessibility_id: ba.accessibility?.accessibility_id,
+            accessibility_name: ba.accessibility?.accessibility_name,
+            description: ba.accessibility?.description,
+          }))
+        : [],
     });
 
     if (!q || !q.trim()) {

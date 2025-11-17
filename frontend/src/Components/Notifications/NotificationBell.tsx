@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getNotifications, markAsRead, Notification } from '../../services/notificationService';
+import { getNotifications, markAsRead, deleteNotification, Notification } from '../../services/notificationService';
 import NotificationDropdown from './NotificationDropdown';
 import './NotificationBell.css';
 
@@ -61,6 +61,15 @@ const NotificationBell: React.FC = () => {
     }
   };
 
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteNotification(id);
+      setNotifications((prev) => prev.filter((n) => n.notification_id !== id));
+    } catch (error) {
+      console.error('Error al eliminar notificación:', error);
+    }
+  };
+
   // En frontend/src/Components/Notifications/NotificationBell.tsx
 
   const handleNavigate = (notification: Notification) => {
@@ -116,6 +125,7 @@ const NotificationBell: React.FC = () => {
         isOpen={isOpen}
         onMarkAsRead={handleMarkAsRead}
         onNavigate={handleNavigate}
+        onDelete={handleDelete}
         loading={loading}
       />
     </div>

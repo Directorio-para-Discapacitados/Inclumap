@@ -8,6 +8,7 @@ interface NotificationDropdownProps {
   isOpen: boolean;
   onMarkAsRead: (id: number) => void;
   onNavigate: (notification: Notification) => void;
+  onDelete: (id: number) => void;
   loading: boolean;
 }
 
@@ -16,6 +17,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   isOpen,
   onMarkAsRead,
   onNavigate,
+  onDelete,
   loading,
 }) => {
   if (!isOpen) return null;
@@ -42,6 +44,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
               notification={notification}
               onMarkAsRead={onMarkAsRead}
               onNavigate={onNavigate}
+              onDelete={onDelete}
             />
           ))
         )}
