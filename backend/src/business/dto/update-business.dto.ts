@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsBoolean } from 'class-validator';
+import { IsOptional, IsString, IsBoolean, IsNumber } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateBusinessDto {
@@ -16,7 +16,7 @@ export class UpdateBusinessDto {
     description: 'Número de identificación tributaria (NIT)',
   })
   @IsOptional()
-  @IsString()
+  @IsNumber()
   NIT?: number;
 
   @ApiPropertyOptional({

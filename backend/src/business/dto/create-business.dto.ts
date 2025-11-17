@@ -20,7 +20,7 @@ export class CreateBusinessDto {
 
   @ApiProperty({ description: 'Número de identificación tributaria (NIT)' })
   @IsNotEmpty()
-  @IsString()
+  @IsNumber()
   NIT: number;
 
   @ApiProperty({ description: 'Descripción del negocio y sus servicios' })

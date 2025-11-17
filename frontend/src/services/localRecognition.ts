@@ -50,7 +50,6 @@ class LocalRecognitionService {
     this.api.interceptors.response.use(
       (response) => response,
       (error) => {
-        // NO redirigir al login aquí, dejar que el componente maneje el error
         return Promise.reject(error);
       }
     );
@@ -58,7 +57,7 @@ class LocalRecognitionService {
 
   /**
    * Envía una imagen para reconocimiento de local
-   * @param imageFile - Archivo de imagen (jpg, png)
+   * @param imageFile - Archivo de imagen (jpg, png, webp)
    * @returns Promise con los resultados del reconocimiento
    */
   async recognizeLocal(
@@ -70,10 +69,10 @@ class LocalRecognitionService {
         throw new Error("El archivo debe ser una imagen");
       }
 
-      // Validar formatos permitidos
-      const allowedFormats = ["image/jpeg", "image/png"];
+      // --- CAMBIO: Agregado soporte para WebP ---
+      const allowedFormats = ["image/jpeg", "image/png", "image/webp"];
       if (!allowedFormats.includes(imageFile.type)) {
-        throw new Error("Solo se aceptan imágenes JPG o PNG");
+        throw new Error("Solo se aceptan imágenes JPG, PNG o WebP");
       }
 
       // Validar tamaño máximo (5MB)

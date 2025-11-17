@@ -101,27 +101,24 @@ export class BusinessController {
   }
 
   @Patch('logo')
-  @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('logo'))
-  async uploadBusinessLogo(
-    @UploadedFile(
-      new ParseFilePipe({
-        validators: [
-          new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 5 }), // 5 MB
-          new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
-        ],
-      }),
-    )
-    file: Express.Multer.File,
-    @User() user: UserEntity,
-  ) {
-    if (!file) {
-      throw new BadRequestException(
-        'No se proporcionó ningún archivo de logo.',
-      );
-    }
-    return this._businessService.updateBusinessLogo(user, file.buffer);
-  }
+@UseGuards(JwtAuthGuard)
+@UseInterceptors(FileInterceptor('logo'))
+async uploadBusinessLogo(
+  @UploadedFile(
+    new ParseFilePipe({
+      validators: [
+        new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 5 }), // 5 MB
+        new FileTypeValidator({ fileType: '.(png|jpeg|jpg|webp)' }), // Agregado webp
+      ],
+      fileIsRequired: true, // 👈 Asegura que el validador falle si no hay archivo
+    }),
+  )
+  file: Express.Multer.File,
+  @User() user: UserEntity,
+) {
+  // Ya no necesitas el if (!file) porque ParseFilePipe lo maneja
+  return this._businessService.updateBusinessLogo(user, file.buffer);
+}
 
   @Patch(':id/remove-owner')
   @Roles(1) // Solo administradores pueden remover propietarios

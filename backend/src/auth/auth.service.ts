@@ -189,183 +189,173 @@ export class AuthService {
     }
   }
 
-  async registerFullBusiness(
-    businessData: CreateFullBusinessDto,
-  ): Promise<{ message: string; token: string }> {
-    try {
-      // Verificar si el correo electrónico ya está registrado
-      const existingUser: UserEntity | null = await this.userRepository.findOne(
-        {
-          where: { user_email: businessData.user_email },
-        },
-      );
-      if (existingUser) {
-        throw new BadRequestException(
-          'El correo electrónico ya está registrado',
-        );
-      }
+ // backend/src/auth/auth.service.ts
 
-      // Verificar si el NIT ya está registrado
-      const existingBusiness: BusinessEntity | null =
-        await this.businessRepository.findOne({
-          where: { NIT: businessData.NIT },
-        });
-      if (existingBusiness) {
-        throw new BadRequestException('El NIT ya está registrado');
-      }
+ async registerFullBusiness(
+  businessData: CreateFullBusinessDto,
+): Promise<{ message: string; token: string }> {
+  try {
+    // 1. Validaciones previas
+    const existingUser: UserEntity | null = await this.userRepository.findOne(
+      { where: { user_email: businessData.user_email } },
+    );
+    if (existingUser) {
+      throw new BadRequestException('El correo electrónico ya está registrado');
+    }
 
-      // Generar hash de contraseña
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(
-        businessData.user_password,
-        salt,
-      );
-
-      // Crear el nuevo usuario
-      const newUser: UserEntity = this.userRepository.create({
-        user_email: businessData.user_email,
-        user_password: hashedPassword,
+    const existingBusiness: BusinessEntity | null =
+      await this.businessRepository.findOne({
+        where: { NIT: businessData.NIT },
       });
-      await this.userRepository.save(newUser);
+    if (existingBusiness) {
+      throw new BadRequestException('El NIT ya está registrado');
+    }
 
-      // Asignar múltiples roles: Usuario (2) + Propietario/Negocio (3)
-      const rolesToAssign =
-        businessData.rolIds && businessData.rolIds.length > 0
-          ? businessData.rolIds
-          : [2, 3]; // Por defecto: usuario + negocio
+    // 2. Crear Usuario
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(
+      businessData.user_password,
+      salt,
+    );
 
-      for (const rolId of rolesToAssign) {
-        const rol: RolEntity | null = await this.rolRepository.findOne({
-          where: { rol_id: rolId },
-        });
+    const newUser: UserEntity = this.userRepository.create({
+      user_email: businessData.user_email,
+      user_password: hashedPassword,
+    });
+    await this.userRepository.save(newUser);
 
-        if (!rol) {
-          throw new BadRequestException(`Rol con ID ${rolId} no encontrado`);
-        }
+    // 3. Asignar Roles (Usuario + Propietario)
+    const rolesToAssign =
+      businessData.rolIds && businessData.rolIds.length > 0
+        ? businessData.rolIds
+        : [2, 3]; 
 
-        // Crear la relación entre el usuario y el rol
+    for (const rolId of rolesToAssign) {
+      const rol: RolEntity | null = await this.rolRepository.findOne({
+        where: { rol_id: rolId },
+      });
+
+      if (rol) {
         const userRole = this.userRolesRepository.create({
           user: newUser,
           rol: rol,
         });
         await this.userRolesRepository.save(userRole);
       }
+    }
 
-      // Crear la persona asociada
-      const newPeople: PeopleEntity = this.peopleRepository.create({
-        firstName: businessData.firstName,
-        firstLastName: businessData.firstLastName,
-        cellphone: businessData.cellphone,
-        address: businessData.address,
-        gender: businessData.gender,
-        user: newUser,
-      });
-      await this.peopleRepository.save(newPeople);
+    // 4. Crear Persona
+    const newPeople: PeopleEntity = this.peopleRepository.create({
+      firstName: businessData.firstName,
+      firstLastName: businessData.firstLastName,
+      cellphone: businessData.cellphone,
+      address: businessData.address,
+      gender: businessData.gender,
+      user: newUser,
+    });
+    await this.peopleRepository.save(newPeople);
 
-      //  Obtener coordenadas automáticamente usando MapsService
-      const coordinates = await this.mapsService.getCoordinates(
-        businessData.business_address,
-      );
+    // 5. Geocodificación SEGURA (Corrección del Error 500)
+    let latitude: number | null = null;
+    let longitude: number | null = null;
 
-      let latitude: number | null = null;
-      let longitude: number | null = null;
+    try {
+      if (businessData.business_address) {
+        const coordinates = await this.mapsService.getCoordinates(
+          businessData.business_address,
+        );
 
-      if (coordinates) {
-        latitude = coordinates.lat;
-        longitude = coordinates.lon;
+        if (coordinates) {
+          latitude = coordinates.lat;
+          longitude = coordinates.lon;
+        }
       }
+    } catch (mapError) {
+      // Si falla Google Maps, solo lo registramos y continuamos
+      console.warn('⚠️ Advertencia: No se pudieron obtener coordenadas automáticas:', mapError.message);
+    }
 
-      // Crear el negocio asociado con coordenadas automáticas
-      const newBusiness: BusinessEntity = this.businessRepository.create({
-        business_name: businessData.business_name,
-        address: businessData.business_address,
-        NIT: businessData.NIT,
-        description: businessData.description,
-        coordinates: businessData.coordinates,
-        latitude: latitude,
-        longitude: longitude,
-        user: newUser,
-      });
+    // 6. Crear Negocio
+    const newBusiness: BusinessEntity = this.businessRepository.create({
+      business_name: businessData.business_name,
+      address: businessData.business_address,
+      NIT: businessData.NIT,
+      description: businessData.description,
+      coordinates: businessData.coordinates, // Usamos las que vienen del front o string vacío
+      latitude: latitude,
+      longitude: longitude,
+      user: newUser,
+    });
 
-      const savedBusiness: BusinessEntity =
-        await this.businessRepository.save(newBusiness);
+    const savedBusiness: BusinessEntity =
+      await this.businessRepository.save(newBusiness);
 
-      // Crear relaciones de accesibilidad
-      if (
-        businessData.accessibilityIds &&
-        businessData.accessibilityIds.length > 0
-      ) {
-        for (const accessibilityId of businessData.accessibilityIds) {
-          const accessibility: AccessibilityEntity | null =
-            await this.accessibilityRepository.findOne({
-              where: { accessibility_id: accessibilityId },
-            });
+    // 7. Asignar Accesibilidad
+    if (
+      businessData.accessibilityIds &&
+      businessData.accessibilityIds.length > 0
+    ) {
+      for (const accessibilityId of businessData.accessibilityIds) {
+        const accessibility: AccessibilityEntity | null =
+          await this.accessibilityRepository.findOne({
+            where: { accessibility_id: accessibilityId },
+          });
 
-          if (!accessibility) {
-            throw new BadRequestException(
-              `Accesibilidad con ID ${accessibilityId} no encontrada`,
-            );
-          }
-
+        if (accessibility) {
           const businessAccessibility =
             this.businessAccessibilityRepository.create({
               business: savedBusiness,
               accessibility: accessibility,
             });
-
           await this.businessAccessibilityRepository.save(
             businessAccessibility,
           );
         }
       }
-
-      // Obtener todos los roles asignados para el payload
-      const userRoles: UserRolesEntity[] = await this.userRolesRepository.find({
-        where: { user: { user_id: newUser.user_id } },
-        relations: ['rol'],
-      });
-
-      const rolIds = userRoles.map((ur) => ur.rol.rol_id);
-
-      // Crear payload para el token JWT
-      const payload: PayloadInterface = {
-        user_id: newUser.user_id,
-        user_email: newUser.user_email,
-        firstName: newPeople.firstName,
-        firstLastName: newPeople.firstLastName,
-        cellphone: newPeople.cellphone,
-        address: newPeople.address,
-        business_id: savedBusiness.business_id,
-        business_name: savedBusiness.business_name,
-        business_address: savedBusiness.address,
-        NIT: savedBusiness.NIT,
-        rolIds: rolIds,
-        accessibilityIds: businessData.accessibilityIds || [],
-      };
-
-      // Generar el token JWT
-      const token = this.jwtService.sign(payload);
-
-      return {
-        message: 'Negocio registrado exitosamente',
-        token,
-      };
-    } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      if (error instanceof Error) {
-        throw new HttpException(
-          error.message,
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-      throw new HttpException(
-        'Un error inesperado ocurrió durante el registro del negocio',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
     }
+
+    // 8. Generar Token
+    const userRoles: UserRolesEntity[] = await this.userRolesRepository.find({
+      where: { user: { user_id: newUser.user_id } },
+      relations: ['rol'],
+    });
+
+    const rolIds = userRoles.map((ur) => ur.rol.rol_id);
+
+    const payload: PayloadInterface = {
+      user_id: newUser.user_id,
+      user_email: newUser.user_email,
+      firstName: newPeople.firstName,
+      firstLastName: newPeople.firstLastName,
+      cellphone: newPeople.cellphone,
+      address: newPeople.address,
+      business_id: savedBusiness.business_id,
+      business_name: savedBusiness.business_name,
+      business_address: savedBusiness.address,
+      NIT: savedBusiness.NIT,
+      rolIds: rolIds,
+      accessibilityIds: businessData.accessibilityIds || [],
+    };
+
+    const token = this.jwtService.sign(payload);
+
+    return {
+      message: 'Negocio registrado exitosamente',
+      token,
+    };
+  } catch (error) {
+    console.error('❌ Error fatal en registro de negocio:', error);
+    
+    if (error instanceof HttpException) {
+      throw error;
+    }
+    // Devolver un mensaje más claro en caso de error desconocido
+    throw new HttpException(
+      `Error interno al registrar negocio: ${error.message}`,
+      HttpStatus.INTERNAL_SERVER_ERROR,
+    );
   }
+}
 
   async login(dto: LoginDto): Promise<{ message: string; token: string }> {
     try {
