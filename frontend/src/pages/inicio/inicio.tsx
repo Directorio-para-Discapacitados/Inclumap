@@ -34,6 +34,8 @@ export default function Inicio() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [businesses, setBusinesses] = useState<any[]>([]);
+  const [allBusinesses, setAllBusinesses] = useState<any[]>([]);
+  const [loadingAllBusinesses, setLoadingAllBusinesses] = useState(true);
   const [filtered, setFiltered] = useState<any[]>([]);
   const [selectedAccessibility, setSelectedAccessibility] = useState<number | string | null>(null);
   const [loadingAccessibilities, setLoadingAccessibilities] = useState(true);
@@ -51,7 +53,6 @@ export default function Inicio() {
     const fetchAccessibilities = async () => {
       try {
         setLoadingAccessibilities(true);
-        console.log("Cargando accesibilidades desde:", `${API_URL}/accessibility`);
         
         const resp = await fetch(`${API_URL}/accessibility`, {
           method: "GET",
@@ -63,7 +64,6 @@ export default function Inicio() {
         }
         
         const data: Accessibility[] = await resp.json();
-        console.log("Accesibilidades cargadas:", data);
         setCards(data || []);
       } catch (e: any) {
         console.error("Error cargando accesibilidades:", e.message, e);
@@ -73,6 +73,33 @@ export default function Inicio() {
       }
     };
     fetchAccessibilities();
+  }, []);
+
+  // Cargar todos los negocios registrados
+  useEffect(() => {
+    const fetchAllBusinesses = async () => {
+      try {
+        setLoadingAllBusinesses(true);
+        const resp = await fetch(`${API_URL}/business/public/search`, {
+          method: "GET",
+        });
+        
+        if (!resp.ok) {
+          throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+        }
+        
+        const data = await resp.json();
+        // Mezclar aleatoriamente los negocios
+        const shuffledData = [...data].sort(() => Math.random() - 0.5);
+        setAllBusinesses(shuffledData || []);
+      } catch (e: any) {
+        console.error("Error cargando negocios:", e.message, e);
+        setAllBusinesses([]);
+      } finally {
+        setLoadingAllBusinesses(false);
+      }
+    };
+    fetchAllBusinesses();
   }, []);
 
   // Manejar clic en accesibilidad - navegar a página dedicada
@@ -176,6 +203,7 @@ export default function Inicio() {
   return (
     <div className="inicio-root">
 
+      {/* 1. Sección Hero - IncluMap: Tu mapa hacia la Inclusión y la Accesibilidad */}
       <section className="hero">
         <div className="hero-overlay">
           <div className="hero-content">
@@ -191,7 +219,7 @@ export default function Inicio() {
               <button 
                 className="btn btn-primary"
                 onClick={() => { 
-                    navigate("/?q=Lugares"); 
+                    navigate("/negocios"); 
                 }}
               >
                 ENCONTRAR LUGARES ACCESIBLES
@@ -206,51 +234,97 @@ export default function Inicio() {
           </div>
         </div>
       </section>
-      
-      <section 
-        className="info-banner" 
-      >
-          <div 
-            className="info-banner-image" 
-            style={{backgroundImage: `url('https://media.istockphoto.com/id/1428075845/es/foto/amigos-con-discapacidades-d%C3%A1ndose-la-mano.jpg?s=612x612&w=0&k=20&c=9kmptc8ckRTptHn7K-dZcY8OaNZfHggo5KkPtlXDeNM=')`}}
-          ></div>
 
-          <div className="info-content">
-            <h2>Comunidad y Respaldo</h2>
-            <p>
-              En IncluMap, no solo encuentras lugares, ¡encuentras una comunidad! Accede a "reseñas y calificaciones de usuarios" con discapacidad para tomar decisiones informadas sobre dónde ir. Con tu ayuda, validamos la accesibilidad de cada rincón.
-            </p>
-            <button className="btn btn-primary">VER RESEÑAS CONFIABLES</button>
-          </div>
-      </section>
-      
-      <section className="ai-validation-section">
-        
-        <div className="ai-validation-content">
-          <h2>Validación Impulsada por IA y Moderadores</h2>
-          <p>
-            Garantizamos la "confiabilidad de la información". Al subir una foto, nuestra IA la analiza para detectar elementos de accesibilidad (rampas, pasamanos). Además, nuestros **administradores moderan** reseñas y fotos para asegurar que el contenido sea preciso y respetuoso.
-          </p>
-          <div className="ai-features-grid">
-              <div>✅ Detección de Rampas por IA</div>
-              <div>✅ Verificación de Señalización</div>
-              <div>✅ Moderación Humana de Reseñas</div>
-              <div>✅ Respuestas de Propietarios</div>
-          </div>
-          <button 
-                className="btn btn-primary"
-                onClick={() => { navigate("/login"); }}
-              >
-                SUBIR MI PRIMERA FOTO
-          </button>
+      {/* 2. Negocios Registrados */}
+      <section className="registered-businesses-section">
+        <div className="section-header">
+          <h2>Negocios Registrados</h2>
+          <p className="sub-title">Descubre los establecimientos verificados que forman parte de nuestra red inclusiva</p>
         </div>
-
-        <div 
-          className="ai-validation-image" 
-          style={{backgroundImage: `url('https://cdn.prod.website-files.com/64c96252c4314a904a4fb7bd/6722933ac6ab116274337e2b_La%20Inteligencia%20Artificial%20ofrece%20alternativas%20para%20las%20personas%20que%20tienen%20alguna%20discapacidad.webp')`}}
-        ></div>
+        
+        <div className="businesses-container">
+          {loadingAllBusinesses && <div className="loading">Cargando negocios...</div>}
+          {!loadingAllBusinesses && allBusinesses.length === 0 && (
+            <div className="no-results">No hay negocios registrados aún</div>
+          )}
+          {!loadingAllBusinesses && allBusinesses.length > 0 && (
+            <>
+              <div className="businesses-grid">
+                {allBusinesses.slice(0, 5).map((business) => (
+                  <article
+                    key={business.business_id}
+                    className="business-card-static"
+                  >
+                    <div className="business-image-wrapper">
+                      <img 
+                        src={business.logo_url || 'https://res.cloudinary.com/demo/image/upload/sample.jpg'} 
+                        alt={business.business_name}
+                        className="business-img"
+                      />
+                      {business.verified && (
+                        <div className="verification-badge-static">
+                          <i className="fas fa-check-circle"></i>
+                          <span>Verificado</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="business-content">
+                      <h3 className="business-title">{business.business_name}</h3>
+                      
+                      <div className="business-info-list">
+                        {business.address && (
+                          <p className="business-info-item">
+                            <i className="fas fa-map-marker-alt"></i>
+                            <span>{business.address}</span>
+                          </p>
+                        )}
+                        
+                        {business.owner_name && (
+                          <p className="business-info-item">
+                            <i className="fas fa-user"></i>
+                            <span>{business.owner_name}</span>
+                          </p>
+                        )}
+                        
+                        {typeof business.average_rating !== 'undefined' && (
+                          <p className="business-info-item">
+                            <i className="fas fa-star"></i>
+                            <span>{Number(business.average_rating).toFixed(1)}</span>
+                          </p>
+                        )}
+                      </div>
+                      
+                      <button
+                        className="btn-details-static"
+                        onClick={() => goToDetail(business.business_id)}
+                      >
+                        Ver Detalles
+                      </button>
+                    </div>
+                  </article>
+                ))}
+                
+                {allBusinesses.length > 5 && (
+                  <article className="business-card-ver-mas" onClick={() => navigate('/negocios')}>
+                    <div className="ver-mas-card-content">
+                      <div className="ver-mas-icon-circle">
+                        <i className="fas fa-arrow-right"></i>
+                      </div>
+                      <h3 className="ver-mas-title">Ver Más Negocios</h3>
+                      <p className="ver-mas-text">
+                        {allBusinesses.length - 5} negocios más disponibles
+                      </p>
+                    </div>
+                  </article>
+                )}
+              </div>
+            </>
+          )}
+        </div>
       </section>
       
+      {/* 3. Explora por Categoría y Filtra tus Necesidades */}
       <main className="cards-section">
 
         {/* Título de categorías SIEMPRE visible */}
@@ -340,6 +414,52 @@ export default function Inicio() {
           </div>
         )}
       </main>
+
+      {/* 4. Comunidad y Respaldo */}
+      <section 
+        className="info-banner" 
+      >
+          <div 
+            className="info-banner-image" 
+            style={{backgroundImage: `url('https://media.istockphoto.com/id/1428075845/es/foto/amigos-con-discapacidades-d%C3%A1ndose-la-mano.jpg?s=612x612&w=0&k=20&c=9kmptc8ckRTptHn7K-dZcY8OaNZfHggo5KkPtlXDeNM=')`}}
+          ></div>
+
+          <div className="info-content">
+            <h2>Comunidad y Respaldo</h2>
+            <p>
+              En IncluMap, no solo encuentras lugares, ¡encuentras una comunidad! Accede a "reseñas y calificaciones de usuarios" con discapacidad para tomar decisiones informadas sobre dónde ir. Con tu ayuda, validamos la accesibilidad de cada rincón.
+            </p>
+            <button className="btn btn-primary">VER RESEÑAS CONFIABLES</button>
+          </div>
+      </section>
+      
+      {/* 5. Validación Impulsada por IA y Moderadores */}
+      <section className="ai-validation-section">
+        
+        <div className="ai-validation-content">
+          <h2>Validación Impulsada por IA y Moderadores</h2>
+          <p>
+            Garantizamos la "confiabilidad de la información". Al subir una foto, nuestra IA la analiza para detectar elementos de accesibilidad (rampas, pasamanos). Además, nuestros **administradores moderan** reseñas y fotos para asegurar que el contenido sea preciso y respetuoso.
+          </p>
+          <div className="ai-features-grid">
+              <div>✅ Detección de Rampas por IA</div>
+              <div>✅ Verificación de Señalización</div>
+              <div>✅ Moderación Humana de Reseñas</div>
+              <div>✅ Respuestas de Propietarios</div>
+          </div>
+          <button 
+                className="btn btn-primary"
+                onClick={() => { navigate("/login"); }}
+              >
+                SUBIR MI PRIMERA FOTO
+          </button>
+        </div>
+
+        <div 
+          className="ai-validation-image" 
+          style={{backgroundImage: `url('https://cdn.prod.website-files.com/64c96252c4314a904a4fb7bd/6722933ac6ab116274337e2b_La%20Inteligencia%20Artificial%20ofrece%20alternativas%20para%20las%20personas%20que%20tienen%20alguna%20discapacidad.webp')`}}
+        ></div>
+      </section>
     </div>
   );
 }

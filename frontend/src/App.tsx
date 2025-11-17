@@ -23,6 +23,7 @@ import ReviewsPage from "./pages/reviews/ReviewsPage";
 import SessionModal from "./Components/SessionModal/SessionModal";
 import { setSessionModalCallback } from "./config/api";
 import Accesibilidad from "./pages/accesibilidad/Accesibilidad";
+import Negocios from "./pages/negocios/Negocios";
 
 function AppContent() {
   const location = useLocation();
@@ -66,6 +67,7 @@ function AppContent() {
           
           <Route path="/" element={<Inicio />} />
           <Route path="/accesibilidad/:id" element={<Accesibilidad />} />
+          <Route path="/negocios" element={<Negocios />} />
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Registro />} />
           <Route path="/admin" element={<AdminLoginPage />} />

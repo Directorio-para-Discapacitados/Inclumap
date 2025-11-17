@@ -70,7 +70,7 @@ html.dark-mode {
   --color-card-bg: #1e1e1e;
   --color-card-hover: #252525;
   --color-hero-bg: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%);
-  --color-hero-overlay: linear-gradient(120deg, rgba(30,30,30,0.85), rgba(20,20,20,0.95));
+  --color-hero-overlay: linear-gradient(120deg, rgba(30,30,30,0.4), rgba(20,20,20,0.6));
   --color-input-bg: #2a2a2a;
   --color-input-text: #e8e8e8;
   --color-placeholder: #6b6b6b;
