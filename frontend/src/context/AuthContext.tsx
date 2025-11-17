@@ -1,8 +1,6 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { API_URL } from '../config/api';
 
-// --- INTERFAZ DE USUARIO ---
 interface User {
   user_id?: number;
   displayName?: string;
@@ -13,11 +11,11 @@ interface User {
   logo_url?: string | null;
   verified?: boolean;
 }
-// --- FIN INTERFAZ ---
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  loading: boolean; 
   login: (token: string) => void;
   logout: () => void;
   refreshUser: () => Promise<void>;
@@ -30,35 +28,29 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+
 
   const parseJwt = (token: string) => {
-    try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-      }).join(''));
-      return JSON.parse(jsonPayload);
-    } catch (e) {
-      return null;
-    }
-  };
+      try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+      } catch (e) {
+        return null;
+      }
+    };
 
-  
   const getRoleDescription = (rolIds: number[]): string | undefined => {
-    if (rolIds.includes(3)) {
-      return "Propietario";
-    }
-    if (rolIds.includes(1)) {
-      return "Administrador";
-    }
-    if (rolIds.includes(2)) {
-      return "Usuario";
-    }
+    if (rolIds.includes(3)) return "Propietario";
+    if (rolIds.includes(1)) return "Administrador";
+    if (rolIds.includes(2)) return "Usuario";
     return undefined;
   };
 
-  // Fallback si el servidor no responde
   const applyUserFromToken = (token: string): boolean => {
     const decoded = parseJwt(token);
     if (!decoded) return false;
@@ -89,14 +81,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return true;
   };
 
-
-  // Función principal que trae datos del servidor
   const fetchUserFromServer = async (token: string) => {
     try {
       const resp = await fetch(`${API_URL}/auth/profile`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!resp.ok) {
@@ -106,7 +94,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setIsAuthenticated(false);
           return false;
         }
-        
         const applied = applyUserFromToken(token);
         if (applied) return true;
         
@@ -117,7 +104,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const data = await resp.json();
-      
       setUser({
         user_id: data.user_id,
         displayName: data.displayName,
@@ -138,9 +124,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       setIsAuthenticated(false);
       return false;
+    } finally {
+      setLoading(false); 
     }
   };
-
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -149,18 +136,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       setIsAuthenticated(false);
       setUser(null);
+      setLoading(false);
     }
   }, []);
 
   const login = async (token: string) => {
     localStorage.setItem('token', token);
+    setLoading(true); 
     await fetchUserFromServer(token);
+    setLoading(false);
   };
 
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
     setIsAuthenticated(false);
+    setLoading(false);
   };
 
   const refreshUser = async () => {
@@ -176,12 +167,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const refreshToken = async (): Promise<string | null> => {
+    // Tu código actual de refreshToken...
     try {
       const currentToken = localStorage.getItem('token');
-      if (!currentToken) {
-        return null;
-      }
-
+      if (!currentToken) return null;
       const response = await fetch(`${API_URL}/auth/refresh`, {
         method: 'POST',
         headers: {
@@ -189,21 +178,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           Authorization: `Bearer ${currentToken}`,
         },
       });
-
-      if (!response.ok) {
-        // Si el refresh falla, deslogueamos al usuario
-        logout();
-        return null;
-      }
-
+      if (!response.ok) { logout(); return null; }
       const data = await response.json();
       const newToken = data.access_token || data.token;
-
-      if (newToken) {
-        updateToken(newToken);
-        return newToken;
-      }
-
+      if (newToken) { updateToken(newToken); return newToken; }
       return null;
     } catch (error) {
       console.error('Error al refrescar el token:', error);
@@ -213,7 +191,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, refreshUser, updateToken, refreshToken }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, loading, login, logout, refreshUser, updateToken, refreshToken }}>
       {children}
     </AuthContext.Provider>
   );
