@@ -52,6 +52,10 @@ interface AccessibilityMaster {
 
 interface BusinessAccessibilityItem {
   id: number;
+  accessibility_id?: number;
+  accessibility_name?: string;
+  description?: string;
+  accessibility?: AccessibilityMaster;
 }
 
 interface LocalData {
@@ -203,8 +207,33 @@ const LocalDetalle: React.FC = () => {
 
   const myReview = reviews.find((r) => r.user?.user_id === userId);
 
-  const resolveAccessibility = (item: BusinessAccessibilityItem) =>
-    masterList?.find((m) => Number(m.accessibility_id) === Number(item.id)) ?? null;
+  const resolveAccessibility = (item: BusinessAccessibilityItem) => {
+    // Si el item ya tiene los datos de accesibilidad directamente
+    if (item.accessibility_name) {
+      return {
+        accessibility_id: item.accessibility_id || item.id,
+        accessibility_name: item.accessibility_name,
+        description: item.description || ''
+      };
+    }
+    
+    // Si el item tiene la accesibilidad anidada
+    if (item.accessibility) {
+      return {
+        accessibility_id: item.accessibility.accessibility_id,
+        accessibility_name: item.accessibility.accessibility_name,
+        description: item.accessibility.description
+      };
+    }
+    
+    // Si tiene accessibility_id, buscar en masterList
+    if (item.accessibility_id) {
+      return masterList?.find((m) => Number(m.accessibility_id) === Number(item.accessibility_id)) ?? null;
+    }
+    
+    // Fallback: buscar por el id
+    return masterList?.find((m) => Number(m.accessibility_id) === Number(item.id)) ?? null;
+  };
 
   /* Compartir */
   const handleShare = async () => {
@@ -315,7 +344,7 @@ const LocalDetalle: React.FC = () => {
   return (
     <div className="local-details-container">
       <button className="volver-btn" onClick={() => navigate(-1)}>
-        ← Volver
+          Volver
       </button>
 
       {loading && <div className="loading">Cargando...</div>}
@@ -400,7 +429,12 @@ const LocalDetalle: React.FC = () => {
                         .map(resolveAccessibility)
                         .filter(Boolean)
                         .map((item) => (
-                          <div key={item!.accessibility_id} className="accessibility-icon-wrapper">
+                          <div 
+                            key={item!.accessibility_id} 
+                            className="accessibility-icon-wrapper"
+                            onClick={() => navigate(`/accesibilidad/${item!.accessibility_id}`)}
+                            style={{ cursor: 'pointer' }}
+                          >
                             {React.cloneElement(iconByName(item!.accessibility_name) as any, {
                               size: 34,
                             })}

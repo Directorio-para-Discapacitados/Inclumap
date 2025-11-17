@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Navbar from "./Components/Navbar";
 import Inicio from "./pages/inicio/inicio";
@@ -24,9 +24,8 @@ import SessionModal from "./Components/SessionModal/SessionModal";
 import { setSessionModalCallback } from "./config/api";
 import Accesibilidad from "./pages/accesibilidad/Accesibilidad";
 
-
-
-function App() {
+function AppContent() {
+  const location = useLocation();
   const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
   const [sessionPromiseResolve, setSessionPromiseResolve] = useState<((value: boolean) => void) | null>(null);
 
@@ -60,74 +59,84 @@ function App() {
   };
 
   return (
+    <>
+      <Navbar />
+      <main style={{ paddingTop: '70px' }}>
+        <Routes>
+          
+          <Route path="/" element={<Inicio />} />
+          <Route path="/accesibilidad/:id" element={<Accesibilidad />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/registro" element={<Registro />} />
+          <Route path="/admin" element={<AdminLoginPage />} />
+
+          <Route path="/reviews" element={<ReviewsPage />} />
+          <Route path="/reviews/:businessId" element={<ReviewsPage />} />
+
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+
+          <Route element={<ProtectedRoute />}>
+            <Route path="/perfil" element={<Perfil />} />
+            <Route path="/reconocimiento" element={<LocalRecognitionPage />} />
+            
+            <Route
+              path="/guardados"
+              element={
+                <div style={{ padding: '2rem' }}>
+                  <h2>⭐ Mis Lugares Guardados</h2>
+                  <p>Aquí se listarán los lugares que has marcado como favoritos.</p>
+                </div>
+              }
+            />
+            <Route
+              path="/ajustes"
+              element={<AjustesPage />}
+            />
+            <Route path="/admin/gestion-usuarios" element={<GestionUsuarios />} />
+            <Route path="/admin/gestion-propietarios" element={<GestionPropietarios />} />
+            {/* --- FIN DE LA CORRECCIÓN --- */}
+
+            {/* Nueva ruta para crear negocio */}
+            <Route
+              path="/crear-negocio"
+              element={<CrearNegocio />}
+            />
+
+          </Route>
+          <Route path="/local/:id" element={<LocalDetalle />} />
+        </Routes>
+      </main>
+      {/* Mostrar Footer solo en la página de inicio */}
+      {location.pathname === '/' && <Footer />}
+      <ChatWidget />
+      <SessionModal
+        isOpen={isSessionModalOpen}
+        onKeepSession={handleKeepSession}
+        onCloseSession={handleCloseSession}
+        countdown={60}
+      />
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
+    </>
+  );
+}
+
+
+function App() {
+  return (
     <AuthProvider>
       <Router>
-        <Navbar />
-        <main style={{ paddingTop: '70px' }}>
-          <Routes>
-            
-            <Route path="/" element={<Inicio />} />
-            <Route path="/accesibilidad/:id" element={<Accesibilidad />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/registro" element={<Registro />} />
-            <Route path="/admin" element={<AdminLoginPage />} />
-
-            <Route path="/reviews" element={<ReviewsPage />} />
-            <Route path="/reviews/:businessId" element={<ReviewsPage />} />
-
-            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-
-            <Route element={<ProtectedRoute />}>
-              <Route path="/perfil" element={<Perfil />} />
-              <Route path="/reconocimiento" element={<LocalRecognitionPage />} />
-              
-              <Route
-                path="/guardados"
-                element={
-                  <div style={{ padding: '2rem' }}>
-                    <h2>⭐ Mis Lugares Guardados</h2>
-                    <p>Aquí se listarán los lugares que has marcado como favoritos.</p>
-                  </div>
-                }
-              />
-              <Route
-                path="/ajustes"
-                element={<AjustesPage />}
-              />
-              <Route path="/admin/gestion-usuarios" element={<GestionUsuarios />} />
-              <Route path="/admin/gestion-propietarios" element={<GestionPropietarios />} />
-              {/* --- FIN DE LA CORRECCIÓN --- */}
-
-              {/* Nueva ruta para crear negocio */}
-              <Route
-                path="/crear-negocio"
-                element={<CrearNegocio />}
-              />
-
-            </Route>
-            <Route path="/local/:id" element={<LocalDetalle />} />
-          </Routes>
-        </main>
-        <Footer />
-        <ChatWidget />
-        <SessionModal
-          isOpen={isSessionModalOpen}
-          onKeepSession={handleKeepSession}
-          onCloseSession={handleCloseSession}
-          countdown={60}
-        />
-        <ToastContainer
-          position="top-right"
-          autoClose={5000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="colored"
-        />
+        <AppContent />
       </Router>
     </AuthProvider>
   );

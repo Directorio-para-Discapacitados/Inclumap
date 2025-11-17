@@ -1,12 +1,13 @@
 /* Fondo general */
 .registro-fondo {
   min-height: 100vh;
-  width: 100vw;              /* ocupar todo el ancho de la ventana */
-  background: linear-gradient(to bottom, #5fa6ed, #e0ecff);
-  display: grid;             /* centrado robusto */
-  place-items: center;       /* centro vertical y horizontal */
+  width: 100vw;
+  background: var(--color-hero-bg);
+  display: grid;
+  place-items: center;
   padding: 2rem;
   box-sizing: border-box;
+  transition: background 0.3s ease;
 }
 
 /* Neutralizar restricciones de #root solo en registro */
@@ -17,29 +18,30 @@ body:has(.registro-fondo) #root {
 
 /* Contenedor del formulario */
 .registro-form {
-  background: white;
+  background: var(--color-card-bg);
   padding: 4rem;
   border-radius: 1.5rem;
-  box-shadow: 0 8px 25px rgba(0, 0, 50, 0.1);
+  box-shadow: 0 8px 25px var(--color-shadow);
   width: 100%;
   max-width: 450px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
   animation: fadeIn 0.5s ease;
-  margin: 0 auto; /* ensure centered within its flex container */
+  margin: 0 auto;
 }
 
 .registro-form:hover {
   transform: scale(1.02);
-  box-shadow: 0 10px 30px rgba(0, 0, 70, 0.15);
+  box-shadow: 0 10px 30px var(--color-shadow-hover);
 }
 
 /* Título */
 .registro-titulo {
   text-align: center;
-  color: #1e40af;
+  color: var(--color-primary);
   font-size: 1.8rem;
   font-weight: 700;
   margin-bottom: 1rem;
+  transition: color 0.3s ease;
 }
 
 /* Selector Persona / Local */
@@ -47,7 +49,7 @@ body:has(.registro-fondo) #root {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #e2e8f0;
+  background: var(--color-surface);
   border-radius: 10px;
   padding: 4px;
   margin-bottom: 1.5rem;
@@ -55,6 +57,7 @@ body:has(.registro-fondo) #root {
   max-width: 260px;
   margin-left: auto;
   margin-right: auto;
+  transition: background 0.3s ease;
 }
 
 .registro-switch-buttons button {
@@ -64,21 +67,21 @@ body:has(.registro-fondo) #root {
   border-radius: 8px;
   font-size: 0.95rem;
   font-weight: 600;
-  color: #475569;
+  color: var(--color-text-muted);
   background: transparent;
   cursor: pointer;
   transition: all 0.25s ease;
 }
 
 .registro-switch-buttons button.activo {
-  background: #2563eb;
-  color: white;
-  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.3);
+  background: var(--color-primary);
+  color: #ffffff !important;
+  box-shadow: 0 2px 10px var(--color-shadow);
 }
 
 .registro-switch-buttons button:hover:not(.activo) {
-  background: #dbeafe;
-  color: #1e40af;
+  background: var(--color-surface);
+  color: var(--color-primary);
 }
 
 
@@ -93,16 +96,18 @@ body:has(.registro-fondo) #root {
   width: 100%;
   padding: 0.6rem 0.8rem;
   margin-bottom: 0.9rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   font-size: 0.95rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.3s ease, color 0.3s ease;
+  background: var(--color-input-bg);
+  color: var(--color-input-text);
 }
 
 .registro-form input:focus,
 .registro-form textarea:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-shadow);
   outline: none;
 }
 
@@ -110,8 +115,8 @@ body:has(.registro-fondo) #root {
 .registro-btn {
   width: 106%;
   margin-top: 1rem;
-  background-color: #2563eb;
-  color: white;
+  background-color: var(--color-primary);
+  color: #ffffff !important;
   border: none;
   padding: 0.7rem;
   border-radius: 8px;
@@ -122,8 +127,9 @@ body:has(.registro-fondo) #root {
 }
 
 .registro-btn:hover {
-  background-color: #1e3a8a;
-  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.3);
+  background-color: var(--color-primary-hover);
+  color: #ffffff !important;
+  box-shadow: 0 6px 18px var(--color-shadow);
 }
 
 /* Animación para los campos extra */

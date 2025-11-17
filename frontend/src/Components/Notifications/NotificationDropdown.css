@@ -4,9 +4,9 @@
   right: 0;
   width: 380px;
   max-width: 90vw;
-  background: white;
+  background: var(--color-card-bg);
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-lg);
   z-index: 1000;
   animation: slideDown 0.2s ease-out;
 }
@@ -24,14 +24,14 @@
 
 .notification-header {
   padding: 16px 20px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .notification-header h3 {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
-  color: #111827;
+  color: var(--color-text);
 }
 
 .notification-list {
@@ -44,23 +44,23 @@
 }
 
 .notification-list::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--color-surface);
 }
 
 .notification-list::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--color-border);
   border-radius: 3px;
 }
 
 .notification-list::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: var(--color-text-muted);
 }
 
 .notification-loading,
 .notification-empty {
   padding: 40px 20px;
   text-align: center;
-  color: #6b7280;
+  color: var(--color-text-muted);
 }
 
 .notification-loading {

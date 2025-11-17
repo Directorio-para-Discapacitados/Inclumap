@@ -1,34 +1,24 @@
 /* Perfil.css - Layout Lateral Mejorado */
 
-/* Variables CSS */
-:root {
-  --color-bg-primary: #ffffff;
-  --color-bg-secondary: #f6f8fa;
-  --color-border: #e1e5e9;
-  --color-text-primary: #24292f;
-  --color-text-muted: #656d76;
-  --color-accent: #2563eb;
-  --color-accent-hover: #1d4ed8;
-  --color-background: #fafafa;
-}
-
-[data-theme="dark"] {
-  --color-bg-primary: #0d1117;
-  --color-bg-secondary: #21262d;
-  --color-border: #30363d;
-  --color-text-primary: #f0f6fc;
-  --color-text-muted: #8b949e;
-  --color-accent: #58a6ff;
-  --color-accent-hover: #1f6feb;
-  --color-background: #010409;
+/* Variables CSS - se usan las del sistema global */
+.perfil-page {
+  --color-bg-primary: var(--color-card-bg);
+  --color-bg-secondary: var(--color-surface);
+  --color-border: var(--color-border);
+  --color-text-primary: var(--color-text);
+  --color-text-muted: var(--color-text-muted);
+  --color-accent: var(--color-primary);
+  --color-accent-hover: var(--color-primary-hover);
+  --color-background: var(--color-background);
 }
 
 /* Layout principal */
 .perfil-page {
   min-height: 100vh;
-  background-color: var(--color-background, #fafafa);
+  background-color: var(--color-background);
   padding: 2rem;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  transition: background-color 0.3s ease;
 }
 
 .perfil-container {
@@ -44,8 +34,8 @@
 .back-button {
   padding: 10px 18px;
   background-color: transparent;
-  color: var(--color-text-muted, #656d76);
-  border: 1px solid var(--color-border, #d1d9e0);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
   border-radius: 6px;
   cursor: pointer;
   font-weight: 500;
@@ -59,26 +49,26 @@
 }
 
 .back-button:hover {
-  background-color: var(--color-bg-secondary, #f6f8fa);
-  border-color: var(--color-text-muted, #656d76);
-  color: var(--color-text-primary, #24292f);
+  background-color: var(--color-bg-secondary);
+  border-color: var(--color-text-muted);
+  color: var(--color-text-primary);
 }
 
 .header-content {
-  border-bottom: 1px solid var(--color-border, #e1e5e9);
+  border-bottom: 1px solid var(--color-border);
   padding-bottom: 2rem;
 }
 
 .header-content h1 {
   font-size: 2rem;
   font-weight: 600;
-  color: var(--color-text-primary, #24292f);
+  color: var(--color-text-primary);
   margin: 0 0 0.5rem 0;
 }
 
 .header-content p {
   font-size: 1rem;
-  color: var(--color-text-muted, #656d76);
+  color: var(--color-text-muted);
   margin: 0;
 }
 
@@ -96,16 +86,16 @@
 
 /* Placeholder para secciones no implementadas */
 .section-placeholder {
-  background: var(--color-bg-primary, #ffffff);
-  border: 1px solid var(--color-border, #e1e5e9);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 3rem;
   text-align: center;
-  color: var(--color-text-muted, #656d76);
+  color: var(--color-text-muted);
 }
 
 .section-placeholder h3 {
-  color: var(--color-text-primary, #24292f);
+  color: var(--color-text-primary);
   margin-bottom: 0.5rem;
   font-size: 1.25rem;
 }
@@ -117,20 +107,20 @@
 
 /* Mensaje de error */
 .error-message {
-  background: var(--color-bg-primary, #ffffff);
-  border: 1px solid var(--color-border, #e1e5e9);
+  background: var(--color-bg-primary);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 2rem;
   text-align: center;
 }
 
 .error-message h3 {
-  color: var(--color-text-primary, #24292f);
+  color: var(--color-text-primary);
   margin-bottom: 0.5rem;
 }
 
 .error-message p {
-  color: var(--color-text-muted, #656d76);
+  color: var(--color-text-muted);
   margin: 0;
 }
 
@@ -204,19 +194,4 @@
   }
 }
 
-/* Modo oscuro adicional */
-[data-theme="dark"] .perfil-page {
-  background-color: var(--color-background, #010409);
-}
-
-[data-theme="dark"] .back-button {
-  background-color: transparent;
-  border-color: var(--color-border, #30363d);
-  color: var(--color-text-muted, #8b949e);
-}
-
-[data-theme="dark"] .back-button:hover {
-  background-color: var(--color-bg-secondary, #21262d);
-  border-color: var(--color-text-muted, #8b949e);
-  color: var(--color-text-primary, #f0f6fc);
-}
+/* Modo oscuro manejado automáticamente por variables CSS globales */

@@ -3,10 +3,16 @@
   width: 100vw; 
   display: grid;              
   place-items: start center;        
-  background: linear-gradient(to bottom, #5fa6ed, #e0ecff);
+  background: linear-gradient(180deg, #e0e9f2 0%, #f0f5fa 100%);
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+/* Anular modo oscuro para toda la página de login */
+body:has(.login-page) {
+  background-color: #ffffff !important;
+  color: #222222 !important;
 }
 
 
@@ -21,10 +27,10 @@ body:has(.login-page) #root {
 .login-card {
   width: 100%;
   max-width: clamp(620px, 58vw, 720px);
-  background: #f8f3e8;
+  background: #ffffff;
   border-radius: 32px;
   overflow: hidden;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   display: grid;
   grid-template-columns: 1fr 1fr;
   margin: 0 auto !important; 
@@ -39,20 +45,20 @@ body:has(.login-page) #root {
   bottom: 24px;
   left: 50%;
   width: 1px;
-  background: #e8dfcf;
+  background: #e6e6e6;
 }
 
 /* Hover effect for the login card */
 @media (hover: hover) and (pointer: fine) {
   .login-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 28px 60px rgba(0,0,0,0.18);
+    box-shadow: 0 28px 60px rgba(0, 0, 0, 0.15);
   }
 }
 
 
 .login-illustration {
-  background: #f6efe4;
+  background: #f8f9fa;
   padding: 48px 40px;
   display: flex;
   flex-direction: column;
@@ -63,10 +69,11 @@ body:has(.login-page) #root {
 }
 
 .login-illustration-copy h1 {
-  color: #5b4230;
+  color: #222222 !important;
   font-size: 24px;
   line-height: 1.2;
   margin: 0 0 8px 0;
+  opacity: 1 !important;
 }
 
 .login-illustration-img {
@@ -79,24 +86,24 @@ body:has(.login-page) #root {
 
 
 .login-form-panel {
-  background: #fcfaf4;
+  background: #ffffff;
   padding: 22px 20px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center; 
+  align-items: center;
 }
 
 .brand h2 {
   margin: 0;
-  color: #3d3a2f;
+  color: #222222 !important;
   font-size: 24px;
   font-weight: 700;
 }
 
 .brand p {
   margin: 4px 0 12px 0;
-  color: #7a7362;
+  color: #6b7280;
 }
 
 .login-container {
@@ -111,12 +118,13 @@ body:has(.login-page) #root {
   width: 100%;
   padding: 0.7rem 0.9rem;
   margin-bottom: 1rem;
-  border: 1px solid #e3e2dc;
+  border: 1px solid #e6e6e6;
   border-radius: 9999px;
   font-size: 1rem;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
   box-sizing: border-box;
   background: #ffffff;
+  color: #333333;
   box-shadow: none; 
 }
 
@@ -134,12 +142,20 @@ body:has(.login-page) #root {
   padding: 0;
   width: auto;
   height: auto;
-  color: #666;
+  color: #6b7280 !important;
 }
-.password-toggle:hover { color: #333; }
+.password-toggle:hover { color: #222222 !important; }
+.password-toggle svg {
+  color: #6b7280 !important;
+  stroke: #6b7280 !important;
+}
+.password-toggle:hover svg {
+  color: #222222 !important;
+  stroke: #222222 !important;
+}
 
 .login-container input:focus {
-  border-color: var(--color-primary);
+  border-color: #123252;
   box-shadow: 0 0 0 3px rgba(77, 121, 255, 0.15);
   outline: none;
 }
@@ -148,8 +164,8 @@ body:has(.login-page) #root {
 .login-form-panel button:not(.password-toggle) {
   width: 100%;
   padding: 0.72rem;
-  background-color: var(--color-primary);
-  color: white;
+  background-color: #123252;
+  color: #ffffff !important;
   font-weight: 600;
   font-size: 1rem;
   border: none;
@@ -162,7 +178,8 @@ body:has(.login-page) #root {
 
 .login-container button:not(.password-toggle):hover:not(:disabled),
 .login-form-panel button:not(.password-toggle):hover:not(:disabled) {
-  background-color: #3366ff;
+  background-color: #1a4b7c;
+  color: #ffffff !important;
   transform: translateY(-2px);
 }
 
@@ -170,6 +187,19 @@ body:has(.login-page) #root {
 .login-form-panel button:not(.password-toggle):disabled {
   background-color: #aaa;
   cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Estilo para el texto de error */
+.error-text {
+  color: #d9534f;
+  background-color: #f2dede;
+  border: 1px solid #ebccd1;
+  padding: 0.8rem;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
 }
 
 .google-btn {
@@ -178,9 +208,9 @@ body:has(.login-page) #root {
   justify-content: center;
   align-items: center;
   gap: 12px;
-  background-color: #fff;
-  color: #444;
-  border: 1px solid #e0e0e0;
+  background-color: #ffffff;
+  color: #222222;
+  border: 1px solid #e6e6e6;
   border-radius: 9999px;
   padding: 0.85rem 1.4rem;
   font-weight: 500;
@@ -222,12 +252,12 @@ body:has(.login-page) #root {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  color: #5f5f5f;
+  color: #6b7280;
   font-size: 0.95rem;
 }
 
 .link.subtle {
-  color: #6a7aa6;
+  color: #123252;
   text-decoration: none;
 }
 
@@ -237,7 +267,7 @@ body:has(.login-page) #root {
   display: flex;
   align-items: center;
   text-align: center;
-  color: #666;
+  color: #6b7280;
   font-size: 0.9rem;
   margin: 0.7rem 0;
   width: 100%;
@@ -247,7 +277,7 @@ body:has(.login-page) #root {
 .divider::after {
   content: "";
   flex: 1;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e6e6e6;
   margin: 0 1rem;
 }
 
@@ -262,9 +292,8 @@ body:has(.login-page) #root {
 }
 
 .login-container .links a {
-  color: var(--color-primary);
+  color: #123252;
   text-decoration: none;
-  transition: color 0.3s ease;
 }
 
 .login-container .links a:hover {
@@ -283,52 +312,6 @@ body:has(.login-page) #root {
 
 /* (Reverted) Removed height-based compact rules to restore original layout */
 
-/* Toast styles */
-.toast {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  border-radius: 10px;
-  color: #0a2b12;
-  background: #e8f7ee;
-  border: 1px solid #bfe9cc;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
-  animation: slideIn 250ms ease-out, fadeOut 300ms ease-in 2.2s forwards;
-  z-index: 9999;
-}
-
-.toast-success {
-  background: linear-gradient(180deg, #e9f9f0 0%, #e3f5ec 100%);
-  border-color: #b4e7c6;
-  color: #0d3a1a;
-}
-
-.toast-icon {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: #22c55e;
-  color: white;
-  font-weight: 700;
-  box-shadow: 0 2px 6px rgba(34, 197, 94, 0.4);
-}
-
-@keyframes slideIn {
-  from { transform: translateY(-10px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-@keyframes fadeOut {
-  to { opacity: 0; transform: translateY(-6px); }
-}
-
 /* Estilos para el modal */
 .modal-overlay {
   position: fixed;
@@ -336,7 +319,7 @@ body:has(.login-page) #root {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -344,47 +327,12 @@ body:has(.login-page) #root {
 }
 
 .modal-content {
-  background: white;
+  background: #ffffff;
   border-radius: 12px;
   padding: 0;
   max-width: 400px;
   width: 90%;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  animation: modal-appear 0.3s ease-out;
-}
-
-@keyframes modal-appear {
-  from {
-    opacity: 0;
-    transform: scale(0.9) translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-/* Estilos para el modal */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 12px;
-  padding: 0;
-  max-width: 400px;
-  width: 90%;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   animation: modal-appear 0.3s ease-out;
 }
 
@@ -409,7 +357,7 @@ body:has(.login-page) #root {
 
 .modal-header h3 {
   margin: 0;
-  color: #333;
+  color: #222222;
   font-size: 1.25rem;
   font-weight: 600;
   text-align: center;
@@ -421,7 +369,7 @@ body:has(.login-page) #root {
   border: none;
   font-size: 24px;
   cursor: pointer;
-  color: #666;
+  color: #6b7280;
   padding: 0;
   width: 30px;
   height: 30px;
@@ -435,8 +383,8 @@ body:has(.login-page) #root {
 }
 
 .modal-close:hover {
-  background-color: #f5f5f5;
-  color: #333;
+  background-color: #f8f9fa;
+  color: #222222;
 }
 
 .modal-body {
@@ -451,7 +399,7 @@ body:has(.login-page) #root {
 
 .modal-body p {
   margin: 0;
-  color: #666;
+  color: #6b7280;
   line-height: 1.5;
   font-size: 1rem;
   text-align: center;
@@ -476,21 +424,22 @@ body:has(.login-page) #root {
 }
 
 .btn-secondary {
-  background-color: #f5f5f5;
-  color: #333;
+  background-color: #f8f9fa;
+  color: #222222;
 }
 
 .btn-secondary:hover {
-  background-color: #e0e0e0;
+  background-color: #e6e6e6;
 }
 
 .btn-primary {
-  background-color: #1976d2;
-  color: white;
+  background-color: #123252;
+  color: #ffffff !important;
 }
 
 .btn-primary:hover {
-  background-color: #1565c0;
+  background-color: #1a4b7c;
+  color: #ffffff !important;
 }
 
 

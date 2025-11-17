@@ -101,13 +101,11 @@ export class BusinessPublicController {
         ? `${b.user.people.firstName || ''} ${b.user.people.firstLastName || ''}`.trim()
         : null,
       business_accessibility: Array.isArray(b.business_accessibility)
-        ? b.business_accessibility.map((a: any) => ({
-            id: a.id ?? a.business_accessibility_id ?? a.accessibility_id,
-            name: a.name ?? a.accessibility?.name ?? a.accessibility_name,
-            description:
-              a.description ??
-              a.accessibility?.description ??
-              a.accessibility_description,
+        ? b.business_accessibility.map((ba: any) => ({
+            id: ba.id ?? ba.business_accessibility_id,
+            accessibility_id: ba.accessibility?.accessibility_id ?? ba.accessibility_id,
+            accessibility_name: ba.accessibility?.accessibility_name ?? ba.name,
+            description: ba.accessibility?.description ?? ba.description,
           }))
         : [],
     };

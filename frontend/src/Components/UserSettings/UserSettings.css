@@ -5,12 +5,12 @@
   font-size: 2rem;
 }
 .settings-card {
-  background-color: var(--color-surface, #fff);
+  background-color: var(--color-surface);
   padding: 1.5rem 2rem;
   border-radius: 12px;
-  border: 1px solid var(--color-border, #e0e0e0);
+  border: 1px solid var(--color-border);
   margin-bottom: 2rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-md);
 }
 .settings-card h3 {
   margin-top: 0;
@@ -29,10 +29,10 @@
   max-width: 400px;
   padding: 0.75rem;
   font-size: 1rem;
-  border: 1px solid var(--color-border, #ccc);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background-color: var(--color-background, #fff);
-  color: var(--color-text, #000);
+  background-color: var(--color-input-bg);
+  color: var(--color-text);
 }
 .btn-primary {
   padding: 0.75rem 1.5rem;
@@ -41,8 +41,8 @@
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  background-color: var(--color-primary, #007bff);
-  color: white;
+  background-color: var(--color-primary);
+  color: #ffffff !important;
 }
 .success-message {
   color: green;

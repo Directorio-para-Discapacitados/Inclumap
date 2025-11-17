@@ -1,0 +1,103 @@
+/* Utilidades de modo oscuro para formularios y elementos comunes */
+
+/* Inputs y textareas en modo oscuro (excluir páginas de login) */
+body.dark-mode:not(:has(.login-page)) input,
+body.dark-mode:not(:has(.login-page)) textarea,
+body.dark-mode:not(:has(.login-page)) select {
+  background-color: var(--color-input-bg);
+  color: var(--color-input-text);
+  border-color: var(--color-border);
+}
+
+body.dark-mode:not(:has(.login-page)) input::placeholder,
+body.dark-mode:not(:has(.login-page)) textarea::placeholder {
+  color: var(--color-placeholder);
+}
+
+body.dark-mode:not(:has(.login-page)) input:focus,
+body.dark-mode:not(:has(.login-page)) textarea:focus,
+body.dark-mode:not(:has(.login-page)) select:focus {
+  border-color: var(--color-primary);
+  outline-color: var(--color-primary);
+}
+
+/* Cards y contenedores en modo oscuro (excluir páginas de login) */
+body.dark-mode:not(:has(.login-page)) .card,
+body.dark-mode:not(:has(.login-page)) .modal,
+body.dark-mode:not(:has(.login-page)) .panel {
+  background-color: var(--color-card-bg);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+/* Botones en modo oscuro (excluir páginas de login) */
+body.dark-mode:not(:has(.login-page)) button:not(.btn-primary):not(.btn-outline) {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+body.dark-mode:not(:has(.login-page)) button:not(.btn-primary):not(.btn-outline):hover {
+  background-color: var(--color-card-hover);
+}
+
+/* Tablas en modo oscuro (excluir páginas de login) */
+body.dark-mode:not(:has(.login-page)) table {
+  background-color: var(--color-card-bg);
+  color: var(--color-text);
+}
+
+body.dark-mode:not(:has(.login-page)) table th {
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+body.dark-mode:not(:has(.login-page)) table td {
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+body.dark-mode:not(:has(.login-page)) table tr:hover {
+  background-color: var(--color-surface);
+}
+
+/* Modales en modo oscuro (excluir páginas de login) */
+body.dark-mode:not(:has(.login-page)) .modal-content,
+body.dark-mode:not(:has(.login-page)) .modal-header,
+body.dark-mode:not(:has(.login-page)) .modal-body,
+body.dark-mode:not(:has(.login-page)) .modal-footer {
+  background-color: var(--color-card-bg);
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+/* Headings en modo oscuro (excluir páginas de login) */
+body.dark-mode:not(:has(.login-page)) h1,
+body.dark-mode:not(:has(.login-page)) h2,
+body.dark-mode:not(:has(.login-page)) h3,
+body.dark-mode:not(:has(.login-page)) h4,
+body.dark-mode:not(:has(.login-page)) h5,
+body.dark-mode:not(:has(.login-page)) h6 {
+  color: var(--color-text);
+}
+
+/* Links en modo oscuro (excluir páginas de login) */
+body.dark-mode:not(:has(.login-page)) a {
+  color: var(--color-primary);
+}
+
+body.dark-mode:not(:has(.login-page)) a:hover {
+  color: var(--color-primary-hover);
+}
+
+/* Shadows en modo oscuro (excluir páginas de login) */
+body.dark-mode:not(:has(.login-page)) .shadow,
+body.dark-mode:not(:has(.login-page)) .card-shadow {
+  box-shadow: 0 4px 20px var(--color-shadow);
+}
+
+body.dark-mode:not(:has(.login-page)) .shadow:hover,
+body.dark-mode:not(:has(.login-page)) .card-shadow:hover {
+  box-shadow: 0 8px 30px var(--color-shadow-hover);
+}

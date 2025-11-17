@@ -4,6 +4,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import "./Navbar.css";
 import { useState, useEffect, useRef, useContext } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import { FaMoon, FaSun } from "react-icons/fa";
 import Avatar from "./Avatar/Avatar";
 import { AuthContext } from "../context/AuthContext";
@@ -12,9 +13,7 @@ import NotificationBell from "./Notifications/NotificationBell";
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [darkMode, setDarkMode] = useState(() => {
-    return localStorage.getItem("darkMode") === "true";
-  });
+  const { darkMode, toggleTheme } = useTheme();
   const [showNotification, setShowNotification] = useState(false);
   const [missingItems, setMissingItems] = useState<string[]>([]);
   const location = useLocation();
@@ -23,12 +22,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
   const authContext = useContext(AuthContext);
-  const profileMenuRef = useRef<HTMLLIElement | null>(null); 
-
-  useEffect(() => {
-    document.body.classList.toggle("dark-mode", darkMode);
-    localStorage.setItem("darkMode", darkMode.toString());
-  }, [darkMode]);
+  const profileMenuRef = useRef<HTMLLIElement | null>(null);
 
   // Verificar notificación de perfil incompleto
   useEffect(() => {
@@ -71,7 +65,6 @@ export default function Navbar() {
     };
   }, [profileMenuRef]);
 
-  const toggleTheme = () => setDarkMode(!darkMode);
   const handleProfileClick = () => setIsMenuOpen(!isMenuOpen);
 
   const handleLogout = () => {

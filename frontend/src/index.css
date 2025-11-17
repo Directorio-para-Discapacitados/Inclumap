@@ -1,13 +1,35 @@
 /* IMPORTANTE: Leaflet necesita su CSS antes de todo */
 @import "leaflet/dist/leaflet.css";
 
+/* Importar utilidades de modo oscuro */
+@import "./styles/dark-mode-utils.css";
+
 /* frontend/src/index.css (CORREGIDO) */
 
 /* --- INICIO DE LA MODIFICACIÓN: Arreglo de Scroll Horizontal --- */
 
 :root {
-  /* ... (tus variables :root existentes) ... */
-  --navbar-height: 60px; /* Definimos la altura del navbar aquí */
+  /* Colores principales - Modo claro */
+  --color-primary: #123252;
+  --color-primary-hover: #1a4b7c;
+  --color-background: #ffffff;
+  --color-surface: #f8f9fa;
+  --color-text: #222222;
+  --color-text-muted: #6b7280;
+  --color-border: #e6e6e6;
+  --color-card-bg: #ffffff;
+  --color-card-hover: #ffffff;
+  --color-hero-bg: linear-gradient(180deg, #e0e9f2 0%, #f0f5fa 100%);
+  --color-hero-overlay: linear-gradient(120deg, rgba(255,255,255,0.25), rgba(255,255,255,0.92));
+  --color-input-bg: #ffffff;
+  --color-input-text: #333333;
+  --color-placeholder: #999999;
+  --color-shadow: rgba(0, 0, 0, 0.1);
+  --color-shadow-hover: rgba(0, 0, 0, 0.15);
+  --shadow-focus: rgba(77, 121, 255, 0.15);
+  
+  /* Altura del navbar */
+  --navbar-height: 60px;
 }
 
 /* Reseteo básico */
@@ -36,13 +58,25 @@ body {
 }
 
 /* Modo oscuro */
-body.dark-mode {
-  --color-background: #1a1a1a;
-  --color-surface: #2a2a2a;
-  --color-text: #f0f0f0;
-  --color-text-muted: #888;
-  --color-border: #3a3a3a;
-  --color-primary-hover: #5a7dff;
+body.dark-mode,
+html.dark-mode {
+  --color-primary: #4a90e2;
+  --color-primary-hover: #5a9ff0;
+  --color-background: #0f0f0f;
+  --color-surface: #1a1a1a;
+  --color-text: #e8e8e8;
+  --color-text-muted: #a0a0a0;
+  --color-border: #2a2a2a;
+  --color-card-bg: #1e1e1e;
+  --color-card-hover: #252525;
+  --color-hero-bg: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%);
+  --color-hero-overlay: linear-gradient(120deg, rgba(30,30,30,0.85), rgba(20,20,20,0.95));
+  --color-input-bg: #2a2a2a;
+  --color-input-text: #e8e8e8;
+  --color-placeholder: #6b6b6b;
+  --color-shadow: rgba(0, 0, 0, 0.3);
+  --color-shadow-hover: rgba(0, 0, 0, 0.5);
+  --shadow-focus: rgba(74, 144, 226, 0.25);
 }
 
 /* Scrollbar */
