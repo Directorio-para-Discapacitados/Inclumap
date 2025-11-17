@@ -1,13 +1,11 @@
-// frontend/src/Components/Navbar.tsx (Corregido)
-
+// frontend/src/Components/Navbar.tsx
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import "./Navbar.css";
-import { useState, useEffect, useRef, useContext } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { FaMoon, FaSun } from "react-icons/fa";
 import Avatar from "./Avatar/Avatar";
-import { AuthContext } from "../context/AuthContext";
 import NotificationBell from "./Notifications/NotificationBell";
 
 export default function Navbar() {
@@ -21,12 +19,10 @@ export default function Navbar() {
 
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
-  const authContext = useContext(AuthContext);
   const profileMenuRef = useRef<HTMLLIElement | null>(null);
 
   // Verificar notificación de perfil incompleto
   useEffect(() => {
-    // Solo mostrar la notificación en la página de inicio
     const isOnHomePage = location.pathname === '/';
     
     if (user?.roleDescription === "Propietario" && isOnHomePage) {
@@ -84,7 +80,6 @@ export default function Navbar() {
     if (location.pathname === "/") {
       window.history.replaceState({}, "", location.pathname);
     }
-    // Notificar a la página de inicio para ocultar resultados inmediatamente
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('inclumap:clear-search'));
     }
@@ -117,12 +112,10 @@ export default function Navbar() {
   return (
     <nav className={`navbar ${darkMode ? "dark" : ""}`}>
       <div className="navbar-inner">
-        {/* Logo */}
         <div className="logo-box">
           <img src="/inclumap.svg" alt="Logo Inclumap" className="logo-img" />
         </div>
 
-        {/* Barra de búsqueda solo en Inicio */}
         {showSearch && (
           <div className="search-container">
             <input
@@ -134,7 +127,6 @@ export default function Navbar() {
                 const v = e.target.value;
                 setSearchQuery(v);
                 if (!v.trim() && location.search) {
-                  // Limpiar inmediatamente el parámetro q para ocultar locales al borrar todo
                   window.history.replaceState({}, "", location.pathname);
                   if (typeof window !== 'undefined') {
                     window.dispatchEvent(new CustomEvent('inclumap:clear-search'));
@@ -143,18 +135,13 @@ export default function Navbar() {
               }}
               onKeyDown={handleSearch}
             />
-
-          {searchQuery && (
-            <span className="clear-icon" onClick={clearSearch}>
-              &times;
-            </span>
-          )}
-
+            {searchQuery && (
+              <span className="clear-icon" onClick={clearSearch}>&times;</span>
+            )}
             <span className="search-icon">🔍</span>
           </div>
         )}
 
-        {/* Links a la derecha */}
         <ul className="nav-links">
           <li><Link to="/">Inicio</Link></li>
 
@@ -167,8 +154,8 @@ export default function Navbar() {
 
           {isAuthenticated && (
             <>
-              {/* Campana de notificaciones */}
               <li>
+                {/* Integración del componente de notificaciones */}
                 <NotificationBell />
               </li>
 
@@ -183,125 +170,78 @@ export default function Navbar() {
                   />
                 </div>
 
-              {isMenuOpen && (
-                <div className="profile-menu">
-                  {/* Cerrar menú */}
-                  <button 
-                    className="profile-menu-close"
-                    onClick={() => setIsMenuOpen(false)}
-                    aria-label="Cerrar menú"
-                  >
-                    ✕
-                  </button>
-
-                  {/* Correo en la parte superior */}
-                  <div className="profile-menu-email">
-                    {user?.email || "No disponible"}
-                  </div>
-
-                  {/* Avatar e información centrada */}
-                  <div className="profile-menu-header">
-                    <Avatar
-                      key={user?.avatar || 'default-menu'}
-                      src={user?.avatar}
-                      alt="Perfil"
-                      size="large"
-                      className="profile-menu-avatar"
-                    />
-                    <div className="profile-menu-user-info">
-                      <h3 className="profile-menu-greeting">
-                        ¡Hola, {user?.displayName?.split(' ')[0] || "Usuario"}!
-                        {user?.roleDescription === "Propietario" && user?.verified && (
-                          <i className="fas fa-check-circle verified-icon"></i>
-                        )}
-                      </h3>
-                      <p className="profile-menu-role">
-                        {user?.roleDescription || "Usuario"}
-                      </p>
+                {isMenuOpen && (
+                  <div className="profile-menu">
+                    <button className="profile-menu-close" onClick={() => setIsMenuOpen(false)}>✕</button>
+                    <div className="profile-menu-email">{user?.email || "No disponible"}</div>
+                    <div className="profile-menu-header">
+                      <Avatar
+                        key={user?.avatar || 'default-menu'}
+                        src={user?.avatar}
+                        alt="Perfil"
+                        size="large"
+                        className="profile-menu-avatar"
+                      />
+                      <div className="profile-menu-user-info">
+                        <h3 className="profile-menu-greeting">
+                          ¡Hola, {user?.displayName?.split(' ')[0] || "Usuario"}!
+                          {user?.roleDescription === "Propietario" && user?.verified && (
+                            <i className="fas fa-check-circle verified-icon"></i>
+                          )}
+                        </h3>
+                        <p className="profile-menu-role">{user?.roleDescription || "Usuario"}</p>
+                      </div>
                     </div>
-                  </div>
-
-                  {/* Botón de administrar cuenta */}
-                  <button
-                    onClick={() => {
-                      setIsMenuOpen(false);
-                      navigate("/perfil");
-                    }}
-                    className="profile-menu-manage-btn"
-                  >
-                    Administrar tu Cuenta de Inclumap
-                  </button>
-
-                  {/* Separador */}
-                  <div className="profile-menu-divider"></div>
-
-                  {/* Opciones del menú */}
-                  <div className="profile-menu-items">
-                    {user?.roleDescription === "Usuario" && (
-                      <button
-                        onClick={() => {
-                          setIsMenuOpen(false);
-                          navigate("/crear-negocio");
-                        }}
-                        className="menu-item"
-                      >
-                        <span className="menu-item-icon">🏪</span>
-                        <span className="menu-item-text">Crear Negocio</span>
-                      </button>
-                    )}
-                    
-                    {user?.roleDescription === "Usuario" && (
-                      <button
-                        onClick={() => {
-                          setIsMenuOpen(false);
-                          navigate("/guardados");
-                        }}
-                        className="menu-item"
-                      >
-                        <span className="menu-item-icon">📍</span>
-                        <span className="menu-item-text">Lugares Guardados</span>
-                      </button>
-                    )}
 
                     <button
-                      onClick={() => {
-                        setIsMenuOpen(false);
-                        navigate("/ajustes");
-                      }}
-                      className="menu-item"
+                      onClick={() => { setIsMenuOpen(false); navigate("/perfil"); }}
+                      className="profile-menu-manage-btn"
                     >
-                      <span className="menu-item-icon">⚙️</span>
-                      <span className="menu-item-text">Ajustes</span>
+                      Administrar tu Cuenta de Inclumap
+                    </button>
+
+                    <div className="profile-menu-divider"></div>
+
+                    <div className="profile-menu-items">
+                      {user?.roleDescription === "Usuario" && (
+                        <>
+                          <button onClick={() => { setIsMenuOpen(false); navigate("/crear-negocio"); }} className="menu-item">
+                            <span className="menu-item-icon">🏪</span>
+                            <span className="menu-item-text">Crear Negocio</span>
+                          </button>
+                          <button onClick={() => { setIsMenuOpen(false); navigate("/guardados"); }} className="menu-item">
+                            <span className="menu-item-icon">📍</span>
+                            <span className="menu-item-text">Lugares Guardados</span>
+                          </button>
+                        </>
+                      )}
+                      <button onClick={() => { setIsMenuOpen(false); navigate("/ajustes"); }} className="menu-item">
+                        <span className="menu-item-icon">⚙️</span>
+                        <span className="menu-item-text">Ajustes</span>
+                      </button>
+                    </div>
+
+                    <div className="profile-menu-divider"></div>
+                    <button onClick={handleLogout} className="menu-item logout">
+                      <span className="menu-item-icon">🚪</span>
+                      <span className="menu-item-text">Cerrar sesión</span>
                     </button>
                   </div>
-
-                  {/* Separador */}
-                  <div className="profile-menu-divider"></div>
-
-                  {/* Cerrar sesión */}
-                  <button onClick={handleLogout} className="menu-item logout">
-                    <span className="menu-item-icon">🚪</span>
-                    <span className="menu-item-text">Cerrar sesión</span>
-                  </button>
-                </div>
-              )}
-            </li>
+                )}
+              </li>
             </>
           )}
 
-          {/* Botón de tema oscuro */}
           <li className="theme-toggle" onClick={toggleTheme}>
             {darkMode ? <FaSun /> : <FaMoon />}
           </li>
         </ul>
       </div>
 
-      {/* Notificación de perfil incompleto */}
       {showNotification && (
         <div 
           className="navbar-notification"
           onClick={() => {
-            // Si es propietario, navega a perfil con la sección owner-profile
             if (user?.roleDescription === "Propietario") {
               navigate("/perfil?section=owner-profile");
             } else {
@@ -311,9 +251,7 @@ export default function Navbar() {
           role="alert"
           aria-live="polite"
         >
-          <div className="notification-badge">
-            <i className="fas fa-exclamation-circle"></i>
-          </div>
+          <div className="notification-badge"><i className="fas fa-exclamation-circle"></i></div>
           <div className="notification-message">
             <span className="notification-title">Completa tu perfil</span>
             <span className="notification-detail">

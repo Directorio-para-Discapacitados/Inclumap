@@ -61,16 +61,17 @@ const NotificationBell: React.FC = () => {
     }
   };
 
+  // En frontend/src/Components/Notifications/NotificationBell.tsx
+
   const handleNavigate = (notification: Notification) => {
     setIsOpen(false);
-    
-    // Navegar según el tipo de notificación
+
     if (notification.type === 'SUGGESTION') {
-      // Redirigir al detalle del negocio
-      navigate(`/business/${notification.related_id}`);
+      // CORRECCIÓN: Usar '/local/' en lugar de '/business/'
+      navigate(`/local/${notification.related_id}`);
     } else if (notification.type === 'REVIEW_ALERT') {
-      // Redirigir a las reseñas o panel de admin
-      navigate(`/admin/reviews`);
+      // Asegúrate de que esta ruta exista en App.tsx o redirige a '/reviews'
+      navigate(`/reviews`);
     }
   };
 
