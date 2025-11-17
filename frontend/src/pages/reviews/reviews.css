@@ -1,153 +1,92 @@
-.reviews-container {
+.reviews-wrapper {
   max-width: 900px;
-  margin: auto;
-  padding: 20px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: system-ui, sans-serif;
+  color: #222;
 }
 
-.reviews-title {
-  text-align: center;
-  font-size: 28px;
-  margin-bottom: 20px;
-  font-weight: bold;
+.reviews-header h1 {
+  font-size: 2rem;
+  margin-bottom: 0.3rem;
 }
 
-.review-form {
-  background: #f9f9f9;
-  padding: 20px;
+.subtitle {
+  color: #444;
+  line-height: 1.5;
+  margin-bottom: 1.5rem;
+}
+
+.filters-container {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: #f7f7f7;
+  border-radius: 12px;
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+}
+
+.filter-item label {
+  font-size: 0.9rem;
+  margin-bottom: 0.2rem;
+}
+
+input,
+select {
+  padding: 0.5rem 0.6rem;
   border-radius: 8px;
+  border: 1px solid #ccc;
 }
 
-.review-form textarea {
-  width: 100%;
-  height: 90px;
-  margin-top: 10px;
-  padding: 10px;
-  resize: none;
+.business-list {
+  list-style: none;
+  padding: 0;
 }
 
-.stars {
-  font-size: 24px;
-  margin-bottom: 10px;
-  cursor: pointer;
-}
-
-.star {
-  color: #aaa;
-  cursor: pointer;
+.business-card {
+  background: white;
+  padding: 1.3rem;
+  border-radius: 14px;
+  margin-bottom: 1rem;
+  border: 1px solid #e2e2e2;
   transition: 0.2s;
 }
 
-.star.selected {
-  color: gold;
+.business-card:hover {
+  background: #fafafa;
 }
 
-.btn-primary {
-  margin-top: 10px;
-  padding: 10px 20px;
-  border: none;
-  background: #0066ff;
-  color: white;
-  cursor: pointer;
-  border-radius: 6px;
+.business-title {
+  margin: 0;
 }
 
-.reviews-list {
-  margin-top: 20px;
-}
-
-.review-item {
-  padding: 15px;
-  background: white;
-  border-radius: 8px;
-  margin-bottom: 15px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
-
-.review-header {
+.rating-summary {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.review-rating {
-  font-size: 18px;
-  color: gold;
-}
-
-.review-comment {
-  font-size: 16px;
-}
-
-.review-actions {
-  margin-top: 10px;
-}
-
-.btn-edit,
-.btn-delete {
-  margin-right: 10px;
-  padding: 6px 12px;
-  border: none;
-  cursor: pointer;
-  color: white;
-  border-radius: 5px;
-}
-
-.btn-edit {
-  background: #ffaa00;
-}
-
-.btn-delete {
-  background: #ff4444;
-}
-
-/* Modal */
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.45);
-  display: flex;
-  justify-content: center;
   align-items: center;
+  font-size: 1.1rem;
+  margin-top: 0.5rem;
 }
 
-.modal {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  width: 400px;
+.stars {
+  font-size: 1.3rem;
+  margin-right: 0.4rem;
 }
 
-.modal-actions {
-  margin-top: 15px;
-  display: flex;
-  justify-content: flex-end;
+.reviews-count {
+  color: #666;
+  margin-top: 0.5rem;
 }
 
-.btn-cancel {
-  padding: 10px 15px;
-  background: #777;
-  color: white;
-  cursor: pointer;
-  border-radius: 6px;
-}
-
-/* SIN BUSINESS ID */
-
-.reviews-empty {
+.loading-text,
+.no-results {
   text-align: center;
-  padding: 50px 20px;
-}
-
-.reviews-empty h2 {
-  font-size: 24px;
-  margin-bottom: 10px;
-}
-
-.reviews-empty p {
-  margin-bottom: 20px;
-  font-size: 16px;
+  color: #444;
+  margin-top: 2rem;
 }
