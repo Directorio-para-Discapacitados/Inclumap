@@ -26,6 +26,7 @@ export class BusinessPublicController {
       business_name: b.business_name,
       address: b.address,
       average_rating: b.average_rating,
+      verified: b.verified || false,
       logo_url:
         b.logo_url || 'https://res.cloudinary.com/demo/image/upload/sample.jpg',
       owner_email: b.user?.user_email || b.user?.email || null,
@@ -70,6 +71,7 @@ export class BusinessPublicController {
         latitude: b.latitude,
         longitude: b.longitude,
         average_rating: b.average_rating,
+        verified: b.verified || false,
         logo_url: b.logo_url || 'https://res.cloudinary.com/demo/image/upload/sample.jpg',
         owner_name: b.user?.people
           ? `${b.user.people.firstName || ''} ${b.user.people.firstLastName || ''}`.trim()
@@ -95,6 +97,7 @@ export class BusinessPublicController {
       latitude: b.latitude,
       longitude: b.longitude,
       average_rating: b.average_rating,
+      verified: b.verified || false,
       logo_url:
         b.logo_url || 'https://res.cloudinary.com/demo/image/upload/sample.jpg',
       owner_name: b.user?.people

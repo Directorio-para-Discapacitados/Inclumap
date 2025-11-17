@@ -51,6 +51,9 @@ export default function UserProfileSection() {
       const res = await api.get('/people/my-profile');
       setProfile(res.data as Profile);
       setEditedProfile(res.data as Profile);
+      
+      // Refrescar el contexto de autenticación para sincronizar el avatar en el Navbar
+      await refreshUser();
     } catch (error: any) {
       if (error.response?.status === 401 || error.response?.status === 403) {
         // El interceptor manejará esto automáticamente

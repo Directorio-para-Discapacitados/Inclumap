@@ -165,24 +165,24 @@ body:has(.registro-fondo) #root {
 select {
   width: 106%;
   padding: 1rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   font-size: 0.95rem;
-  background-color: #fff;
-  color: #334155;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  background-color: var(--color-input-bg);
+  color: var(--color-input-text);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.3s ease, color 0.3s ease;
   cursor: pointer;
   margin-bottom: 1rem;
 }
 
 select:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--shadow-focus);
   outline: none;
 }
 
 select:hover {
-  border-color: #94a3b8;
+  border-color: var(--color-primary);
 }
 
 
@@ -210,12 +210,12 @@ select:hover {
   border: none;
   cursor: pointer;
   padding: 0;
-  color: #070606;
-
+  color: var(--color-text-muted);
+  transition: color 0.2s ease;
 }
 
 .password-toggle:hover {
-  color: #ffffff;
+  color: var(--color-primary);
   transform: translateY(-50%) scale(1.05);
 }
 
@@ -227,7 +227,7 @@ select:hover {
 /* === ACCESIBILIDADES === */
 .accesibilidad-titulo {
   font-weight: 600;
-  color: #5877db;
+  color: var(--color-primary);
   text-align: center;
   margin: 1rem 0;
 }
@@ -245,31 +245,31 @@ select:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #f8fafc;
+  background-color: var(--color-surface);
   border-radius: 10px;
   padding: 0.8rem 1rem;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
   border: 2px solid transparent;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 6px var(--color-shadow);
 }
 
 .accesibilidad-boton:hover {
-  background-color: #e0f2fe;
-  border-color: #38bdf8;
+  background-color: var(--color-card-hover);
+  border-color: var(--color-primary);
   transform: translateY(-2px);
 }
 
 .accesibilidad-boton.seleccionado {
-  border-color: #2563eb;
-  background-color: #e7f1ff;
+  border-color: var(--color-primary);
+  background-color: var(--color-card-hover);
 }
 
 /* nombre */
 .accesibilidad-nombre {
   font-size: 0.9rem;
   font-weight: 500;
-  color: #334155;
+  color: var(--color-text);
 }
 
 /* tooltip */
@@ -280,21 +280,21 @@ select:hover {
 }
 
 .help-icon {
-  color: #64748b;
+  color: var(--color-text-muted);
   cursor: help;
   transition: color 0.2s ease;
 }
 
 .help-icon:hover {
-  color: #2563eb;
+  color: var(--color-primary);
 }
 
 .tooltip-text {
   visibility: hidden;
   opacity: 0;
   width: 200px;
-  background-color: #1e3a8a;
-  color: #fff;
+  background-color: var(--color-primary);
+  color: #ffffff;
   text-align: center;
   border-radius: 8px;
   padding: 6px;
@@ -343,27 +343,27 @@ select:hover {
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.25s ease;
-  background: #1e7eeb;
-  color: #ffffff;
+  background: var(--color-primary);
+  color: #ffffff !important;
   letter-spacing: 0.3px;
 }
 
 .registro-btn:hover {
-  background: #77ec28;
+  background: var(--color-primary-hover);
   transform: translateY(-1px);
 }
 
 /* botón "atrás" con estilo secundario */
 .registro-btn.secondary {
-  background: transparent;
-  border: 1px solid #999;
-  color: #555;
+  background: transparent !important;
+  border: 1px solid var(--color-border) !important;
+  color: var(--color-text) !important;
 }
 
 .registro-btn.secondary:hover {
-  border-color: #333;
-  color: #000;
-  background: #f5f5f5;
+  border-color: var(--color-primary) !important;
+  color: var(--color-primary) !important;
+  background: var(--color-surface) !important;
   transform: translateY(-1px);
 }
 

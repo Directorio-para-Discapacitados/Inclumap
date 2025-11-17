@@ -55,17 +55,14 @@ export default function Accesibilidad() {
         setLoading(true);
         setError(null);
 
-        console.log("Fetching accesibilidades...");
         // Obtener información de la accesibilidad
         const accessResp = await fetch(`${API_URL}/accessibility`);
-        console.log("Accessibility response status:", accessResp.status);
         
         if (!accessResp.ok) {
           throw new Error(`Error al obtener accesibilidades: ${accessResp.status}`);
         }
         
         const allAccessibilities: Accessibility[] = await accessResp.json();
-        console.log("Accesibilidades obtenidas:", allAccessibilities);
         
         const currentAccessibility = allAccessibilities.find(
           (a) => a.accessibility_id === Number(id)
@@ -77,11 +74,9 @@ export default function Accesibilidad() {
           return;
         }
         
-        console.log("Accesibilidad actual:", currentAccessibility);
         setAccessibility(currentAccessibility);
 
         // Usar el nuevo endpoint que consulta directamente business_accessibility
-        console.log("Fetching businesses by accessibility...");
         const businessResp = await fetch(`${API_URL}/business/public/by-accessibility/${id}`);
         
         if (!businessResp.ok) {
@@ -91,7 +86,6 @@ export default function Accesibilidad() {
         }
         
         const filteredBusinesses: Business[] = await businessResp.json();
-        console.log("Negocios filtrados obtenidos:", filteredBusinesses.length);
         setBusinesses(filteredBusinesses);
       } catch (e: any) {
         console.error("Error completo:", e);
