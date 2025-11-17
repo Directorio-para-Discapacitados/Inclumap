@@ -1,87 +1,90 @@
-/* CONTENEDOR GENERAL */
+/* ============================
+   CONTENEDOR GENERAL
+============================ */
 .revContainer {
   width: 100%;
-  max-width: 900px;
+  max-width: 950px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 30px 20px;
   font-family: "Inter", sans-serif;
   color: var(--rev-text);
   background: var(--rev-bg);
   transition: 0.3s ease;
 }
 
-/* Variables Light */
+/* ============================
+   VARIABLES LIGHT
+============================ */
 :root {
-  --rev-bg: #ffffff;
-  --rev-text: #222;
-  --rev-muted: #666;
-  --rev-card-bg: #fafafa;
-  --rev-border: #e6e6e6;
-  --rev-primary: #0077ff;
-  --rev-primary-light: #e9f3ff;
+  --rev-bg: #f8f9fb;
+  --rev-text: #1f1f1f;
+  --rev-muted: #6f6f6f;
+  --rev-card-bg: #ffffff;
+  --rev-border: #e5e7eb;
+  --rev-primary: #005ce6;
+  --rev-primary-light: #e8f0ff;
 
-  --rev-star-active: #facc15;
-  --rev-star-inactive: #d3d3d3;
+  --rev-star-active: #ffc93c;
+  --rev-star-inactive: #d8d8d8;
 }
 
-/* Dark mode */
+/* ============================
+   DARK MODE
+============================ */
 [data-theme="dark"] .revContainer {
-  --rev-bg: #121212;
-  --rev-text: #f0f0f0;
-  --rev-muted: #bbbbbb;
-  --rev-card-bg: #1e1e1e;
+  --rev-bg: #0f0f10;
+  --rev-text: #f3f3f3;
+  --rev-muted: #b5b5b5;
+  --rev-card-bg: #1a1a1d;
   --rev-border: #333;
   --rev-primary: #3ea3ff;
-  --rev-primary-light: #1c2836;
+  --rev-primary-light: #1d2a3a;
 
   --rev-star-active: #ffd34a;
-  --rev-star-inactive: #555;
+  --rev-star-inactive: #545454;
 }
 
-/* HEADER */
+/* ============================
+   HEADER
+============================ */
 .revHeader {
   text-align: center;
-  margin-bottom: 35px;
+  margin-bottom: 25px;
 }
 
 .revTitle {
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 2.1rem;
+  font-weight: 800;
+  margin-bottom: 5px;
   color: var(--rev-text);
-  margin-bottom: 10px;
 }
 
 .revStats {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
-  margin-bottom: 20px;
   color: var(--rev-muted);
-  font-size: 0.95rem;
+  font-size: 1rem;
+  margin-bottom: 10px;
 }
 
-.revScore {
-  font-weight: 600;
-  color: var(--rev-text);
-}
-
-/* CATEGORÍAS */
+/* ============================
+   CHIPS - CATEGORÍAS
+============================ */
 .revCategories {
   display: flex;
+  justify-content: center;
   gap: 10px;
   flex-wrap: wrap;
-  justify-content: center;
+  margin-bottom: 20px;
 }
 
 .revCategoryBtn {
-  padding: 10px 16px;
-  border-radius: 25px;
+  padding: 10px 18px;
+  font-size: 0.9rem;
+  border-radius: 18px;
   background: var(--rev-card-bg);
   border: 1px solid var(--rev-border);
+  color: var(--rev-text);
   cursor: pointer;
   transition: 0.25s ease;
-  font-size: 0.9rem;
-  color: var(--rev-text);
 }
 
 .revCategoryBtn:hover {
@@ -90,143 +93,180 @@
 
 .revCategoryBtn.active {
   background: var(--rev-primary);
-  color: white;
   border-color: var(--rev-primary);
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+  color: white;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
 }
 
-/* LISTA */
+/* ============================
+   FILTROS
+============================ */
+.revFilters {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin: 15px 0 30px;
+  flex-wrap: wrap;
+}
+
+.revFilterItem {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.9rem;
+  color: var(--rev-muted);
+}
+
+.revFilterItem select {
+  margin-top: 6px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--rev-border);
+  background: var(--rev-card-bg);
+  font-size: 0.95rem;
+  color: var(--rev-text);
+  cursor: pointer;
+  outline: none;
+  transition: 0.25s ease;
+}
+
+.revFilterItem select:hover {
+  border-color: var(--rev-primary);
+}
+
+/* ============================
+   TARJETAS
+============================ */
 .revList {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 22px;
 }
 
-/* TARJETA */
 .revCard {
   background: var(--rev-card-bg);
+  border-radius: 16px;
+  padding: 22px;
   border: 1px solid var(--rev-border);
-  border-radius: 14px;
-  padding: 18px 20px;
-  transition: 0.3s ease;
-  animation: fadeIn 0.4s ease;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.06);
+  transition: 0.25s ease;
 }
 
 .revCard:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.10);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* HEADER TARJETA */
+/* ============================
+   TOP DE LA TARJETA
+============================ */
 .revCardTop {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 10px;
+  gap: 16px;
+  margin-bottom: 14px;
 }
 
 .revAvatar {
-  width: 48px;
-  height: 48px;
+  width: 55px;
+  height: 55px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid var(--rev-border);
+  border: 3px solid var(--rev-primary-light);
 }
 
 .revUserInfo {
   flex: 1;
   display: flex;
+  gap: 4px;
   flex-direction: column;
 }
 
 .revUserName {
   font-weight: 600;
+  font-size: 1rem;
   color: var(--rev-text);
 }
 
 .revDate {
   font-size: 0.8rem;
   color: var(--rev-muted);
+  white-space: nowrap;
 }
 
-/* ESTRELLAS */
-.revContainer .starRating {
+/* ============================
+   ESTRELLAS
+============================ */
+.starRating {
   display: flex;
-  gap: 6px;
-  font-size: 18px;
-  line-height: 1;
-  user-select: none;
+  gap: 4px;
+  font-size: 19px;
 }
 
-.revContainer .starRating .star {
+.star {
   color: var(--rev-star-inactive);
-  transition: color 0.18s ease, transform 0.12s ease;
-  display: inline-block;
-  transform-origin: center center;
+  transition: 0.18s ease;
 }
 
-.revContainer .starRating .star.filled {
-  color: var(--rev-star-active) !important;
-  transform: translateY(-1px);
+.star.filled {
+  color: var(--rev-star-active);
 }
 
-.revContainer .starRating .star:hover {
-  transform: translateY(-2px) scale(1.03);
-  filter: brightness(1.03);
+.star:hover {
+  transform: translateY(-2px);
 }
 
-/* NOMBRE LOCAL */
+/* ============================
+   NOMBRE DEL NEGOCIO
+============================ */
 .revBusinessName {
-  font-size: 1rem;
-  font-weight: bold;
+  font-size: 1.05rem;
+  font-weight: 700;
   color: var(--rev-text);
   cursor: pointer;
-  margin-top: 6px;
-  transition: 0.2s ease;
+  margin-bottom: 8px;
 }
 
 .revBusinessName:hover {
   color: var(--rev-primary);
-  text-decoration: underline;
 }
 
-/* TEXTO */
+/* ============================
+   COMENTARIO
+============================ */
 .revComment {
-  margin-top: 10px;
-  margin-bottom: 12px;
   font-size: 0.95rem;
-  line-height: 1.45;
   color: var(--rev-text);
+  margin-bottom: 12px;
+  line-height: 1.5;
 }
 
-/* IMÁGENES */
+/* ============================
+   IMÁGENES DE LA RESEÑA
+============================ */
 .revImages {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   margin-top: 10px;
 }
 
 .revImgItem {
-  width: 90px;
-  height: 90px;
-  border-radius: 10px;
-  object-fit: cover;
+  width: 110px;
+  height: 110px;
+  border-radius: 12px;
   border: 1px solid var(--rev-border);
+  object-fit: cover;
   transition: 0.25s ease;
   cursor: pointer;
 }
 
 .revImgItem:hover {
-  transform: scale(1.05);
+  transform: scale(1.06);
 }
 
-/* BOTÓN */
+/* ============================
+   BOTÓN INFERIOR
+============================ */
 .revWriteContainer {
   display: flex;
   justify-content: center;
@@ -234,36 +274,40 @@
 }
 
 .revWriteBtn {
+  padding: 14px 26px;
   background: var(--rev-primary);
   color: white;
-  padding: 14px 22px;
-  font-size: 1rem;
-  border-radius: 8px;
-  cursor: pointer;
+  border-radius: 10px;
   border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
   transition: 0.25s ease;
 }
 
 .revWriteBtn:hover {
   background: var(--rev-primary-light);
   color: var(--rev-primary);
-  transform: translateY(-2px);
+  transform: translateY(-3px);
 }
 
-/* RESPONSIVE */
+/* ============================
+   RESPONSIVE
+============================ */
 @media (max-width: 600px) {
   .revCardTop {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .revImages {
-    flex-wrap: wrap;
+  .revAvatar {
+    width: 50px;
+    height: 50px;
   }
 
   .revImgItem {
     width: 100%;
-    height: 160px;
+    height: 180px;
   }
 
   .revWriteBtn {

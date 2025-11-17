@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../../config/api";
 import "./reviews.css";
 
-/*  COMPONENTE DE ESTRELLAS */
 function StarRating({ value }: { value: number }) {
   return (
     <div className="starRating" role="img" aria-label={`Calificación: ${value} de 5`}>
@@ -11,8 +10,6 @@ function StarRating({ value }: { value: number }) {
         <span
           key={n}
           className={n <= value ? "star filled" : "star"}
-          title={`${n <= value ? "★" : "☆"} ${n}`}
-          aria-hidden="true"
         >
           ★
         </span>
@@ -29,6 +26,28 @@ export default function ReviewsPage() {
   const [category, setCategory] = useState("all");
   const [rating, setRating] = useState("");
   const [sortBy, setSortBy] = useState("newest");
+
+  // ⭐ LOCAL LIKES
+  const [likes, setLikes] = useState<Record<string, boolean>>({});
+
+  // cargar likes guardados
+  useEffect(() => {
+    const saved = localStorage.getItem("review_likes");
+    if (saved) setLikes(JSON.parse(saved));
+  }, []);
+
+  const toggleLike = (reviewId: string) => {
+    setLikes((prev) => {
+      const updated = { ...prev, [reviewId]: !prev[reviewId] };
+      localStorage.setItem("review_likes", JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const localLikesCount = (r: any) => {
+    const base = r.likes_count ?? 0;
+    return likes[r.review_id] ? base + 1 : base;
+  };
 
   const categories = [
     { key: "all", label: "Todas" },
@@ -52,29 +71,19 @@ export default function ReviewsPage() {
     fetchReviews();
   }, []);
 
-  // FILTROS Y ORDENAMIENTO
   useEffect(() => {
     let temp = [...reviews];
 
-    if (category !== "all") {
-      temp = temp.filter((r) => r.category === category);
-    }
-
-    if (rating !== "") {
-      temp = temp.filter((r) => r.rating === Number(rating));
-    }
+    if (category !== "all") temp = temp.filter((r) => r.category === category);
+    if (rating !== "") temp = temp.filter((r) => r.rating === Number(rating));
 
     if (sortBy === "newest") {
       temp.sort(
-        (a, b) =>
-          new Date(b.created_at).getTime() -
-          new Date(a.created_at).getTime()
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       );
     } else if (sortBy === "oldest") {
       temp.sort(
-        (a, b) =>
-          new Date(a.created_at).getTime() -
-          new Date(b.created_at).getTime()
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
       );
     } else if (sortBy === "rating-high") {
       temp.sort((a, b) => b.rating - a.rating);
@@ -88,15 +97,12 @@ export default function ReviewsPage() {
   return (
     <div className="revContainer">
 
-      {/* HEADER */}
       <div className="revHeader">
         <h2 className="revTitle">Reseñas de la comunidad</h2>
-
         <div className="revStats">
           <span className="revScore">¡Descubre nuevos negocios!</span>
         </div>
 
-        {/* CATEGORY FILTERS */}
         <div className="revCategories">
           {categories.map((c) => (
             <button
@@ -109,7 +115,6 @@ export default function ReviewsPage() {
           ))}
         </div>
 
-        {/* FILTER SELECTS */}
         <div className="revFilters">
 
           <div className="revFilterItem">
@@ -127,17 +132,16 @@ export default function ReviewsPage() {
           <div className="revFilterItem">
             <label>Ordenar por:</label>
             <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-              <option value="newest">Más recientes</option>
-              <option value="oldest">Más antiguas</option>
-              <option value="rating-high">Mejor calificación</option>
-              <option value="rating-low">Peor calificación</option>
+              <option value="newest">Más recientes Primero</option>
+              <option value="oldest">Más antiguas Primero</option>
+              <option value="rating-high">Mejor calificación Primero</option>
+              <option value="rating-low">Peor calificación Primero</option>
             </select>
           </div>
 
         </div>
       </div>
 
-      {/* LISTA DE RESEÑAS */}
       <div className="revList">
         {filtered.map((r) => (
           <div key={r.review_id} className="revCard">
@@ -151,8 +155,6 @@ export default function ReviewsPage() {
 
               <div className="revUserInfo">
                 <p className="revUserName">{r.user?.name ?? "Usuario"}</p>
-
-                {/* ⭐ NUEVO — COMPONENTE DE ESTRELLAS */}
                 <StarRating value={r.rating} />
               </div>
 
@@ -161,11 +163,9 @@ export default function ReviewsPage() {
               </span>
             </div>
 
-            {/* BUSINESS NAME */}
             <p
               className="revBusinessName"
               onClick={() => navigate(`/local/${r.business?.business_id}`)}
-              style={{ cursor: "pointer" }}
             >
               {r.business?.business_name}
             </p>
@@ -180,16 +180,28 @@ export default function ReviewsPage() {
               </div>
             )}
 
+            {/* ❤️ LIKE LOCAL */}
+            <div className="revLikeContainer">
+              <button
+                className={`revLikeBtn ${likes[r.review_id] ? "liked" : ""}`}
+                onClick={() => toggleLike(r.review_id)}
+              >
+                {likes[r.review_id] ? "💛" : "🤍"}
+              </button>
+
+              <span className="revLikeCount">
+                {localLikesCount(r)}
+              </span>
+            </div>
+
           </div>
         ))}
       </div>
 
-      {/* BOTÓN PARA ESCRIBIR */}
       <div className="revWriteContainer">
-        <button className="revWriteBtn">
-          ✚ Escribe tu reseña
-        </button>
+        <button className="revWriteBtn">✚ Escribe tu reseña</button>
       </div>
+
     </div>
   );
 }
