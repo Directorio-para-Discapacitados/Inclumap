@@ -429,7 +429,13 @@ export default function Inicio() {
             <p>
               En IncluMap, no solo encuentras lugares, ¡encuentras una comunidad! Accede a "reseñas y calificaciones de usuarios" con discapacidad para tomar decisiones informadas sobre dónde ir. Con tu ayuda, validamos la accesibilidad de cada rincón.
             </p>
-            <button className="btn btn-primary">VER RESEÑAS CONFIABLES</button>
+            <button 
+  className="btn btn-primary"
+  onClick={() => navigate("/reviews")}
+>
+  VER RESEÑAS CONFIABLES
+</button>
+
           </div>
       </section>
       
