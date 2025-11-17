@@ -19,12 +19,14 @@ import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { MailsService } from 'src/mails/mails.service';
 import { MapsModule } from 'src/maps/maps.module';
+import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
     PassportModule,
     MapsModule,
+    NotificationModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

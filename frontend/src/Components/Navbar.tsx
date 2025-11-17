@@ -7,6 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import { FaMoon, FaSun } from "react-icons/fa";
 import Avatar from "./Avatar/Avatar";
 import { AuthContext } from "../context/AuthContext";
+import NotificationBell from "./Notifications/NotificationBell";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -172,16 +173,22 @@ export default function Navbar() {
           )}
 
           {isAuthenticated && (
-            <li className="profile-container" ref={profileMenuRef}>
-              <div onClick={handleProfileClick} className="profile-trigger">
-                <Avatar
-                  key={user?.avatar || 'default-trigger'}
-                  src={user?.avatar}
-                  alt="Perfil"
-                  size="small"
-                  className="profile-image"
-                />
-              </div>
+            <>
+              {/* Campana de notificaciones */}
+              <li>
+                <NotificationBell />
+              </li>
+
+              <li className="profile-container" ref={profileMenuRef}>
+                <div onClick={handleProfileClick} className="profile-trigger">
+                  <Avatar
+                    key={user?.avatar || 'default-trigger'}
+                    src={user?.avatar}
+                    alt="Perfil"
+                    size="small"
+                    className="profile-image"
+                  />
+                </div>
 
               {isMenuOpen && (
                 <div className="profile-menu">
@@ -286,6 +293,7 @@ export default function Navbar() {
                 </div>
               )}
             </li>
+            </>
           )}
 
           {/* Botón de tema oscuro */}

@@ -47,10 +47,31 @@ export class NotificationService {
 
   /**
    * Obtiene todas las notificaciones de un usuario, ordenadas por fecha (más reciente primero)
+   * Filtra por tipo según el rol del usuario:
+   * - Administradores: solo ven REVIEW_ALERT
+   * - Usuarios regulares: solo ven SUGGESTION
    * @param userId - ID del usuario
    */
   async getUserNotifications(userId: number): Promise<NotificationEntity[]> {
-    return await this.notificationRepository
+    // Obtener el usuario con su rol
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.userroles', 'userroles')
+      .leftJoinAndSelect('userroles.rol', 'rol')
+      .where('user.user_id = :userId', { userId })
+      .getOne();
+
+    if (!user) {
+      throw new NotFoundException(`Usuario con ID ${userId} no encontrado`);
+    }
+
+    // Verificar si el usuario es admin
+    const isAdmin = user.userroles?.some(
+      (userRole) => userRole.rol?.rol_name === 'Admin',
+    );
+
+    // Query base
+    const query = this.notificationRepository
       .createQueryBuilder('notification')
       .leftJoin('notification.user', 'user')
       .select([
@@ -62,9 +83,23 @@ export class NotificationService {
         'notification.created_at',
         'user.user_id',
       ])
-      .where('user.user_id = :userId', { userId })
-      .orderBy('notification.created_at', 'DESC')
-      .getMany();
+      .where('user.user_id = :userId', { userId });
+
+    // Filtrar por tipo según el rol
+    if (isAdmin) {
+      // Admin solo ve alertas de reseñas
+      query.andWhere('notification.type = :type', {
+        type: NotificationType.REVIEW_ALERT,
+      });
+    } else {
+      // Usuarios regulares solo ven sugerencias
+      query.andWhere('notification.type = :type', {
+        type: NotificationType.SUGGESTION,
+      });
+    }
+
+    // Ordenar por fecha (más reciente primero)
+    return await query.orderBy('notification.created_at', 'DESC').getMany();
   }
 
   /**
