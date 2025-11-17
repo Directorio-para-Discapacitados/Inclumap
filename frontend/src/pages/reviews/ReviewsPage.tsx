@@ -1,240 +1,195 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "../../config/api";
 import "./reviews.css";
-import { useParams } from "react-router-dom";
 
-/* =====================================
-   Tipos de datos
-===================================== */
-type Review = {
-  review_id: number;
-  rating: number;
-  comment: string;
-  created_at: string;
-
-  user?: { user_id: number };
-
-  business?: {
-    business_id?: number;
-    business_name?: string;
-  };
-};
+/*  COMPONENTE DE ESTRELLAS */
+function StarRating({ value }: { value: number }) {
+  return (
+    <div className="starRating" role="img" aria-label={`Calificación: ${value} de 5`}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <span
+          key={n}
+          className={n <= value ? "star filled" : "star"}
+          title={`${n <= value ? "★" : "☆"} ${n}`}
+          aria-hidden="true"
+        >
+          ★
+        </span>
+      ))}
+    </div>
+  );
+}
 
 export default function ReviewsPage() {
-  /* businessId viene solo cuando la URL es /reviews/:businessId */
-  const { businessId } = useParams<{ businessId?: string }>();
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [filtered, setFiltered] = useState<any[]>([]);
+  const navigate = useNavigate();
 
-  /* Estado base */
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [filtered, setFiltered] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [category, setCategory] = useState("all");
+  const [rating, setRating] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
 
-  /* Estado del filtro */
-  const [filter, setFilter] =
-    useState<"recent" | "old" | "best" | "worst">("recent");
+  const categories = [
+    { key: "all", label: "Todas" },
+    { key: "access", label: "Accesibilidad" },
+    { key: "service", label: "Servicio" },
+    { key: "comfort", label: "Comodidad" },
+    { key: "food", label: "Comida" },
+  ];
 
-  /* ======================================================
-     1. Cargar reseñas de un solo local (si hay businessId)
-  ====================================================== */
-  const fetchLocalReviews = async (id: string) => {
+  const fetchReviews = async () => {
     try {
-      setLoading(true);
-
-      const res = await api.get(`/reviews/business/${id}`);
-
-      // Mapeamos resultados, agregando información del local
-      const mapped = (res.data || []).map((rev: any) => ({
-        ...rev,
-        business: {
-          business_id: Number(id),
-          business_name: rev.business_name || "",
-        },
-      }));
-
-      setReviews(mapped);
-      setFiltered(mapped);
+      const res = await api.get("/reviews");
+      setReviews(res.data);
+      setFiltered(res.data);
     } catch (err) {
-      console.error("Error cargando reseñas del local:", err);
-      setReviews([]);
-      setFiltered([]);
-    } finally {
-      setLoading(false);
+      console.error("Error cargando reseñas:", err);
     }
   };
 
-  /* ======================================================
-     2. Cargar TODAS las reseñas del sistema (modo global)
-     SIN tocar el backend.
-     - Se obtiene lista de negocios
-     - Por cada negocio se hace GET /reviews/business/:id
-  ====================================================== */
-  const fetchAllReviews = async () => {
-    try {
-      setLoading(true);
-
-      // Obtener negocios
-      const businessRes = await api.get("/business");
-      const businesses = businessRes.data || [];
-
-      if (!Array.isArray(businesses) || businesses.length === 0) {
-        setReviews([]);
-        setFiltered([]);
-        return;
-      }
-
-      // Ejecutar múltiples requests en paralelo
-      const promises = businesses.map(async (b: any) => {
-        try {
-          const r = await api.get(`/reviews/business/${b.business_id}`);
-
-          const mapped = (r.data || []).map((rev: any) => ({
-            ...rev,
-            business: {
-              business_id: b.business_id,
-              business_name: b.business_name,
-            },
-          }));
-
-          return mapped;
-        } catch (err) {
-          return [];
-        }
-      });
-
-      // Unir todas las reseñas en un solo arreglo
-      const results = await Promise.all(promises);
-      const all = results.flat();
-
-      setReviews(all);
-      setFiltered(all);
-    } catch (err) {
-      console.error("Error cargando reseñas globales:", err);
-      setReviews([]);
-      setFiltered([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  /* ======================================================
-     3. Inicialización
-     Si hay businessId → cargar reseñas de ese local
-     Si NO hay → cargar reseñas globales
-  ====================================================== */
   useEffect(() => {
-    if (businessId) fetchLocalReviews(businessId);
-    else fetchAllReviews();
-  }, [businessId]);
+    fetchReviews();
+  }, []);
 
-  /* ======================================================
-     4. Aplicar filtros (ordenar reseñas)
-  ====================================================== */
+  // FILTROS Y ORDENAMIENTO
   useEffect(() => {
-    const arr = [...reviews];
+    let temp = [...reviews];
 
-    switch (filter) {
-      case "recent":
-        arr.sort(
-          (a, b) =>
-            +new Date(b.created_at) - +new Date(a.created_at)
-        );
-        break;
-
-      case "old":
-        arr.sort(
-          (a, b) =>
-            +new Date(a.created_at) - +new Date(b.created_at)
-        );
-        break;
-
-      case "best":
-        arr.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-        break;
-
-      case "worst":
-        arr.sort((a, b) => (a.rating || 0) - (b.rating || 0));
-        break;
+    if (category !== "all") {
+      temp = temp.filter((r) => r.category === category);
     }
 
-    setFiltered(arr);
-  }, [filter, reviews]);
+    if (rating !== "") {
+      temp = temp.filter((r) => r.rating === Number(rating));
+    }
 
-  /* ======================================================
-     Render principal
-  ====================================================== */
+    if (sortBy === "newest") {
+      temp.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() -
+          new Date(a.created_at).getTime()
+      );
+    } else if (sortBy === "oldest") {
+      temp.sort(
+        (a, b) =>
+          new Date(a.created_at).getTime() -
+          new Date(b.created_at).getTime()
+      );
+    } else if (sortBy === "rating-high") {
+      temp.sort((a, b) => b.rating - a.rating);
+    } else if (sortBy === "rating-low") {
+      temp.sort((a, b) => a.rating - b.rating);
+    }
+
+    setFiltered(temp);
+  }, [category, rating, sortBy, reviews]);
+
   return (
-    <div className="reviews-container">
-      <h1 className="reviews-title">
-        {businessId ? "Reseñas del Local" : "Todas las Reseñas"}
-      </h1>
+    <div className="revContainer">
 
-      {/* SOLO mostrar controles cuando NO estamos viendo un local */}
-      {!businessId && (
-        <div className="reviews-controls">
-          <label>
-            Ordenar:
-            <select
-              value={filter}
-              onChange={(e) =>
-                setFilter(e.target.value as any)
-              }
-            >
-              <option value="recent">Más recientes</option>
-              <option value="old">Más antiguas</option>
-              <option value="best">Mejor valoradas</option>
-              <option value="worst">Peor valoradas</option>
-            </select>
-          </label>
+      {/* HEADER */}
+      <div className="revHeader">
+        <h2 className="revTitle">Reseñas de la comunidad</h2>
 
-          <div className="reviews-summary">
-            {reviews.length} reseñas
-          </div>
+        <div className="revStats">
+          <span className="revScore">¡Descubre nuevos negocios!</span>
         </div>
-      )}
 
-      {/* LISTA DE RESEÑAS */}
-      {loading ? (
-        <p>Cargando reseñas...</p>
-      ) : filtered.length === 0 ? (
-        <p>No hay reseñas disponibles.</p>
-      ) : (
-        <div className="reviews-list">
-          {filtered.map((r) => (
-            <div key={r.review_id} className="review-item">
-              
-              {/* Nombre del local (solo modo global) */}
-              {!businessId && (
-                <div className="review-business-name">
-                  <strong>
-                    {r.business?.business_name ||
-                      `Local ${r.business?.business_id}`}
-                  </strong>
-                </div>
-              )}
-
-              <div className="review-header">
-                {/* Rating */}
-                <div className="review-rating">
-                  {"★".repeat(r.rating || 0)}
-                  {"☆".repeat(5 - (r.rating || 0))}
-                </div>
-
-                {/* Fecha */}
-                <span className="review-date">
-                  {r.created_at
-                    ? new Date(r.created_at).toLocaleDateString()
-                    : ""}
-                </span>
-              </div>
-
-              {/* Comentario */}
-              <p className="review-comment">
-                {r.comment || "Sin comentario"}
-              </p>
-            </div>
+        {/* CATEGORY FILTERS */}
+        <div className="revCategories">
+          {categories.map((c) => (
+            <button
+              key={c.key}
+              className={`revCategoryBtn ${category === c.key ? "active" : ""}`}
+              onClick={() => setCategory(c.key)}
+            >
+              {c.label}
+            </button>
           ))}
         </div>
-      )}
+
+        {/* FILTER SELECTS */}
+        <div className="revFilters">
+
+          <div className="revFilterItem">
+            <label>Filtrar por Rating:</label>
+            <select value={rating} onChange={(e) => setRating(e.target.value)}>
+              <option value="">Todos</option>
+              <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+              <option value="4">⭐⭐⭐⭐ (4)</option>
+              <option value="3">⭐⭐⭐ (3)</option>
+              <option value="2">⭐⭐ (2)</option>
+              <option value="1">⭐ (1)</option>
+            </select>
+          </div>
+
+          <div className="revFilterItem">
+            <label>Ordenar por:</label>
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+              <option value="newest">Más recientes</option>
+              <option value="oldest">Más antiguas</option>
+              <option value="rating-high">Mejor calificación</option>
+              <option value="rating-low">Peor calificación</option>
+            </select>
+          </div>
+
+        </div>
+      </div>
+
+      {/* LISTA DE RESEÑAS */}
+      <div className="revList">
+        {filtered.map((r) => (
+          <div key={r.review_id} className="revCard">
+
+            <div className="revCardTop">
+              <img
+                src={r.user?.avatar || "/default-user.png"}
+                className="revAvatar"
+                alt="avatar"
+              />
+
+              <div className="revUserInfo">
+                <p className="revUserName">{r.user?.name ?? "Usuario"}</p>
+
+                {/* ⭐ NUEVO — COMPONENTE DE ESTRELLAS */}
+                <StarRating value={r.rating} />
+              </div>
+
+              <span className="revDate">
+                {new Date(r.created_at).toLocaleDateString()}
+              </span>
+            </div>
+
+            {/* BUSINESS NAME */}
+            <p
+              className="revBusinessName"
+              onClick={() => navigate(`/local/${r.business?.business_id}`)}
+              style={{ cursor: "pointer" }}
+            >
+              {r.business?.business_name}
+            </p>
+
+            <p className="revComment">{r.comment}</p>
+
+            {r.images?.length > 0 && (
+              <div className="revImages">
+                {r.images.map((img: string, i: number) => (
+                  <img key={i} src={img} className="revImgItem" alt="foto reseña" />
+                ))}
+              </div>
+            )}
+
+          </div>
+        ))}
+      </div>
+
+      {/* BOTÓN PARA ESCRIBIR */}
+      <div className="revWriteContainer">
+        <button className="revWriteBtn">
+          ✚ Escribe tu reseña
+        </button>
+      </div>
     </div>
   );
 }
