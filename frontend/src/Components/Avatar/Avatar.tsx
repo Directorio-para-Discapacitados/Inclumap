@@ -1,6 +1,6 @@
 // frontend/src/Components/Avatar/Avatar.tsx
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import './Avatar.css';
 
 interface AvatarProps {
@@ -19,13 +19,21 @@ export default function Avatar({
   onClick 
 }: AvatarProps) {
   const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/711/711769.png";
+  const [imageSrc, setImageSrc] = useState<string>(src || defaultAvatar);
   
-  // Agregar cache buster para evitar problemas de caché del navegador
+  // Actualizar la imagen cuando cambia el src
+  useEffect(() => {
+    if (src) {
+      // Agregar timestamp para evitar caché del navegador
+      const separator = src.includes('?') ? '&' : '?';
+      setImageSrc(`${src}${separator}v=${Date.now()}`);
+    } else {
+      setImageSrc(defaultAvatar);
+    }
+  }, [src]);
+  
   const getImageSrc = () => {
-    if (!src) return defaultAvatar;
-    // Si la URL ya tiene parámetros, usar &, si no usar ?
-    const separator = src.includes('?') ? '&' : '?';
-    return `${src}${separator}t=${Date.now()}`;
+    return imageSrc;
   };
   
   const getAvatarStyle = () => {

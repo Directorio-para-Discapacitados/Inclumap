@@ -187,8 +187,6 @@ export default function Inicio() {
                 ¡Descubre un mundo sin barreras!
             </p>
 
-            {/* --- EL LOGO <img /> HA SIDO ELIMINADO DE AQUÍ --- */}
-
             <div className="hero-actions">
               <button 
                 className="btn btn-primary"

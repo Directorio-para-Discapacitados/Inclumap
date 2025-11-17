@@ -78,7 +78,11 @@ export default function AvatarModal({
       onAvatarUpdate(response.avatar_url);
       
       toast.success(response.message || 'Avatar actualizado exitosamente');
-      handleClose();
+      
+      // Dar tiempo para que se actualice el contexto antes de cerrar
+      setTimeout(() => {
+        handleClose();
+      }, 500);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Error al subir la imagen');
     } finally {
@@ -97,14 +101,18 @@ export default function AvatarModal({
     try {
       const response = await avatarService.deleteAvatar(user.user_id);
       
+      // Actualizar el contexto de usuario primero
+      await refreshUser();
+      
       // Actualizar el avatar en el componente padre (sin avatar)
       onAvatarUpdate('');
       
-      // Actualizar el contexto de usuario
-      await refreshUser();
-      
       toast.success(response.message || 'Avatar eliminado exitosamente');
-      handleClose();
+      
+      // Dar tiempo para que se actualice el contexto antes de cerrar
+      setTimeout(() => {
+        handleClose();
+      }, 500);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Error al eliminar la imagen');
     } finally {

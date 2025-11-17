@@ -261,6 +261,7 @@ export default function UserProfileSection() {
         <AvatarModal
           isOpen={isAvatarModalOpen}
           onClose={() => setIsAvatarModalOpen(false)}
+          currentAvatar={profile.avatar}
           onAvatarUpdate={fetchProfile}
         />
       )}
