@@ -1100,7 +1100,7 @@ export class AuthService {
         roleDescription,
         email: user.user_email,
         rolIds,
-        avatar: user.avatar_url || null,
+        avatar: user.people?.avatar || null,
         logo_url,
         verified,
       };

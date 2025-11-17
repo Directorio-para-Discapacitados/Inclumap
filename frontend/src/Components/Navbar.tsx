@@ -185,45 +185,58 @@ export default function Navbar() {
 
               {isMenuOpen && (
                 <div className="profile-menu">
-                  <div className="profile-info">
+                  {/* Cerrar menú */}
+                  <button 
+                    className="profile-menu-close"
+                    onClick={() => setIsMenuOpen(false)}
+                    aria-label="Cerrar menú"
+                  >
+                    ✕
+                  </button>
+
+                  {/* Correo en la parte superior */}
+                  <div className="profile-menu-email">
+                    {user?.email || "No disponible"}
+                  </div>
+
+                  {/* Avatar e información centrada */}
+                  <div className="profile-menu-header">
                     <Avatar
                       key={user?.avatar || 'default-menu'}
                       src={user?.avatar}
                       alt="Perfil"
-                      size="medium"
-                      className="profile-menu-image"
+                      size="large"
+                      className="profile-menu-avatar"
                     />
-                    <div className="profile-details">
-                      <div className="profile-name-container">
-                        <p className="profile-name">{user?.displayName || "Usuario"}</p>
+                    <div className="profile-menu-user-info">
+                      <h3 className="profile-menu-greeting">
+                        ¡Hola, {user?.displayName?.split(' ')[0] || "Usuario"}!
                         {user?.roleDescription === "Propietario" && user?.verified && (
-                          <i className="fas fa-check-circle" style={{ color: '#4CAF50', marginLeft: '8px', fontSize: '14px' }}></i>
+                          <i className="fas fa-check-circle verified-icon"></i>
                         )}
-                      </div>
-                      
-                      <p className="profile-email">
-                        {user?.email || "No disponible"}
-                      </p>
-                      
-                      <p className="profile-role">
+                      </h3>
+                      <p className="profile-menu-role">
                         {user?.roleDescription || "Usuario"}
                       </p>
                     </div>
                   </div>
 
-                  {/* --- INICIO DE LA MODIFICACIÓN --- */}
+                  {/* Botón de administrar cuenta */}
+                  <button
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      navigate("/perfil");
+                    }}
+                    className="profile-menu-manage-btn"
+                  >
+                    Administrar tu Cuenta de Inclumap
+                  </button>
+
+                  {/* Separador */}
+                  <div className="profile-menu-divider"></div>
+
+                  {/* Opciones del menú */}
                   <div className="profile-menu-items">
-                    <button
-                      onClick={() => {
-                        setIsMenuOpen(false);
-                        navigate("/perfil");
-                      }}
-                      className="menu-item"
-                    >
-                      👤 Mi Perfil
-                    </button>
-                    
-                    {/* Crear Negocio - Solo para usuarios normales */}
                     {user?.roleDescription === "Usuario" && (
                       <button
                         onClick={() => {
@@ -232,12 +245,11 @@ export default function Navbar() {
                         }}
                         className="menu-item"
                       >
-                        🏪 Crear Negocio
+                        <span className="menu-item-icon">🏪</span>
+                        <span className="menu-item-text">Crear Negocio</span>
                       </button>
                     )}
-                    {/* Este botón solo se mostrará si la descripción del rol
-                      es "Usuario". No aparecerá para "Administrador" o "Propietario".
-                    */}
+                    
                     {user?.roleDescription === "Usuario" && (
                       <button
                         onClick={() => {
@@ -246,7 +258,8 @@ export default function Navbar() {
                         }}
                         className="menu-item"
                       >
-                        📍 Lugares Guardados
+                        <span className="menu-item-icon">📍</span>
+                        <span className="menu-item-text">Lugares Guardados</span>
                       </button>
                     )}
 
@@ -257,16 +270,19 @@ export default function Navbar() {
                       }}
                       className="menu-item"
                     >
-                      ⚙️ Ajustes
-                    </button>
-                    <button onClick={handleLogout} className="menu-item logout">
-                      🚪 Cerrar sesión
+                      <span className="menu-item-icon">⚙️</span>
+                      <span className="menu-item-text">Ajustes</span>
                     </button>
                   </div>
-                  {/* --- FIN DE LA MODIFICACIÓN --- */}
 
-                  {/* --- FIN DE LA MODIFICACIÓN --- */}
+                  {/* Separador */}
+                  <div className="profile-menu-divider"></div>
 
+                  {/* Cerrar sesión */}
+                  <button onClick={handleLogout} className="menu-item logout">
+                    <span className="menu-item-icon">🚪</span>
+                    <span className="menu-item-text">Cerrar sesión</span>
+                  </button>
                 </div>
               )}
             </li>

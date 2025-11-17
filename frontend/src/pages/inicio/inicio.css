@@ -42,7 +42,7 @@
   margin: 0 auto; 
   position: relative; 
   background: 
-    linear-gradient(120deg, rgba(255,255,255,0.95), rgba(255,255,255,0.92)), 
+    linear-gradient(120deg, rgba(255,255,255,0.25), rgba(255,255,255,0.92)), 
     url('/inclumap.png') center center/contain no-repeat;
   padding:3rem 2rem;
   border-radius:20px;

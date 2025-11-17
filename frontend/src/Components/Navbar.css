@@ -121,61 +121,234 @@
   border: 1px solid #ccc;
   object-fit: cover;
 }
+/* ===== MENÚ DE PERFIL ESTILO GOOGLE ===== */
 .profile-menu {
   position: absolute;
   right: 0;
   top: 50px;
-  /* CAMBIO: Se asegura que el fondo sea blanco y el texto oscuro */
   background-color: #ffffff;
-  color: #333;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  padding: 10px;
-  width: 220px;
+  color: #202124;
+  border: 1px solid #dadce0;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  padding: 0;
+  width: 320px;
+  max-width: 90vw;
   transition: all 0.3s ease;
   z-index: 999;
+  overflow: hidden;
 }
 
-/* CAMBIO: La regla ".navbar.dark .profile-menu" se ha eliminado */
-/* Esto cumple con tu solicitud de que el menú siempre sea blanco */
-
-.profile-info {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
+/* Tema oscuro para el menú */
+.navbar.dark .profile-menu {
+  background-color: #2d2d2d;
+  color: #e8eaed;
+  border-color: #5f6368;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
-.profile-menu-image {
-  width: 45px;
-  height: 45px;
+
+/* Botón de cerrar */
+.profile-menu-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #5f6368;
+  cursor: pointer;
+  padding: 4px 8px;
   border-radius: 50%;
-  margin-right: 10px;
+  transition: background-color 0.2s;
+  z-index: 10;
 }
-.profile-details {
-  font-size: 0.85rem;
+
+.profile-menu-close:hover {
+  background-color: rgba(0, 0, 0, 0.05);
 }
-.profile-name-container {
+
+.navbar.dark .profile-menu-close {
+  color: #9aa0a6;
+}
+
+.navbar.dark .profile-menu-close:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Email en la parte superior */
+.profile-menu-email {
+  text-align: center;
+  padding: 14px 16px 4px;
+  font-size: 14px;
+  color: #5f6368;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.navbar.dark .profile-menu-email {
+  color: #9aa0a6;
+}
+
+/* Header con avatar centrado */
+.profile-menu-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 24px 12px;
+  text-align: center;
+}
+
+.profile-menu-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin-bottom: 12px;
+  border: 3px solid #f1f3f4;
+}
+
+.navbar.dark .profile-menu-avatar {
+  border-color: #3c4043;
+}
+
+.profile-menu-user-info {
+  width: 100%;
+}
+
+.profile-menu-greeting {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0 0 4px 0;
+  color: #202124;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
 }
-.menu-item {
+
+.navbar.dark .profile-menu-greeting {
+  color: #e8eaed;
+}
+
+.verified-icon {
+  color: #4CAF50;
+  font-size: 16px;
+}
+
+.profile-menu-role {
+  font-size: 13px;
+  color: #5f6368;
+  margin: 0;
+}
+
+.navbar.dark .profile-menu-role {
+  color: #9aa0a6;
+}
+
+/* Botón de administrar cuenta */
+.profile-menu-manage-btn {
   display: block;
+  width: calc(100% - 32px);
+  margin: 0 16px 12px;
+  padding: 9px 24px;
+  background-color: transparent;
+  color: #1a73e8;
+  border: 1px solid #dadce0;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.profile-menu-manage-btn:hover {
+  background-color: rgba(26, 115, 232, 0.04);
+  border-color: #1a73e8;
+}
+
+.navbar.dark .profile-menu-manage-btn {
+  color: #8ab4f8;
+  border-color: #5f6368;
+}
+
+.navbar.dark .profile-menu-manage-btn:hover {
+  background-color: rgba(138, 180, 248, 0.08);
+  border-color: #8ab4f8;
+}
+
+/* Separador */
+.profile-menu-divider {
+  height: 1px;
+  background-color: #e8eaed;
+  margin: 4px 0;
+}
+
+.navbar.dark .profile-menu-divider {
+  background-color: #3c4043;
+}
+
+/* Items del menú */
+.profile-menu-items {
+  padding: 4px 0;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
   width: 100%;
   text-align: left;
   background: none;
   border: none;
-  padding: 8px 10px;
+  padding: 10px 24px;
   cursor: pointer;
-  font-size: 0.9rem;
-  color: inherit;
-  transition: background-color 0.3s;
+  font-size: 14px;
+  color: #202124;
+  transition: background-color 0.2s;
+  gap: 16px;
 }
+
 .menu-item:hover {
-  background-color: rgba(0, 123, 255, 0.1);
+  background-color: rgba(0, 0, 0, 0.04);
 }
+
+.navbar.dark .menu-item {
+  color: #e8eaed;
+}
+
+.navbar.dark .menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.menu-item-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+}
+
+.menu-item-text {
+  flex: 1;
+}
+
 .logout {
-  color: #c62828;
+  color: #d93025;
+  border-top: 1px solid #e8eaed;
+  margin-top: 4px;
+}
+
+.navbar.dark .logout {
+  color: #f28b82;
+  border-top-color: #3c4043;
+}
+
+.logout:hover {
+  background-color: rgba(217, 48, 37, 0.04);
+}
+
+.navbar.dark .logout:hover {
+  background-color: rgba(242, 139, 130, 0.08);
 }
 
 /* ===== BOTÓN DE TEMA ===== */
