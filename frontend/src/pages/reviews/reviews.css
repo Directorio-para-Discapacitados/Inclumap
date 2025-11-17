@@ -1,6 +1,4 @@
-/* ----------------------------------------------------
-   CONTENEDOR GENERAL
----------------------------------------------------- */
+/* CONTENEDOR GENERAL */
 .revContainer {
   width: 100%;
   max-width: 900px;
@@ -12,7 +10,7 @@
   transition: 0.3s ease;
 }
 
-/* Variables de color (Light/Dark mode friendly) */
+/* Variables Light */
 :root {
   --rev-bg: #ffffff;
   --rev-text: #222;
@@ -21,6 +19,9 @@
   --rev-border: #e6e6e6;
   --rev-primary: #0077ff;
   --rev-primary-light: #e9f3ff;
+
+  --rev-star-active: #facc15;
+  --rev-star-inactive: #d3d3d3;
 }
 
 /* Dark mode */
@@ -32,11 +33,12 @@
   --rev-border: #333;
   --rev-primary: #3ea3ff;
   --rev-primary-light: #1c2836;
+
+  --rev-star-active: #ffd34a;
+  --rev-star-inactive: #555;
 }
 
-/* ----------------------------------------------------
-   HEADER + TITULO
----------------------------------------------------- */
+/* HEADER */
 .revHeader {
   text-align: center;
   margin-bottom: 35px;
@@ -63,9 +65,7 @@
   color: var(--rev-text);
 }
 
-/* ----------------------------------------------------
-   CATEGORÍAS
----------------------------------------------------- */
+/* CATEGORÍAS */
 .revCategories {
   display: flex;
   gap: 10px;
@@ -95,18 +95,14 @@
   box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* ----------------------------------------------------
-   LISTA DE RESEÑAS
----------------------------------------------------- */
+/* LISTA */
 .revList {
   display: flex;
   flex-direction: column;
   gap: 18px;
 }
 
-/* ----------------------------------------------------
-   TARJETA DE RESEÑA
----------------------------------------------------- */
+/* TARJETA */
 .revCard {
   background: var(--rev-card-bg);
   border: 1px solid var(--rev-border);
@@ -121,20 +117,17 @@
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
 }
 
-/* Animación de fade */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(5px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ----------------------------------------------------
-   HEADER DE LA TARJETA
----------------------------------------------------- */
+/* HEADER TARJETA */
 .revCardTop {
   display: flex;
   align-items: center;
-  gap: 14px;
   justify-content: space-between;
+  gap: 14px;
   margin-bottom: 10px;
 }
 
@@ -157,19 +150,53 @@
   color: var(--rev-text);
 }
 
-.revRating {
-  font-size: 0.9rem;
-  color: var(--rev-primary);
-}
-
 .revDate {
   font-size: 0.8rem;
   color: var(--rev-muted);
 }
 
-/* ----------------------------------------------------
-   TEXTO DEL COMENTARIO
----------------------------------------------------- */
+/* ESTRELLAS */
+.revContainer .starRating {
+  display: flex;
+  gap: 6px;
+  font-size: 18px;
+  line-height: 1;
+  user-select: none;
+}
+
+.revContainer .starRating .star {
+  color: var(--rev-star-inactive);
+  transition: color 0.18s ease, transform 0.12s ease;
+  display: inline-block;
+  transform-origin: center center;
+}
+
+.revContainer .starRating .star.filled {
+  color: var(--rev-star-active) !important;
+  transform: translateY(-1px);
+}
+
+.revContainer .starRating .star:hover {
+  transform: translateY(-2px) scale(1.03);
+  filter: brightness(1.03);
+}
+
+/* NOMBRE LOCAL */
+.revBusinessName {
+  font-size: 1rem;
+  font-weight: bold;
+  color: var(--rev-text);
+  cursor: pointer;
+  margin-top: 6px;
+  transition: 0.2s ease;
+}
+
+.revBusinessName:hover {
+  color: var(--rev-primary);
+  text-decoration: underline;
+}
+
+/* TEXTO */
 .revComment {
   margin-top: 10px;
   margin-bottom: 12px;
@@ -178,9 +205,7 @@
   color: var(--rev-text);
 }
 
-/* ----------------------------------------------------
-   IMÁGENES
----------------------------------------------------- */
+/* IMÁGENES */
 .revImages {
   display: flex;
   gap: 10px;
@@ -201,9 +226,7 @@
   transform: scale(1.05);
 }
 
-/* ----------------------------------------------------
-   BOTÓN CTA
----------------------------------------------------- */
+/* BOTÓN */
 .revWriteContainer {
   display: flex;
   justify-content: center;
@@ -227,9 +250,7 @@
   transform: translateY(-2px);
 }
 
-/* ----------------------------------------------------
-   RESPONSIVE
----------------------------------------------------- */
+/* RESPONSIVE */
 @media (max-width: 600px) {
   .revCardTop {
     flex-direction: column;

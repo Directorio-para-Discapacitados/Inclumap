@@ -3,6 +3,24 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../../config/api";
 import "./reviews.css";
 
+/*  COMPONENTE DE ESTRELLAS */
+function StarRating({ value }: { value: number }) {
+  return (
+    <div className="starRating" role="img" aria-label={`Calificación: ${value} de 5`}>
+      {[1, 2, 3, 4, 5].map((n) => (
+        <span
+          key={n}
+          className={n <= value ? "star filled" : "star"}
+          title={`${n <= value ? "★" : "☆"} ${n}`}
+          aria-hidden="true"
+        >
+          ★
+        </span>
+      ))}
+    </div>
+  );
+}
+
 export default function ReviewsPage() {
   const [reviews, setReviews] = useState<any[]>([]);
   const [filtered, setFiltered] = useState<any[]>([]);
@@ -75,7 +93,7 @@ export default function ReviewsPage() {
         <h2 className="revTitle">Reseñas de la comunidad</h2>
 
         <div className="revStats">
-          <span className="revScore">⭐⭐⭐⭐⭐</span>
+          <span className="revScore">¡Descubre nuevos negocios!</span>
         </div>
 
         {/* CATEGORY FILTERS */}
@@ -133,7 +151,9 @@ export default function ReviewsPage() {
 
               <div className="revUserInfo">
                 <p className="revUserName">{r.user?.name ?? "Usuario"}</p>
-                <span className="revRating">⭐ {r.rating}</span>
+
+                {/* ⭐ NUEVO — COMPONENTE DE ESTRELLAS */}
+                <StarRating value={r.rating} />
               </div>
 
               <span className="revDate">
@@ -141,15 +161,14 @@ export default function ReviewsPage() {
               </span>
             </div>
 
-            {/* NEW — BUSINESS NAME */}
-                  <p
-  className="revBusinessName"
-  onClick={() => navigate(`/local/${r.business?.business_id}`)}
-  style={{ cursor: "pointer" }}
->
-  {r.business?.business_name}
-</p>
-
+            {/* BUSINESS NAME */}
+            <p
+              className="revBusinessName"
+              onClick={() => navigate(`/local/${r.business?.business_id}`)}
+              style={{ cursor: "pointer" }}
+            >
+              {r.business?.business_name}
+            </p>
 
             <p className="revComment">{r.comment}</p>
 
