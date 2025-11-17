@@ -16,6 +16,7 @@ body:has(.registro-fondo) #root {
   padding: 0;
 }
 
+
 /* Contenedor del formulario */
 .registro-form {
   background: var(--color-card-bg);
@@ -369,6 +370,73 @@ select:hover {
 /* animación de fade para cambio de pasos */
 .fade-in {
   animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Estilos para el selector de mapa en el registro */
+.input-with-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.input-with-action input {
+  margin-bottom: 0 !important; /* Quitar margen inferior del input original */
+}
+
+.map-picker-btn {
+  background-color: #0ea5e9;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  width: 45px;
+  height: 45px; /* Misma altura que tus inputs */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0; /* Evita que el botón se aplaste */
+}
+
+.map-picker-btn:hover {
+  background-color: #0284c7;
+}
+
+.map-picker-btn:disabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.map-picker-btn:disabled:hover {
+  background-color: #94a3b8;
+}
+
+/* Indicador de ubicación detectada */
+.location-status-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: #d1fae5;
+  border-left: 3px solid #10b981;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  font-size: 13px;
+  color: #065f46;
+}
+
+.location-icon {
+  font-size: 16px;
+  color: #10b981;
+  font-weight: bold;
+}
+
+.location-text {
+  font-size: 12px;
+  color: #065f46;
 }
 
 @keyframes fadeIn {

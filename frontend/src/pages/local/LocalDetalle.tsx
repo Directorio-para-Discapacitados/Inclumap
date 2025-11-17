@@ -3,10 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { API_URL, api } from "../../config/api";
 import "./LocalDetalle.css";
 
-/* SweetAlert */
 import Swal from "sweetalert2";
 
-/* Iconos */
 import {
   Accessibility,
   DoorOpen,
