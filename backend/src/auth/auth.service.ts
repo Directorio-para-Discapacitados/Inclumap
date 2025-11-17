@@ -34,6 +34,8 @@ import { GoogleAuthDto } from './dtos/google-auth.dto';
 import { FindOneOptions } from 'typeorm';
 import { MapsService } from 'src/maps/maps.service';
 import { PayloadInterface } from './payload/payload.interface';
+import { NotificationService } from 'src/notification/notification.service';
+import { NotificationType } from 'src/notification/entity/notification.entity';
 
 @Injectable()
 export class AuthService {
@@ -65,6 +67,7 @@ export class AuthService {
     private readonly mailService: MailsService,
     private readonly configService: ConfigService,
     private readonly mapsService: MapsService,
+    private readonly notificationService: NotificationService,
   ) {
     this.googleClient = new OAuth2Client(
       this.configService.get<string>('GOOGLE_CLIENT_ID'),
@@ -141,6 +144,31 @@ export class AuthService {
 
       // Generar el token JWT
       const token = this.jwtService.sign(payload);
+
+      // Crear notificación de bienvenida con sugerencia inicial
+      try {
+        const topBusiness = await this.businessRepository
+          .createQueryBuilder('business')
+          .where('business.average_rating > :minRating', { minRating: 4.0 })
+          .orderBy('business.average_rating', 'DESC')
+          .addOrderBy('business.business_id', 'DESC')
+          .getOne();
+
+        if (topBusiness) {
+          const rating = parseFloat(topBusiness.average_rating.toString());
+          const welcomeMessage = `🌟 ¡Bienvenido a Inclumap! Te recomendamos "${topBusiness.business_name}" con ${rating.toFixed(1)} estrellas. ¡Explóralo!`;
+          
+          await this.notificationService.createNotification(
+            newUser.user_id,
+            NotificationType.SUGGESTION,
+            welcomeMessage,
+            topBusiness.business_id,
+          );
+        }
+      } catch (notificationError) {
+        // Si falla la notificación, no afecta el registro
+        console.error('Error creando notificación de bienvenida:', notificationError);
+      }
 
       return { message: 'Usuario registrados exitosamente', token };
     } catch (error) {
