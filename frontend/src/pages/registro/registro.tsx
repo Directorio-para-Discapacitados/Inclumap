@@ -1,3 +1,5 @@
+// frontend/src/pages/registro/registro.tsx
+
 import React, { useState, useEffect } from "react";
 import "./registro.css";
 import { Eye, EyeOff, HelpCircle } from "lucide-react";
@@ -51,16 +53,16 @@ export default function Registro() {
           const { latitude, longitude } = pos.coords;
           setCoordinates(`${latitude},${longitude}`);
         },
-        () => setCoordinates("0,0")
+        () => setCoordinates("0,0") // Fallback seguro
       );
     }
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: type === "number" ? Number(value) : value,
+      [name]: value, // Guardar todo como string inicialmente para evitar errores de conversión
     });
   };
 
@@ -97,11 +99,13 @@ export default function Registro() {
       ? `${API_URL}/auth/registerBusiness`
       : `${API_URL}/auth/register`;
 
+    // PREPARACIÓN DEL PAYLOAD
     const payload = isBusiness
       ? {
           ...formData,
-          NIT: Number(formData.NIT),
-          coordinates,
+          // Importante: Enviar NIT como string para evitar desbordamiento de enteros o problemas de formato
+          NIT: Number(formData.NIT), 
+          coordinates: coordinates || "0,0", // Asegurar que nunca vaya undefined
           rolIds: [2, 3],
           accessibilityIds: selectedAccessibility,
         }
@@ -118,15 +122,23 @@ export default function Registro() {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Error al registrar");
+      
+      if (!res.ok) {
+        // Capturar mensaje de error del backend
+        throw new Error(data.message || `Error del servidor: ${res.status}`);
+      }
 
       toast.success("✅ Registro exitoso", {
         position: "top-center",
         autoClose: 2500,
         onClose: () => navigate("/login"),
       });
-    } catch (error) {
-      toast.error("❌ Error al registrar", { position: "top-center", autoClose: 4000 });
+    } catch (error: any) {
+      console.error("Error en registro:", error);
+      toast.error(`❌ ${error.message || "Error al registrar"}`, { 
+        position: "top-center", 
+        autoClose: 4000 
+      });
     }
   };
 
