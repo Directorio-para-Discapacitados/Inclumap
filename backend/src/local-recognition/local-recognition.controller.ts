@@ -21,19 +21,23 @@ export class LocalRecognitionController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(FileInterceptor('image')) // 'image' debe coincidir con el frontend
   async uploadAndRecognize(
     @UploadedFile(
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 5 }), // 5 MB
-          new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
+          // CORRECCIÓN: Usar Regex para validar el MimeType es más seguro
+          new FileTypeValidator({ fileType: /image\/(jpeg|png|jpg|webp)/ }),
         ],
+        fileIsRequired: true, // Asegura que lance 400 si no hay archivo
       }),
     )
     file: Express.Multer.File,
     @User() user: UserEntity,
   ) {
+    // Esta validación manual ya no es estrictamente necesaria gracias a fileIsRequired: true,
+    // pero no hace daño dejarla como doble seguridad.
     if (!file) {
       throw new BadRequestException('No se proporcionó ningún archivo.');
     }
