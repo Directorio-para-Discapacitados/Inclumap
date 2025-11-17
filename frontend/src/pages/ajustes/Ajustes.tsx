@@ -225,14 +225,14 @@ const AjustesPage = () => {
                 <div className="profile-avatar">
                   <div className="avatar-circle">
                     <span className="avatar-text">
-                      {user?.firstname?.charAt(0).toUpperCase() || 'U'}
-                      {user?.lastname?.charAt(0).toUpperCase() || 'S'}
+                      {user?.first_name?.charAt(0).toUpperCase() || 'U'}
+                      {user?.last_name?.charAt(0).toUpperCase() || 'S'}
                     </span>
                   </div>
                 </div>
                 <div className="profile-info">
                   <h2 className="profile-name">
-                    {user?.firstname} {user?.lastname}
+                    {user?.first_name} {user?.last_name}
                   </h2>
                   <p className="profile-email">{user?.email}</p>
                   <div className="profile-badge">
