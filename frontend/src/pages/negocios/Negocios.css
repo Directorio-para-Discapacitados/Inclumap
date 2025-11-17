@@ -5,17 +5,20 @@
 }
 
 .negocios-header {
-  text-align: center;
   max-width: 1200px;
   margin: 0 auto 3rem;
   padding-top: 1rem;
-  position: relative;
+}
+
+.header-title-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .btn-back {
-  position: absolute;
-  left: 0;
-  top: 1rem;
+  position: static;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -49,9 +52,30 @@
 }
 
 @media (max-width: 768px) {
-  .btn-back {
-    position: static;
-    margin: 0 auto 1.5rem;
+  .header-title-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  
+  .negocios-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .negocios-header h1 {
+    font-size: 2rem;
+  }
+  
+  .negocios-header p {
+    font-size: 1rem;
+  }
+  
+  .negocios-page {
+    padding: 1.5rem 1rem;
+  }
+  
+  .negocios-header {
+    margin-bottom: 2rem;
   }
 }
 
@@ -90,6 +114,42 @@
   
   .negocios-header p {
     font-size: 1rem;
+  }
+  
+  .btn-back {
+    position: static;
+    margin: 0 auto 1.5rem;
+  }
+  
+  .negocios-page {
+    padding: 1.5rem 1rem;
+  }
+  
+  .negocios-header {
+    margin-bottom: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .negocios-page {
+    padding: 1rem 0.75rem;
+  }
+  
+  .negocios-header h1 {
+    font-size: 1.75rem;
+  }
+  
+  .negocios-header p {
+    font-size: 0.95rem;
+  }
+  
+  .negocios-grid {
+    gap: 1.5rem;
+  }
+  
+  .btn-back {
+    padding: 0.65rem 1rem;
+    font-size: 0.9rem;
   }
 }
 

@@ -341,14 +341,15 @@ const LocalDetalle: React.FC = () => {
 
   return (
     <div className="local-details-container">
-      <button className="volver-btn" onClick={() => navigate(-1)}>
-          Volver
-      </button>
-
       {loading && <div className="loading">Cargando...</div>}
 
       {data && (
         <>
+          {/* BOTÓN VOLVER EN SUPERIOR IZQUIERDA */}
+          <button className="volver-btn" onClick={() => navigate(-1)}>
+            Volver
+          </button>
+
           {/* HEADER */}
           <header className="local-details-header">
             <div className="local-details-main-icon">
@@ -356,7 +357,7 @@ const LocalDetalle: React.FC = () => {
                 <img
                   src={data.logo_url}
                   alt="logo"
-                  style={{ width: 140, height: 110, objectFit: "cover", borderRadius: 12 }}
+                  className="local-details-image"
                 />
               ) : (
                 <Accessibility size={72} />

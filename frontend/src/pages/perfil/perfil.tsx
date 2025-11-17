@@ -54,17 +54,19 @@ export default function Perfil() {
     <div className="perfil-page">
       <div className="perfil-container">
         <div className="perfil-header">
-          <button 
-            className="back-button"
-            onClick={() => navigate('/')}
-          >
-            <span>←</span>
-            Volver al Inicio
-          </button>
-          <div className="header-content">
-            <h1>Configuración de Perfil</h1>
-            <p>Gestiona tu cuenta y preferencias del sistema</p>
+          <div className="header-title-row">
+            <button 
+              className="back-button"
+              onClick={() => navigate('/')}
+            >
+              <span>←</span>
+              Volver
+            </button>
+            <div className="header-content">
+              <h1>Configuración de Perfil</h1>
+            </div>
           </div>
+          <p className="header-subtitle">Gestiona tu cuenta y preferencias del sistema</p>
         </div>
         
         <div className="perfil-layout">

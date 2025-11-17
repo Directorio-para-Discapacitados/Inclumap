@@ -226,50 +226,54 @@
   cursor: pointer;
   font-size: 0.85rem;
   font-weight: 500;
-  transition: box-shadow 0.3s ease, background 0.3s ease;
+  transition: box-shadow 0.3s ease, background 0.3s ease, transform 0.2s ease;
   position: relative;
   overflow: hidden;
 }
 
 .btn-edit {
   background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  color: white;
+  color: white !important;
   box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
 }
 
 .btn-edit:hover {
   box-shadow: 0 8px 25px rgba(79, 172, 254, 0.4);
+  transform: translateY(-2px);
 }
 
 .btn-change-role {
-  background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
-  color: #2d3436;
-  box-shadow: 0 4px 15px rgba(253, 203, 110, 0.3);
+  background: linear-gradient(135deg, #ffd93d 0%, #ff9f1a 100%);
+  color: #1a1a1a !important;
+  box-shadow: 0 4px 15px rgba(255, 217, 61, 0.3);
 }
 
 .btn-change-role:hover {
-  box-shadow: 0 8px 25px rgba(253, 203, 110, 0.4);
+  box-shadow: 0 8px 25px rgba(255, 217, 61, 0.4);
+  transform: translateY(-2px);
 }
 
 .btn-assign-business {
-  background: linear-gradient(135deg, #a8e6cf 0%, #56c596 100%);
-  color: white;
-  box-shadow: 0 4px 15px rgba(168, 230, 207, 0.3);
+  background: linear-gradient(135deg, #56c596 0%, #2ecc71 100%);
+  color: white !important;
+  box-shadow: 0 4px 15px rgba(86, 197, 150, 0.3);
 }
 
 .btn-assign-business:hover {
-  box-shadow: 0 8px 25px rgba(168, 230, 207, 0.4);
+  box-shadow: 0 8px 25px rgba(86, 197, 150, 0.4);
+  transform: translateY(-2px);
 }
 
 .btn-delete {
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: white;
+  color: white !important;
   box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
 }
 
 .btn-delete:hover {
   box-shadow: 0 8px 25px rgba(239, 68, 68, 0.5);
   background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: translateY(-2px);
 }
 
 .btn-edit:disabled, .btn-change-role:disabled, .btn-assign-business:disabled, .btn-delete:disabled {

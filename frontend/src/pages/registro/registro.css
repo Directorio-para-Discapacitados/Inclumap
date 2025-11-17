@@ -166,6 +166,23 @@ body:has(.registro-fondo) #root {
   }
 }
 
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 767px) {
+  .registro-fondo { padding: 1rem; }
+  .registro-form { padding: 2.5rem 2rem; max-width: 100%; }
+  .registro-titulo { font-size: 1.6rem; }
+  .registro-switch-buttons { max-width: 240px; }
+}
+
+@media (max-width: 480px) {
+  .registro-fondo { padding: 0.5rem; }
+  .registro-form { padding: 2rem 1.5rem; border-radius: 1.2rem; }
+  .registro-titulo { font-size: 1.4rem; }
+  .registro-form input, .registro-form textarea { padding: 0.55rem 0.7rem; font-size: 0.9rem; }
+  .registro-btn { padding: 0.65rem; font-size: 1.1rem; }
+  select { padding: 0.85rem; font-size: 0.9rem; }
+}
+
 /*estilos para el genero*/
 select {
   width: 106%;

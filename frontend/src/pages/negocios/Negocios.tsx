@@ -46,11 +46,13 @@ export default function Negocios() {
   return (
     <div className="negocios-page">
       <div className="negocios-header">
-        <button className="btn-back" onClick={() => navigate('/')}>
-          <i className="fas fa-arrow-left"></i>
-          <span>Volver al Inicio</span>
-        </button>
-        <h1>Todos los Negocios Registrados</h1>
+        <div className="header-title-row">
+          <button className="btn-back" onClick={() => navigate('/')}>
+            <i className="fas fa-arrow-left"></i>
+            <span>Volver</span>
+          </button>
+          <h1>Todos los Negocios Registrados</h1>
+        </div>
         <p>Explora todos los establecimientos verificados que forman parte de nuestra red inclusiva</p>
       </div>
 

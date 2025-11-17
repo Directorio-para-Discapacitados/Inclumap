@@ -31,13 +31,13 @@ body.dark-mode:not(:has(.login-page)) .panel {
 }
 
 /* Botones en modo oscuro (excluir páginas de login) */
-body.dark-mode:not(:has(.login-page)) button:not(.btn-primary):not(.btn-outline) {
+body.dark-mode:not(:has(.login-page)) button:not(.btn-primary):not(.btn-outline):not(.back-button):not(.back-button-ajustes):not(.back-button-local) {
   background-color: var(--color-surface);
   color: var(--color-text);
   border-color: var(--color-border);
 }
 
-body.dark-mode:not(:has(.login-page)) button:not(.btn-primary):not(.btn-outline):hover {
+body.dark-mode:not(:has(.login-page)) button:not(.btn-primary):not(.btn-outline):not(.back-button):not(.back-button-ajustes):not(.back-button-local):hover {
   background-color: var(--color-card-hover);
 }
 

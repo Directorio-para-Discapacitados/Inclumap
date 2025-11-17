@@ -4,6 +4,9 @@
 /* Importar utilidades de modo oscuro */
 @import "./styles/dark-mode-utils.css";
 
+/* Importar utilidades responsive */
+@import "./styles/responsive-utils.css";
+
 /* frontend/src/index.css (CORREGIDO) */
 
 /* --- INICIO DE LA MODIFICACIÓN: Arreglo de Scroll Horizontal --- */
@@ -27,9 +30,25 @@
   --color-shadow: rgba(0, 0, 0, 0.1);
   --color-shadow-hover: rgba(0, 0, 0, 0.15);
   --shadow-focus: rgba(77, 121, 255, 0.15);
+  --color-button-text: #ffffff;
+  --color-button-text-contrast: #222222;
   
   /* Altura del navbar */
-  --navbar-height: 60px;
+  --navbar-height: 70px;
+  
+  /* Breakpoints responsive */
+  --breakpoint-mobile: 480px;
+  --breakpoint-tablet: 768px;
+  --breakpoint-desktop: 1024px;
+  --breakpoint-wide: 1280px;
+  
+  /* Espaciado responsive */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
 }
 
 /* Reseteo básico */
@@ -47,6 +66,11 @@ body {
   color: var(--color-text);
   transition: background-color 0.3s ease, color 0.3s ease;
   line-height: 1.6;
+  overflow-x: hidden;
+}
+
+html {
+  font-size: 16px;
 }
 
 /* --- ESTA ES LA REGLA CORREGIDA --- */
@@ -55,6 +79,34 @@ body {
   min-height: calc(100vh - var(--navbar-height));
   width: 100%;
   overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Media queries globales para responsive design */
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+  
+  :root {
+    --navbar-height: 60px;
+    --spacing-lg: 1rem;
+    --spacing-xl: 1.5rem;
+    --spacing-2xl: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  html {
+    font-size: 13px;
+  }
+  
+  :root {
+    --navbar-height: 56px;
+    --spacing-lg: 0.75rem;
+    --spacing-xl: 1rem;
+    --spacing-2xl: 1.5rem;
+  }
 }
 
 /* Modo oscuro */
@@ -77,6 +129,8 @@ html.dark-mode {
   --color-shadow: rgba(0, 0, 0, 0.3);
   --color-shadow-hover: rgba(0, 0, 0, 0.5);
   --shadow-focus: rgba(74, 144, 226, 0.25);
+  --color-button-text: #0f0f0f;
+  --color-button-text-contrast: #ffffff;
 }
 
 /* Scrollbar */

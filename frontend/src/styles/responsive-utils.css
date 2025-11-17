@@ -1,0 +1,380 @@
+/* ===== UTILIDADES RESPONSIVE GLOBALES ===== */
+
+/* Clases de contenedores responsivos */
+.container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.container-fluid {
+  width: 100%;
+  padding: 0 1rem;
+}
+
+/* Padding responsivo */
+.p-responsive {
+  padding: var(--spacing-xl);
+}
+
+.px-responsive {
+  padding-left: var(--spacing-lg);
+  padding-right: var(--spacing-lg);
+}
+
+.py-responsive {
+  padding-top: var(--spacing-xl);
+  padding-bottom: var(--spacing-xl);
+}
+
+/* Margin responsivo */
+.m-responsive {
+  margin: var(--spacing-xl);
+}
+
+.mx-responsive {
+  margin-left: var(--spacing-lg);
+  margin-right: var(--spacing-lg);
+}
+
+.my-responsive {
+  margin-top: var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+}
+
+/* Grids responsivos */
+.grid-responsive {
+  display: grid;
+  gap: var(--spacing-lg);
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.grid-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.grid-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.grid-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Texto responsivo */
+.text-responsive {
+  font-size: clamp(0.875rem, 2vw, 1rem);
+}
+
+.title-responsive {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.subtitle-responsive {
+  font-size: clamp(1.1rem, 3vw, 1.5rem);
+}
+
+/* Visibilidad responsiva */
+.hide-mobile {
+  display: block;
+}
+
+.hide-tablet {
+  display: block;
+}
+
+.hide-desktop {
+  display: none;
+}
+
+.show-mobile {
+  display: none;
+}
+
+.show-tablet {
+  display: none;
+}
+
+.show-desktop {
+  display: block;
+}
+
+/* Flexbox responsivo */
+.flex-responsive {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-lg);
+}
+
+.flex-column-mobile {
+  display: flex;
+}
+
+/* Modales y overlays responsivos */
+.modal-responsive {
+  width: 90%;
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: var(--spacing-xl);
+}
+
+.overlay-responsive {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+/* Botones responsivos */
+.btn-responsive {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  width: auto;
+}
+
+.btn-full-mobile {
+  width: auto;
+}
+
+/* Inputs responsivos */
+.input-responsive {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background-color: var(--color-input-bg);
+  color: var(--color-input-text);
+  transition: all 0.3s ease;
+}
+
+.input-responsive:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--shadow-focus);
+}
+
+/* Cards responsivos */
+.card-responsive {
+  background: var(--color-card-bg);
+  border-radius: 12px;
+  padding: var(--spacing-xl);
+  box-shadow: 0 2px 8px var(--color-shadow);
+  transition: all 0.3s ease;
+}
+
+.card-responsive:hover {
+  box-shadow: 0 4px 16px var(--color-shadow-hover);
+  transform: translateY(-2px);
+}
+
+/* ===== MEDIA QUERIES ===== */
+
+/* Tablet (768px - 1023px) */
+@media (max-width: 1023px) {
+  .container {
+    padding: 0 0.875rem;
+  }
+  
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .hide-tablet {
+    display: none;
+  }
+  
+  .show-tablet {
+    display: block;
+  }
+  
+  .modal-responsive {
+    width: 92%;
+    max-width: 550px;
+    padding: var(--spacing-lg);
+  }
+  
+  .btn-responsive {
+    padding: 0.65rem 1.25rem;
+    font-size: 0.95rem;
+  }
+  
+  .input-responsive {
+    padding: 0.65rem 0.875rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Móvil (hasta 767px) */
+@media (max-width: 767px) {
+  .container {
+    padding: 0 0.75rem;
+  }
+  
+  .grid-4,
+  .grid-3,
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .hide-mobile {
+    display: none;
+  }
+  
+  .show-mobile {
+    display: block;
+  }
+  
+  .flex-column-mobile {
+    flex-direction: column;
+  }
+  
+  .modal-responsive {
+    width: 95%;
+    max-width: 100%;
+    margin: 1rem auto;
+    padding: var(--spacing-md);
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  .overlay-responsive {
+    padding: 0.5rem;
+  }
+  
+  .btn-responsive {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .btn-full-mobile {
+    width: 100%;
+  }
+  
+  .input-responsive {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.9rem;
+  }
+  
+  .card-responsive {
+    padding: var(--spacing-lg);
+    border-radius: 10px;
+  }
+  
+  .p-responsive {
+    padding: var(--spacing-lg);
+  }
+  
+  .px-responsive {
+    padding-left: var(--spacing-md);
+    padding-right: var(--spacing-md);
+  }
+  
+  .py-responsive {
+    padding-top: var(--spacing-lg);
+    padding-bottom: var(--spacing-lg);
+  }
+}
+
+/* Móvil pequeño (hasta 480px) */
+@media (max-width: 480px) {
+  .container {
+    padding: 0 0.5rem;
+  }
+  
+  .modal-responsive {
+    width: 100%;
+    margin: 0.5rem auto;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: 8px;
+  }
+  
+  .btn-responsive {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.85rem;
+  }
+  
+  .input-responsive {
+    padding: 0.5rem 0.625rem;
+    font-size: 0.85rem;
+  }
+  
+  .card-responsive {
+    padding: var(--spacing-md);
+    border-radius: 8px;
+  }
+  
+  .p-responsive {
+    padding: var(--spacing-md);
+  }
+  
+  .px-responsive {
+    padding-left: var(--spacing-sm);
+    padding-right: var(--spacing-sm);
+  }
+  
+  .py-responsive {
+    padding-top: var(--spacing-md);
+    padding-bottom: var(--spacing-md);
+  }
+}
+
+/* Utilidades adicionales */
+.text-center-mobile {
+  text-align: left;
+}
+
+.justify-center-mobile {
+  justify-content: flex-start;
+}
+
+.align-center-mobile {
+  align-items: flex-start;
+}
+
+@media (max-width: 767px) {
+  .text-center-mobile {
+    text-align: center;
+  }
+  
+  .justify-center-mobile {
+    justify-content: center;
+  }
+  
+  .align-center-mobile {
+    align-items: center;
+  }
+}
+
+/* Gap responsivo */
+.gap-responsive {
+  gap: var(--spacing-lg);
+}
+
+@media (max-width: 767px) {
+  .gap-responsive {
+    gap: var(--spacing-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .gap-responsive {
+    gap: var(--spacing-sm);
+  }
+}
