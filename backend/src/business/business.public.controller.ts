@@ -16,23 +16,24 @@ export class BusinessPublicController {
 
   @Get('search')
   async searchPublic(@Query('q') q?: string): Promise<any[]> {
-    // MVP: reutilizamos obtenerNegocios y filtramos en memoria para exposición pública
-    // Retorna solo campos públicos
     const all = await this.businessService.obtenerNegocios();
     const list = Array.isArray(all) ? all : [];
-
+  
     const mapPublic = (b: any) => ({
       business_id: b.business_id,
       business_name: b.business_name,
       address: b.address,
       average_rating: b.average_rating,
-      verified: b.verified || false,
-      logo_url:
-        b.logo_url || 'https://res.cloudinary.com/demo/image/upload/sample.jpg',
+      logo_url: b.logo_url || 'https://res.cloudinary.com/demo/image/upload/sample.jpg',
       owner_email: b.user?.user_email || b.user?.email || null,
       owner_name: b.user?.people
         ? `${b.user.people.firstName || ''} ${b.user.people.firstLastName || ''}`.trim()
         : null,
+        
+ 
+      latitude: b.latitude,
+      longitude: b.longitude,
+      coordinates: b.coordinates, 
     });
 
     if (!q || !q.trim()) {

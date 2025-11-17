@@ -3,6 +3,20 @@ import { useLocation, useNavigate } from "react-router-dom";
 import "./inicio.css";
 import { API_URL } from "../../config/api";
 
+/* --- IMPORTACIONES PARA EL MAPA --- */
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+
+/* --- FIX PARA ICONOS DE LEAFLET --- */
+const defaultIcon = L.icon({
+  iconUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png",
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+});
+L.Marker.prototype.options.icon = defaultIcon;
+
 interface Accessibility {
   accessibility_id: number | string;
   accessibility_name: string;
@@ -39,6 +53,7 @@ export default function Inicio() {
   const [filtered, setFiltered] = useState<any[]>([]);
   const [selectedAccessibility, setSelectedAccessibility] = useState<number | string | null>(null);
   const [loadingAccessibilities, setLoadingAccessibilities] = useState(true);
+
   const goToDetail = (id: number | string) => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -134,7 +149,7 @@ export default function Inicio() {
       try {
         setLoading(true);
         setError(null);
-        // Usar endpoint público de búsqueda para máxima fluidez (también con usuarios autenticados)
+        // Usar endpoint público de búsqueda para máxima fluidez
         const resp = await fetch(`${API_URL}/business/public/search?q=${encodeURIComponent(q)}`, {
           method: "GET",
           signal,
@@ -166,7 +181,7 @@ export default function Inicio() {
     return () => controller.abort();
   }, [location.search]);
 
-  // Escuchar evento global para limpiar resultados inmediatamente cuando se borra el buscador
+  // Escuchar evento global para limpiar resultados
   useEffect(() => {
     const handler = () => {
       setQuery("");
@@ -179,14 +194,13 @@ export default function Inicio() {
     return () => window.removeEventListener('inclumap:clear-search', handler as EventListener);
   }, []);
 
-  // Auto-scroll to the results section while typing when there is an active query
+  // Auto-scroll a resultados
   useEffect(() => {
     if (!query) return;
-    // wait a tick to ensure the results grid is rendered
     const t = setTimeout(() => {
       const el = cardsRef.current;
       if (!el) return;
-      const offset = 80; // approximate navbar height
+      const offset = 80;
       const top = el.getBoundingClientRect().top + window.scrollY - offset;
       window.scrollTo({ top, behavior: 'smooth' });
     }, 50);
@@ -200,10 +214,15 @@ export default function Inicio() {
     if (location.search) window.history.replaceState({}, "", window.location.pathname);
   };
 
+  /* --- LÓGICA DE PUNTOS DEL MAPA --- */
+  // Si hay búsqueda activa (query o resultados filtrados), el mapa muestra solo esos.
+  // Si no, muestra todos los negocios (allBusinesses).
+  const mapPoints = (query || filtered.length > 0) ? filtered : allBusinesses;
+
   return (
     <div className="inicio-root">
 
-      {/* 1. Sección Hero - IncluMap: Tu mapa hacia la Inclusión y la Accesibilidad */}
+      {/* 1. Sección Hero */}
       <section className="hero">
         <div className="hero-overlay">
           <div className="hero-content">
@@ -326,8 +345,6 @@ export default function Inicio() {
       
       {/* 3. Explora por Categoría y Filtra tus Necesidades */}
       <main className="cards-section">
-
-        {/* Título de categorías SIEMPRE visible */}
         <h2>Explora por Categoría y Filtra tus Necesidades</h2>
         <p className="sub-title">Filtra por distancia, tipo de servicio o directamente por elementos de accesibilidad específicos.</p>
 
@@ -389,7 +406,7 @@ export default function Inicio() {
           </div>
         )}
 
-        {/* Grid de accesibilidades como botones (mostrar solo si NO hay búsqueda o filtro activo) */}
+        {/* Grid de accesibilidades */}
         {!query && !selectedAccessibility && (
           <div className="cards-grid">
             {loadingAccessibilities && <div className="loading">Cargando accesibilidades...</div>}
@@ -416,9 +433,7 @@ export default function Inicio() {
       </main>
 
       {/* 4. Comunidad y Respaldo */}
-      <section 
-        className="info-banner" 
-      >
+      <section className="info-banner">
           <div 
             className="info-banner-image" 
             style={{backgroundImage: `url('https://media.istockphoto.com/id/1428075845/es/foto/amigos-con-discapacidades-d%C3%A1ndose-la-mano.jpg?s=612x612&w=0&k=20&c=9kmptc8ckRTptHn7K-dZcY8OaNZfHggo5KkPtlXDeNM=')`}}
@@ -430,41 +445,83 @@ export default function Inicio() {
               En IncluMap, no solo encuentras lugares, ¡encuentras una comunidad! Accede a "reseñas y calificaciones de usuarios" con discapacidad para tomar decisiones informadas sobre dónde ir. Con tu ayuda, validamos la accesibilidad de cada rincón.
             </p>
             <button 
-  className="btn btn-primary"
-  onClick={() => navigate("/reviews")}
->
-  VER RESEÑAS CONFIABLES
-</button>
-
+              className="btn btn-primary"
+              onClick={() => navigate("/reviews")}
+            >
+              VER RESEÑAS CONFIABLES
+            </button>
           </div>
       </section>
       
-      {/* 5. Validación Impulsada por IA y Moderadores */}
-      <section className="ai-validation-section">
-        
-        <div className="ai-validation-content">
-          <h2>Validación Impulsada por IA y Moderadores</h2>
-          <p>
-            Garantizamos la "confiabilidad de la información". Al subir una foto, nuestra IA la analiza para detectar elementos de accesibilidad (rampas, pasamanos). Además, nuestros **administradores moderan** reseñas y fotos para asegurar que el contenido sea preciso y respetuoso.
+      {/* 5. Mapa Global de Accesibilidad (Reemplaza Validación IA) */}
+      <section className="global-map-section" style={{ padding: '3rem 5%', backgroundColor: '#f8f9fa' }}>
+        <div className="map-header" style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <h2 style={{ color: '#333', marginBottom: '0.5rem' }}>🗺️ Mapa Global de Accesibilidad</h2>
+          <p style={{ color: '#666', maxWidth: '600px', margin: '0 auto' }}>
+            Explora visualmente todos los puntos accesibles registrados. Usa el buscador superior para filtrar los resultados en el mapa.
           </p>
-          <div className="ai-features-grid">
-              <div>✅ Detección de Rampas por IA</div>
-              <div>✅ Verificación de Señalización</div>
-              <div>✅ Moderación Humana de Reseñas</div>
-              <div>✅ Respuestas de Propietarios</div>
-          </div>
-          <button 
-                className="btn btn-primary"
-                onClick={() => { navigate("/login"); }}
-              >
-                SUBIR MI PRIMERA FOTO
-          </button>
         </div>
-
-        <div 
-          className="ai-validation-image" 
-          style={{backgroundImage: `url('https://cdn.prod.website-files.com/64c96252c4314a904a4fb7bd/6722933ac6ab116274337e2b_La%20Inteligencia%20Artificial%20ofrece%20alternativas%20para%20las%20personas%20que%20tienen%20alguna%20discapacidad.webp')`}}
-        ></div>
+        
+        <div className="map-container-wrapper" style={{ 
+          height: '500px', 
+          width: '100%', 
+          borderRadius: '20px', 
+          overflow: 'hidden', 
+          boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+          border: '1px solid #e0e0e0'
+        }}>
+          <MapContainer 
+            center={[4.6097, -74.0817]} // Coordenadas por defecto (ej. Bogotá)
+            zoom={6} 
+            style={{ height: "100%", width: "100%" }}
+            scrollWheelZoom={false}
+          >
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            />
+            
+            {mapPoints.map((b) => {
+              // Validar que existan coordenadas
+              if (!b.latitude || !b.longitude) return null;
+              
+              return (
+                <Marker 
+                  key={b.business_id} 
+                  position={[parseFloat(b.latitude), parseFloat(b.longitude)]}
+                >
+                  <Popup>
+                    <div style={{ textAlign: 'center', minWidth: '200px' }}>
+                      {b.logo_url && (
+                        <img 
+                          src={b.logo_url} 
+                          alt={b.business_name} 
+                          style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '8px', marginBottom: '8px' }} 
+                        />
+                      )}
+                      <strong style={{ fontSize: '1.1em', display: 'block', marginBottom: '4px' }}>{b.business_name}</strong>
+                      <span style={{ fontSize: '0.9em', color: '#555', display: 'block', marginBottom: '8px' }}>{b.address}</span>
+                      
+                      {b.average_rating && (
+                        <div style={{ color: '#f39c12', marginBottom: '8px', fontWeight: 'bold' }}>
+                          ⭐ {Number(b.average_rating).toFixed(1)}
+                        </div>
+                      )}
+                      
+                      <button 
+                        className="btn btn-primary"
+                        style={{ padding: '5px 15px', fontSize: '0.9rem', width: '100%' }}
+                        onClick={() => goToDetail(b.business_id)}
+                      >
+                        Ver Detalle
+                      </button>
+                    </div>
+                  </Popup>
+                </Marker>
+              );
+            })}
+          </MapContainer>
+        </div>
       </section>
     </div>
   );
