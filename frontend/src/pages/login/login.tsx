@@ -1,4 +1,4 @@
-// frontend/src/pages/login/login.tsx (Corregido)
+// frontend/src/pages/login/login.tsx
 
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -65,45 +65,42 @@ export default function Login() {
         user_password: password,
       });
 
-      // --- INICIO MODIFICACIÓN: Lógica de Admin ---
       if (res?.token) {
         const payload = decodeJwt(res.token);
-        // Basado en tu AuthContext, los roles vienen en 'rolIds'. El ID 1 es Admin.
-        const rolIds: number[] = payload?.rolIds || []; 
+        
+        // --- LOGICA CORREGIDA: Permitir acceso a todos los roles ---
+        // Se ha eliminado la restricción: if (rolIds.includes(1)) ...
+        
+        await login(res.token);
 
-        if (rolIds.includes(1)) {
-          // Si es Admin, rechazar
-          setError("Acceso denegado");
-        } else {
-          // Si NO es Admin (Usuario o Propietario), proceder con tu lógica original
-          await login(res.token);
-          // Guardar o eliminar la cuenta según "Recordarme"
-          try {
-            const next = [...savedAccounts];
-            const idx = next.findIndex((a) => a.email === email);
-            if (rememberMe) {
-              const entry = { email, password };
-              if (idx >= 0) next[idx] = entry; else next.push(entry);
-            } else if (idx >= 0) {
-              next.splice(idx, 1);
-            }
-            localStorage.setItem('savedAccounts', JSON.stringify(next));
-            setSavedAccounts(next);
-          } catch {
-            // si falla localStorage no debe romper el login
+        // Guardar o eliminar la cuenta según "Recordarme"
+        try {
+          const next = [...savedAccounts];
+          const idx = next.findIndex((a) => a.email === email);
+          if (rememberMe) {
+            const entry = { email, password };
+            if (idx >= 0) next[idx] = entry; else next.push(entry);
+          } else if (idx >= 0) {
+            next.splice(idx, 1);
           }
-          const firstName = payload?.firstName || "";
-          const lastName = payload?.firstLastName || "";
-          const name = `${firstName} ${lastName}`.trim() || email;
-          setToast({ visible: true, text: `Bienvenido, ${name}` });
-          setTimeout(() => {
-            setToast({ visible: false, text: "" });
-            navigate("/");
-          }, 1000);
+          localStorage.setItem('savedAccounts', JSON.stringify(next));
+          setSavedAccounts(next);
+        } catch {
+          // si falla localStorage no debe romper el login
         }
-      // --- FIN MODIFICACIÓN ---
+
+        const firstName = payload?.firstName || "";
+        const lastName = payload?.firstLastName || "";
+        const name = `${firstName} ${lastName}`.trim() || email;
+        
+        setToast({ visible: true, text: `Bienvenido, ${name}` });
+        
+        setTimeout(() => {
+          setToast({ visible: false, text: "" });
+          navigate("/");
+        }, 1000);
+
       } else {
-        // Tu lógica original si no hay token
         navigate("/");
       }
     } catch (err: any) {
@@ -127,32 +124,25 @@ export default function Login() {
     try {
       const res = await loginWithGoogle(idToken);
 
-      // --- INICIO MODIFICACIÓN: Lógica de Admin (Google) ---
       if (res?.token) {
         const payload = decodeJwt(res.token);
-        const rolIds: number[] = payload?.rolIds || [];
+        
+        // --- LOGICA CORREGIDA: Permitir acceso a todos los roles (Google) ---
+        
+        await login(res.token);
+        const name = `${payload?.firstName || ''} ${payload?.firstLastName || ''}`.trim() || payload?.user_email || 'Usuario';
 
-        if (rolIds.includes(1)) {
-           // Si es Admin, rechazar
-          setError("Acceso denegado");
-        } else {
-          // Si NO es Admin, proceder con tu lógica original
-          await login(res.token);
-          const name = `${payload?.firstName || ''} ${payload?.firstLastName || ''}`.trim() || payload?.user_email || 'Usuario';
+        setToast({ visible: true, text: `Bienvenido, ${name}` });
 
-          setToast({ visible: true, text: `Bienvenido, ${name}` });
+        setTimeout(() => {
+          setToast({ visible: false, text: "" });
+          navigate("/", { replace: true });
+        }, 1000);
 
-          setTimeout(() => {
-            setToast({ visible: false, text: "" });
-            navigate("/", { replace: true });
-          }, 1000);
-        }
-      // --- FIN MODIFICACIÓN ---
       } else {
         setError("Respuesta inesperada del servidor tras login con Google.");
       }
     } catch (err: any) {
-      // Verificar si es el error de usuario no registrado
       if (err?.message?.includes('Usuario no registrado')) {
         setShowRegistrationModal(true);
       } else {
@@ -304,11 +294,9 @@ export default function Login() {
               )}
             </div>
 
-            {/* --- INICIO MODIFICACIÓN: Enlace a /admin --- */}
             <div className="links" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <a href="/registro">¿No tienes cuenta? Regístrate</a>
             </div>
-            {/* --- FIN MODIFICACIÓN --- */}
 
           </div>
         </section>
