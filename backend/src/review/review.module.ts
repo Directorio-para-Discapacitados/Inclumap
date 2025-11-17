@@ -6,12 +6,14 @@ import { ReviewEntity } from './entity/review.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { SentimentModule } from 'src/sentiment/sentiment.module';
+import { NotificationModule } from 'src/notification/notification.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([ReviewEntity, BusinessEntity]),
     AuthModule,
     SentimentModule,
+    NotificationModule,
   ],
   providers: [ReviewService],
   controllers: [ReviewController],
