@@ -13,7 +13,6 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [toast, setToast] = useState<{ visible: boolean; text: string }>({ visible: false, text: "" });
   const [showRegistrationModal, setShowRegistrationModal] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [savedAccounts, setSavedAccounts] = useState<Array<{ email: string; password: string }>>([]);
@@ -89,16 +88,7 @@ export default function Login() {
           // si falla localStorage no debe romper el login
         }
 
-        const firstName = payload?.firstName || "";
-        const lastName = payload?.firstLastName || "";
-        const name = `${firstName} ${lastName}`.trim() || email;
-        
-        setToast({ visible: true, text: `Bienvenido, ${name}` });
-        
-        setTimeout(() => {
-          setToast({ visible: false, text: "" });
-          navigate("/");
-        }, 1000);
+        navigate("/");
 
       } else {
         navigate("/");
@@ -130,14 +120,7 @@ export default function Login() {
         // --- LOGICA CORREGIDA: Permitir acceso a todos los roles (Google) ---
         
         await login(res.token);
-        const name = `${payload?.firstName || ''} ${payload?.firstLastName || ''}`.trim() || payload?.user_email || 'Usuario';
-
-        setToast({ visible: true, text: `Bienvenido, ${name}` });
-
-        setTimeout(() => {
-          setToast({ visible: false, text: "" });
-          navigate("/", { replace: true });
-        }, 1000);
+        navigate("/", { replace: true });
 
       } else {
         setError("Respuesta inesperada del servidor tras login con Google.");
@@ -168,13 +151,6 @@ export default function Login() {
 
   return (
     <div className="login-page">
-      {toast.visible && (
-        <div className="toast toast-success" role="status" aria-live="polite">
-          <span className="toast-icon">✓</span>
-          <span>{toast.text}</span>
-        </div>
-      )}
-
       {showRegistrationModal && (
         <div className="modal-overlay" onClick={handleModalClose}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
