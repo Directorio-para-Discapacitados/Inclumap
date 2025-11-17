@@ -235,6 +235,7 @@ export class ReviewService {
         'user.user_id',
         'people.firstName', 
         'people.firstLastName', 
+        'people.avatar'
       ])
       .orderBy('review.created_at', 'DESC')
       .getMany();
@@ -253,6 +254,7 @@ export class ReviewService {
         user_id: review.user.user_id,
         name: review.user.people?.firstName,
         lastname: review.user.people?.firstLastName,
+        avatar: review.user.people?.avatar
       }
     }));
   }
@@ -262,6 +264,7 @@ export class ReviewService {
       .createQueryBuilder('review')
       .leftJoin('review.business', 'business')
       .leftJoin('review.user', 'user')
+      .leftJoin('user.people', 'people')
       .select([
         // Reseña
         'review.review_id', 'review.rating', 'review.comment', 'review.created_at',
@@ -270,6 +273,9 @@ export class ReviewService {
         'business.business_id', 'business.business_name', 'business.average_rating',
         // Usuario (User) - Solo ID
         'user.user_id',
+        // Persona (People)
+        'people.avatar', 'people.firstName',    
+        'people.firstLastName'
       ])
       .where('user.user_id = :userId', { userId })
       .orderBy('review.created_at', 'DESC')
