@@ -16,15 +16,15 @@ export class SuggestionScheduler {
   ) {}
 
   /**
-   * Cron Job que se ejecuta cada 6 horas
+   * Cron Job que se ejecuta cada 10 minutos
    * Busca el local con mayor calificación (> 4.0) y lo sugiere a todos los usuarios
    */
-  @Cron('0 */6 * * *', {
-    name: 'every-6-hours-top-business-suggestion',
+  @Cron('*/10 * * * *', {
+    name: 'every-10-minutes-top-business-suggestion',
     timeZone: 'America/Bogota',
   })
   async suggestTopBusiness() {
-    this.logger.log('🔄 Ejecutando tarea cada 6 horas: Sugerir local top...');
+    this.logger.log('🔄 Ejecutando tarea cada 10 minutos: Sugerir local top...');
 
     try {
       // Buscar el local con mayor average_rating que sea mayor a 4.0

@@ -26,10 +26,10 @@ const NotificationBell: React.FC = () => {
     }
   };
 
-  // Cargar al montar y cada 60 segundos
+  // Cargar al montar y cada 10 minutos
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 60000);
+    const interval = setInterval(fetchNotifications, 600000); // 10 minutos
     return () => clearInterval(interval);
   }, []);
 
