@@ -38,6 +38,7 @@ export default function Registro() {
   const [showMap, setShowMap] = useState(false);
   const [mapInitialCoords, setMapInitialCoords] = useState({ lat: 4.6097, lng: -74.0817 });
   const [locationDetected, setLocationDetected] = useState(false);
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
 
   const [formData, setFormData] = useState({
     user_email: "",
@@ -81,16 +82,32 @@ export default function Registro() {
   // Auto-detectar ubicación al cargar
   useEffect(() => {
     if (navigator.geolocation && isLoaded) {
-      navigator.geolocation.getCurrentPosition((pos) => {
+      setIsDetectingLocation(true);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
           const { latitude, longitude } = pos.coords;
           setCoordinates(`${latitude},${longitude}`);
           setMapInitialCoords({ lat: latitude, lng: longitude }); // Esto centra el mapa al abrirlo
           setLocationDetected(true);
+          setIsDetectingLocation(false);
           
           // Llenar campos automáticamente
           geocodePosition(latitude, longitude);
+          toast.info("📍 Ubicación detectada automáticamente", { 
+            position: "top-center", 
+            autoClose: 3000 
+          });
         },
-        () => setCoordinates("0,0")
+        (error) => {
+          console.warn("Error al obtener ubicación:", error);
+          setCoordinates("0,0");
+          setLocationDetected(false);
+          setIsDetectingLocation(false);
+          toast.warning("⚠️ No se pudo detectar tu ubicación. Puedes seleccionarla manualmente en el mapa.", {
+            position: "top-center",
+            autoClose: 4000
+          });
+        }
       );
     }
   }, [isLoaded]);
@@ -98,14 +115,70 @@ export default function Registro() {
   // Manejar confirmación del mapa
   const handleMapConfirm = (lat: number, lng: number, address?: string) => {
     setCoordinates(`${lat},${lng}`);
+    setMapInitialCoords({ lat, lng }); // Actualizar coordenadas para futuros usos del mapa
     if (address) {
       setFormData(prev => ({
         ...prev,
         business_address: address // Solo actualizamos la del negocio
       }));
-      toast.success("📍 Dirección actualizada desde el mapa");
+      toast.success("📍 Dirección actualizada desde el mapa", { 
+        position: "top-center", 
+        autoClose: 2000 
+      });
     }
     setShowMap(false);
+  };
+
+  // Función para abrir el mapa y detectar ubicación si no está disponible
+  const handleOpenMap = () => {
+    // Si ya tenemos ubicación, abrir directamente
+    if (locationDetected) {
+      setShowMap(true);
+      return;
+    }
+
+    // Si no, intentar detectar antes de abrir
+    if (navigator.geolocation && isLoaded) {
+      setIsDetectingLocation(true);
+      toast.info("🔍 Detectando tu ubicación actual...", { 
+        position: "top-center", 
+        autoClose: 2000 
+      });
+      
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          setCoordinates(`${latitude},${longitude}`);
+          setMapInitialCoords({ lat: latitude, lng: longitude });
+          setLocationDetected(true);
+          setIsDetectingLocation(false);
+          setShowMap(true);
+          
+          toast.success("✅ Ubicación detectada", { 
+            position: "top-center", 
+            autoClose: 2000 
+          });
+        },
+        (error) => {
+          console.warn("Error al obtener ubicación:", error);
+          setIsDetectingLocation(false);
+          // Abrir el mapa de todas formas con ubicación por defecto
+          setShowMap(true);
+          toast.warning("⚠️ No se pudo detectar tu ubicación automáticamente. Selecciona manualmente en el mapa.", {
+            position: "top-center",
+            autoClose: 4000
+          });
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
+        }
+      );
+    } else {
+      // Si no hay soporte de geolocalización, abrir directamente
+      setShowMap(true);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -234,12 +307,25 @@ export default function Registro() {
                   <button 
                     type="button" 
                     className="map-picker-btn" 
-                    onClick={() => setShowMap(true)} // Abre el mapa
-                    title="Ubicación exacta del local"
+                    onClick={handleOpenMap}
+                    disabled={isDetectingLocation}
+                    title={isDetectingLocation ? "Detectando ubicación..." : "Seleccionar ubicación en el mapa"}
                   >
-                    <MapPin size={20} />
+                    {isDetectingLocation ? (
+                      <span style={{ fontSize: '12px' }}>...</span>
+                    ) : (
+                      <MapPin size={20} />
+                    )}
                   </button>
                 </div>
+                
+                {/* Indicador de ubicación detectada */}
+                {locationDetected && coordinates !== "0,0" && (
+                  <div className="location-status-info">
+                    <span className="location-icon">✓</span>
+                    <span className="location-text">Ubicación detectada: {coordinates}</span>
+                  </div>
+                )}
 
                 <input name="NIT" type="number" placeholder="NIT" value={formData.NIT} onChange={handleChange} required />
                 <div className="registro-step-buttons">

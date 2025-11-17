@@ -5,10 +5,11 @@ import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../../context/AuthContext";
+import { useJsApiLoader } from "@react-google-maps/api";
 import LocationPicker from "../LocationPicker/LocationPicker";
 
-
-
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
+const libraries: ("places" | "geometry" | "drawing" | "visualization")[] = ["places"];
 const API_URL = "http://localhost:9080";
 
 
@@ -39,6 +40,7 @@ export default function CrearNegocio() {
   const [selectedAccessibility, setSelectedAccessibility] = useState<number[]>([]);
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     business_name: "",
@@ -47,64 +49,136 @@ export default function CrearNegocio() {
     description: "",
   });
 
+  // Cargar API de Google Maps
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+    libraries: libraries,
+    language: 'es',
+  });
 
+  // Función de geocodificación interna
+  const geocodePosition = (lat: number, lng: number) => {
+    if (!window.google || !window.google.maps) return;
+    const geocoder = new window.google.maps.Geocoder();
+    geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+      if (status === "OK" && results && results[0]) {
+        const cleanAddress = results[0].formatted_address.replace(", Colombia", "");
+        setFormData(prev => ({
+          ...prev,
+          business_address: prev.business_address || cleanAddress
+        }));
+      }
+    });
+  };
 
-
+  // Auto-detectar ubicación al cargar
   useEffect(() => {
-
-    if (navigator.geolocation) {
-
+    if (navigator.geolocation && isLoaded) {
+      setIsDetectingLocation(true);
       navigator.geolocation.getCurrentPosition(
-
         (pos) => {
-
           const { latitude, longitude } = pos.coords;
-
           setCoordinates(`${latitude},${longitude}`);
-
-          setMapInitialCoords({ lat: latitude, lng: longitude }); // Actualizar centro del mapa
-
+          setMapInitialCoords({ lat: latitude, lng: longitude });
           setLocationDetected(true);
-
+          setIsDetectingLocation(false);
+          
+          // Llenar campos automáticamente
+          geocodePosition(latitude, longitude);
+          toast.info("📍 Ubicación detectada automáticamente", { 
+            position: "top-center", 
+            autoClose: 3000 
+          });
         },
-
-        () => {
-
+        (error) => {
+          console.warn("Error al obtener ubicación:", error);
           setCoordinates("0,0");
-
           setLocationDetected(false);
-
+          setIsDetectingLocation(false);
+          toast.warning("⚠️ No se pudo detectar tu ubicación. Puedes seleccionarla manualmente en el mapa.", {
+            position: "top-center",
+            autoClose: 4000
+          });
         }
-
       );
-
     }
-
-  }, []);
-
+  }, [isLoaded]);
 
 
+
+  // Manejar confirmación del mapa
   const handleMapConfirm = (lat: number, lng: number, address?: string) => {
-
     setCoordinates(`${lat},${lng}`);
-
+    setMapInitialCoords({ lat, lng }); // Actualizar coordenadas para futuros usos del mapa
     setLocationDetected(true);
-
    
-
     // Si la API devolvió una dirección, autocompletarla
-
     if (address) {
-
       setFormData(prev => ({ ...prev, business_address: address }));
-      toast.info("📍 Dirección y coordenadas actualizadas desde el mapa");
+      toast.success("📍 Dirección actualizada desde el mapa", { 
+        position: "top-center", 
+        autoClose: 2000 
+      });
     } else {
-      toast.success("📍 Coordenadas exactas guardadas");
+      toast.success("📍 Coordenadas exactas guardadas", { 
+        position: "top-center", 
+        autoClose: 2000 
+      });
+    }
+    setShowMap(false);
+  };
 
+  // Función para abrir el mapa y detectar ubicación si no está disponible
+  const handleOpenMap = () => {
+    // Si ya tenemos ubicación, abrir directamente
+    if (locationDetected) {
+      setShowMap(true);
+      return;
     }
 
-    setShowMap(false);
-
+    // Si no, intentar detectar antes de abrir
+    if (navigator.geolocation && isLoaded) {
+      setIsDetectingLocation(true);
+      toast.info("🔍 Detectando tu ubicación actual...", { 
+        position: "top-center", 
+        autoClose: 2000 
+      });
+      
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          setCoordinates(`${latitude},${longitude}`);
+          setMapInitialCoords({ lat: latitude, lng: longitude });
+          setLocationDetected(true);
+          setIsDetectingLocation(false);
+          setShowMap(true);
+          
+          toast.success("✅ Ubicación detectada", { 
+            position: "top-center", 
+            autoClose: 2000 
+          });
+        },
+        (error) => {
+          console.warn("Error al obtener ubicación:", error);
+          setIsDetectingLocation(false);
+          // Abrir el mapa de todas formas con ubicación por defecto
+          setShowMap(true);
+          toast.warning("⚠️ No se pudo detectar tu ubicación automáticamente. Selecciona manualmente en el mapa.", {
+            position: "top-center",
+            autoClose: 4000
+          });
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
+        }
+      );
+    } else {
+      // Si no hay soporte de geolocalización, abrir directamente
+      setShowMap(true);
+    }
   };
 
 
@@ -328,47 +402,39 @@ export default function CrearNegocio() {
 
            
 
-            {/* --- CAMBIO: Input de dirección con botón de mapa --- */}
-
+            {/* Input de dirección con botón de mapa */}
             <div className="input-with-action">
-
               <input
-
                 name="business_address"
-
                 type="text"
-
                 placeholder="Dirección del negocio (o selecciona en mapa 👉)"
-
                 value={formData.business_address}
-
                 onChange={handleChange}
-
                 required
-
-                style={{ flex: 1 }} // Ocupa el espacio menos el botón
-
+                style={{ flex: 1 }}
               />
-
               <button
-
                 type="button"
-
                 className="map-picker-btn"
-
-                onClick={() => setShowMap(true)}
-
-                title="Seleccionar ubicación exacta en el mapa"
-
+                onClick={handleOpenMap}
+                disabled={isDetectingLocation}
+                title={isDetectingLocation ? "Detectando ubicación..." : "Seleccionar ubicación en el mapa"}
               >
-
-                <MapPin size={20} />
-
+                {isDetectingLocation ? (
+                  <span style={{ fontSize: '12px' }}>...</span>
+                ) : (
+                  <MapPin size={20} />
+                )}
               </button>
-
             </div>
-
-            {/* -------------------------------------------------- */}
+            
+            {/* Indicador de ubicación detectada */}
+            {locationDetected && coordinates !== "0,0" && (
+              <div className="location-status-info">
+                <span className="location-icon">✓</span>
+                <span className="location-text">Ubicación detectada: {coordinates}</span>
+              </div>
+            )}
 
            
 
