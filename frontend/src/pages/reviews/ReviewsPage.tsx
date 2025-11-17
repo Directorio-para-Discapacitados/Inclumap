@@ -1,20 +1,30 @@
 import { useEffect, useState } from "react";
-import { api } from "../../config/api"; // ← axios instance correcta
+import { useNavigate } from "react-router-dom";
+import { api } from "../../config/api";
+import "./reviews.css";
 
 export default function ReviewsPage() {
   const [reviews, setReviews] = useState<any[]>([]);
   const [filtered, setFiltered] = useState<any[]>([]);
+  const navigate = useNavigate();
 
-  const [ratingFilter, setRatingFilter] = useState("");
-  const [sortBy, setSortBy] = useState("");
+  const [category, setCategory] = useState("all");
+  const [rating, setRating] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
 
-  // Cargar reseñas desde el backend
+  const categories = [
+    { key: "all", label: "Todas" },
+    { key: "access", label: "Accesibilidad" },
+    { key: "service", label: "Servicio" },
+    { key: "comfort", label: "Comodidad" },
+    { key: "food", label: "Comida" },
+  ];
+
   const fetchReviews = async () => {
     try {
-      const res = await api.get("/reviews"); // ← RUTA CORRECTA
+      const res = await api.get("/reviews");
       setReviews(res.data);
       setFiltered(res.data);
-      console.log("Reseñas cargadas:", res.data);
     } catch (err) {
       console.error("Error cargando reseñas:", err);
     }
@@ -24,127 +34,143 @@ export default function ReviewsPage() {
     fetchReviews();
   }, []);
 
-  /** ---- Filtros ---- **/
+  // FILTROS Y ORDENAMIENTO
   useEffect(() => {
-    let data = [...reviews];
+    let temp = [...reviews];
 
-    // ⭐ Filtrar por rating exacto
-    if (ratingFilter !== "") {
-      data = data.filter((r) => r.rating === Number(ratingFilter));
+    if (category !== "all") {
+      temp = temp.filter((r) => r.category === category);
     }
 
-    // 🔽 Ordenamientos
-    if (sortBy === "rating_desc") {
-      data.sort((a, b) => b.rating - a.rating);
+    if (rating !== "") {
+      temp = temp.filter((r) => r.rating === Number(rating));
     }
-    if (sortBy === "rating_asc") {
-      data.sort((a, b) => a.rating - b.rating);
-    }
-    if (sortBy === "date_desc") {
-      data.sort(
+
+    if (sortBy === "newest") {
+      temp.sort(
         (a, b) =>
           new Date(b.created_at).getTime() -
           new Date(a.created_at).getTime()
       );
-    }
-    if (sortBy === "date_asc") {
-      data.sort(
+    } else if (sortBy === "oldest") {
+      temp.sort(
         (a, b) =>
           new Date(a.created_at).getTime() -
           new Date(b.created_at).getTime()
       );
+    } else if (sortBy === "rating-high") {
+      temp.sort((a, b) => b.rating - a.rating);
+    } else if (sortBy === "rating-low") {
+      temp.sort((a, b) => a.rating - b.rating);
     }
 
-    setFiltered(data);
-  }, [ratingFilter, sortBy, reviews]);
+    setFiltered(temp);
+  }, [category, rating, sortBy, reviews]);
 
   return (
-    <div className="min-h-screen bg-white p-4 md:p-10 text-neutral-900">
-      {/* Header */}
-      <h1 className="text-3xl font-bold mb-6 text-neutral-800">
-        ⭐ Reseñas de la Comunidad
-      </h1>
+    <div className="revContainer">
 
-      <p className="text-neutral-600 mb-8 max-w-lg leading-relaxed">
-        Explorá las experiencias compartidas por la comunidad.  
-        Esta vista está pensada para ser accesible, inclusiva y clara.  
-        Podés ordenar y filtrar las reseñas según tus necesidades.
-      </p>
+      {/* HEADER */}
+      <div className="revHeader">
+        <h2 className="revTitle">Reseñas de la comunidad</h2>
 
-      {/* Filtros */}
-      <div className="mb-8 flex flex-col md:flex-row gap-4 md:items-end">
-        {/* Filtro de rating */}
-        <div className="flex flex-col w-full max-w-xs">
-          <label className="text-sm font-medium mb-1">Filtrar por calificación</label>
-          <select
-            value={ratingFilter}
-            onChange={(e) => setRatingFilter(e.target.value)}
-            className="border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Todos los ratings</option>
-            <option value="1">⭐ 1</option>
-            <option value="2">⭐ 2</option>
-            <option value="3">⭐ 3</option>
-            <option value="4">⭐ 4</option>
-            <option value="5">⭐ 5</option>
-          </select>
+        <div className="revStats">
+          <span className="revScore">⭐⭐⭐⭐⭐</span>
         </div>
 
-        {/* Ordenamiento */}
-        <div className="flex flex-col w-full max-w-xs">
-          <label className="text-sm font-medium mb-1">Ordenar por</label>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="border border-neutral-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Sin orden</option>
-            <option value="rating_desc">Rating: mayor a menor</option>
-            <option value="rating_asc">Rating: menor a mayor</option>
-            <option value="date_desc">Fecha: más reciente</option>
-            <option value="date_asc">Fecha: más antigua</option>
-          </select>
+        {/* CATEGORY FILTERS */}
+        <div className="revCategories">
+          {categories.map((c) => (
+            <button
+              key={c.key}
+              className={`revCategoryBtn ${category === c.key ? "active" : ""}`}
+              onClick={() => setCategory(c.key)}
+            >
+              {c.label}
+            </button>
+          ))}
+        </div>
+
+        {/* FILTER SELECTS */}
+        <div className="revFilters">
+
+          <div className="revFilterItem">
+            <label>Filtrar por Rating:</label>
+            <select value={rating} onChange={(e) => setRating(e.target.value)}>
+              <option value="">Todos</option>
+              <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+              <option value="4">⭐⭐⭐⭐ (4)</option>
+              <option value="3">⭐⭐⭐ (3)</option>
+              <option value="2">⭐⭐ (2)</option>
+              <option value="1">⭐ (1)</option>
+            </select>
+          </div>
+
+          <div className="revFilterItem">
+            <label>Ordenar por:</label>
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+              <option value="newest">Más recientes</option>
+              <option value="oldest">Más antiguas</option>
+              <option value="rating-high">Mejor calificación</option>
+              <option value="rating-low">Peor calificación</option>
+            </select>
+          </div>
+
         </div>
       </div>
 
-      {/* Lista de reseñas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* LISTA DE RESEÑAS */}
+      <div className="revList">
         {filtered.map((r) => (
-          <div
-            key={r.review_id}
-            className="border border-neutral-200 rounded-xl p-5 shadow-sm hover:shadow-md transition"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <p className="font-semibold text-lg">
-                {r.business?.name ?? "Negocio desconocido"}
-              </p>
-              <span className="bg-blue-600 text-white text-sm px-2 py-1 rounded-lg">
-                ⭐ {r.rating}
+          <div key={r.review_id} className="revCard">
+
+            <div className="revCardTop">
+              <img
+                src={r.user?.avatar || "/default-user.png"}
+                className="revAvatar"
+                alt="avatar"
+              />
+
+              <div className="revUserInfo">
+                <p className="revUserName">{r.user?.name ?? "Usuario"}</p>
+                <span className="revRating">⭐ {r.rating}</span>
+              </div>
+
+              <span className="revDate">
+                {new Date(r.created_at).toLocaleDateString()}
               </span>
             </div>
 
-            <p className="text-neutral-700 mb-3 text-sm">
-              {r.comment || "Sin comentario."}
-            </p>
+            {/* NEW — BUSINESS NAME */}
+                  <p
+  className="revBusinessName"
+  onClick={() => navigate(`/local/${r.business?.business_id}`)}
+  style={{ cursor: "pointer" }}
+>
+  {r.business?.business_name}
+</p>
 
-            <div className="text-xs text-neutral-500 flex justify-between">
-              <span>Por: {r.user?.name ?? "Usuario"}</span>
-              <span>
-                {r.created_at
-                  ? new Date(r.created_at).toLocaleDateString()
-                  : "Fecha no disponible"}
-              </span>
-            </div>
+
+            <p className="revComment">{r.comment}</p>
+
+            {r.images?.length > 0 && (
+              <div className="revImages">
+                {r.images.map((img: string, i: number) => (
+                  <img key={i} src={img} className="revImgItem" alt="foto reseña" />
+                ))}
+              </div>
+            )}
+
           </div>
         ))}
       </div>
 
-      {/* Sin resultados */}
-      {filtered.length === 0 && (
-        <p className="text-neutral-500 text-center mt-10">
-          No se encontraron reseñas con los filtros seleccionados.
-        </p>
-      )}
+      {/* BOTÓN PARA ESCRIBIR */}
+      <div className="revWriteContainer">
+        <button className="revWriteBtn">
+          ✚ Escribe tu reseña
+        </button>
+      </div>
     </div>
   );
 }

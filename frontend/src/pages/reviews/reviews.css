@@ -1,92 +1,251 @@
-.reviews-wrapper {
+/* ----------------------------------------------------
+   CONTENEDOR GENERAL
+---------------------------------------------------- */
+.revContainer {
+  width: 100%;
   max-width: 900px;
   margin: 0 auto;
-  padding: 2rem;
-  font-family: system-ui, sans-serif;
-  color: #222;
+  padding: 20px;
+  font-family: "Inter", sans-serif;
+  color: var(--rev-text);
+  background: var(--rev-bg);
+  transition: 0.3s ease;
 }
 
-.reviews-header h1 {
+/* Variables de color (Light/Dark mode friendly) */
+:root {
+  --rev-bg: #ffffff;
+  --rev-text: #222;
+  --rev-muted: #666;
+  --rev-card-bg: #fafafa;
+  --rev-border: #e6e6e6;
+  --rev-primary: #0077ff;
+  --rev-primary-light: #e9f3ff;
+}
+
+/* Dark mode */
+[data-theme="dark"] .revContainer {
+  --rev-bg: #121212;
+  --rev-text: #f0f0f0;
+  --rev-muted: #bbbbbb;
+  --rev-card-bg: #1e1e1e;
+  --rev-border: #333;
+  --rev-primary: #3ea3ff;
+  --rev-primary-light: #1c2836;
+}
+
+/* ----------------------------------------------------
+   HEADER + TITULO
+---------------------------------------------------- */
+.revHeader {
+  text-align: center;
+  margin-bottom: 35px;
+}
+
+.revTitle {
   font-size: 2rem;
-  margin-bottom: 0.3rem;
+  font-weight: 700;
+  color: var(--rev-text);
+  margin-bottom: 10px;
 }
 
-.subtitle {
-  color: #444;
-  line-height: 1.5;
-  margin-bottom: 1.5rem;
-}
-
-.filters-container {
+.revStats {
   display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-  margin-bottom: 2rem;
-  padding: 1rem;
-  background: #f7f7f7;
-  border-radius: 12px;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  color: var(--rev-muted);
+  font-size: 0.95rem;
 }
 
-.filter-item {
+.revScore {
+  font-weight: 600;
+  color: var(--rev-text);
+}
+
+/* ----------------------------------------------------
+   CATEGORÍAS
+---------------------------------------------------- */
+.revCategories {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.revCategoryBtn {
+  padding: 10px 16px;
+  border-radius: 25px;
+  background: var(--rev-card-bg);
+  border: 1px solid var(--rev-border);
+  cursor: pointer;
+  transition: 0.25s ease;
+  font-size: 0.9rem;
+  color: var(--rev-text);
+}
+
+.revCategoryBtn:hover {
+  background: var(--rev-primary-light);
+}
+
+.revCategoryBtn.active {
+  background: var(--rev-primary);
+  color: white;
+  border-color: var(--rev-primary);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ----------------------------------------------------
+   LISTA DE RESEÑAS
+---------------------------------------------------- */
+.revList {
   display: flex;
   flex-direction: column;
-  min-width: 180px;
+  gap: 18px;
 }
 
-.filter-item label {
-  font-size: 0.9rem;
-  margin-bottom: 0.2rem;
-}
-
-input,
-select {
-  padding: 0.5rem 0.6rem;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
-
-.business-list {
-  list-style: none;
-  padding: 0;
-}
-
-.business-card {
-  background: white;
-  padding: 1.3rem;
+/* ----------------------------------------------------
+   TARJETA DE RESEÑA
+---------------------------------------------------- */
+.revCard {
+  background: var(--rev-card-bg);
+  border: 1px solid var(--rev-border);
   border-radius: 14px;
-  margin-bottom: 1rem;
-  border: 1px solid #e2e2e2;
-  transition: 0.2s;
+  padding: 18px 20px;
+  transition: 0.3s ease;
+  animation: fadeIn 0.4s ease;
 }
 
-.business-card:hover {
-  background: #fafafa;
+.revCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
 }
 
-.business-title {
-  margin: 0;
+/* Animación de fade */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.rating-summary {
+/* ----------------------------------------------------
+   HEADER DE LA TARJETA
+---------------------------------------------------- */
+.revCardTop {
   display: flex;
   align-items: center;
-  font-size: 1.1rem;
-  margin-top: 0.5rem;
+  gap: 14px;
+  justify-content: space-between;
+  margin-bottom: 10px;
 }
 
-.stars {
-  font-size: 1.3rem;
-  margin-right: 0.4rem;
+.revAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--rev-border);
 }
 
-.reviews-count {
-  color: #666;
-  margin-top: 0.5rem;
+.revUserInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
-.loading-text,
-.no-results {
-  text-align: center;
-  color: #444;
-  margin-top: 2rem;
+.revUserName {
+  font-weight: 600;
+  color: var(--rev-text);
+}
+
+.revRating {
+  font-size: 0.9rem;
+  color: var(--rev-primary);
+}
+
+.revDate {
+  font-size: 0.8rem;
+  color: var(--rev-muted);
+}
+
+/* ----------------------------------------------------
+   TEXTO DEL COMENTARIO
+---------------------------------------------------- */
+.revComment {
+  margin-top: 10px;
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--rev-text);
+}
+
+/* ----------------------------------------------------
+   IMÁGENES
+---------------------------------------------------- */
+.revImages {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.revImgItem {
+  width: 90px;
+  height: 90px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid var(--rev-border);
+  transition: 0.25s ease;
+  cursor: pointer;
+}
+
+.revImgItem:hover {
+  transform: scale(1.05);
+}
+
+/* ----------------------------------------------------
+   BOTÓN CTA
+---------------------------------------------------- */
+.revWriteContainer {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.revWriteBtn {
+  background: var(--rev-primary);
+  color: white;
+  padding: 14px 22px;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  transition: 0.25s ease;
+}
+
+.revWriteBtn:hover {
+  background: var(--rev-primary-light);
+  color: var(--rev-primary);
+  transform: translateY(-2px);
+}
+
+/* ----------------------------------------------------
+   RESPONSIVE
+---------------------------------------------------- */
+@media (max-width: 600px) {
+  .revCardTop {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .revImages {
+    flex-wrap: wrap;
+  }
+
+  .revImgItem {
+    width: 100%;
+    height: 160px;
+  }
+
+  .revWriteBtn {
+    width: 100%;
+  }
 }
