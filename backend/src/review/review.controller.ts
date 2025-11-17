@@ -81,4 +81,12 @@ export class ReviewController {
   ) {
     return this.reviewService.delete(review_id, user);
   }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1) // Solo Admin
+  @Post('reanalyze-all')
+  @HttpCode(HttpStatus.OK)
+  async reanalyzeAll() {
+    return this.reviewService.reanalyzeAllReviews();
+  }
 }
