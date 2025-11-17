@@ -12,6 +12,7 @@ import { CreateReviewDto } from './dto/create-review.dto';
 import { ReviewEntity } from './entity/review.entity';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { SentimentService } from 'src/sentiment/sentiment.service';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class ReviewService {
@@ -21,6 +22,7 @@ export class ReviewService {
     @InjectRepository(BusinessEntity)
     private readonly businessRepository: Repository<BusinessEntity>,
     private readonly sentimentService: SentimentService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   //Crea una nueva reseña.
@@ -68,6 +70,14 @@ export class ReviewService {
     });
 
     const savedReview = await this.reviewRepository.save(newReview);
+
+    // Si requiere revisión manual, notificar a todos los admins
+    if (sentimentAnalysis.suggested_action === 'Revisar manualmente') {
+      await this.notificationService.notifyAllAdmins(
+        `Reseña incoherente detectada: ${sentimentAnalysis.coherence_check} - "${comment?.substring(0, 50)}..."`,
+        savedReview.review_id,
+      );
+    }
 
     // Recalculamos el promedio
     const newAverage = await this.updateBusinessAverageRating(business_id);

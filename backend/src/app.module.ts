@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
@@ -26,6 +27,9 @@ import { UserRolModule } from './user_rol/user_rol.module';
 import { ReviewModule } from './review/review.module';
 import { MapsModule } from './maps/maps.module';
 import { SentimentModule } from './sentiment/sentiment.module';
+import { NotificationModule } from './notification/notification.module';
+import { SuggestionScheduler } from './schedulers/suggestion.scheduler'
+import { TestSchedulerController } from './schedulers/test-scheduler.controller';
 
 @Module({
   imports: [
@@ -33,6 +37,7 @@ import { SentimentModule } from './sentiment/sentiment.module';
       envFilePath: '.env',
       isGlobal: true,
     }),
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -63,8 +68,9 @@ import { SentimentModule } from './sentiment/sentiment.module';
     ReviewModule,
     MapsModule,
     SentimentModule,
+    NotificationModule,
   ],
-  controllers: [AppController],
-  providers: [AppService, GoogleStrategy],
+  controllers: [AppController, TestSchedulerController],
+  providers: [AppService, GoogleStrategy, SuggestionScheduler],
 })
 export class AppModule {}
