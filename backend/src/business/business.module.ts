@@ -10,6 +10,7 @@ import { BusinessEntity } from './entity/business.entity';
 import { UserEntity } from '../user/entity/user.entity';
 import { UserRolesEntity } from '../user_rol/entity/user_rol.entity';
 import { RolEntity } from '../roles/entity/rol.entity';
+import { BusinessAccessibilityEntity } from '../business_accessibility/entity/business_accessibility.entity';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { RolEntity } from '../roles/entity/rol.entity';
       UserEntity,
       UserRolesEntity,
       RolEntity,
+      BusinessAccessibilityEntity,
     ]),
     AuthModule,
     CloudinaryModule,

@@ -18,11 +18,11 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 
 @Controller('accessibility')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class AccessibilityController {
   constructor(private readonly _accessibilityService: AccessibilityService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(1)
   async crearAccesibilidad(
     @Body() createAccessibilityDto: CreateAccesibilityDto,
@@ -31,12 +31,12 @@ export class AccessibilityController {
   }
 
   @Get()
-  @Roles(1, 2, 3)
   async obtenerAccesibilidades(): Promise<AccessibilityEntity[]> {
     return await this._accessibilityService.obtenerAccesibilidades();
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(1, 2, 3)
   async obtenerAccesibilidadPorId(
     @Param('id', ParseIntPipe) id: number,
@@ -45,6 +45,7 @@ export class AccessibilityController {
   }
 
   @Put(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(1)
   async actualizarAccesibilidad(
     @Param('id', ParseIntPipe) id: number,
@@ -57,6 +58,7 @@ export class AccessibilityController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(1)
   async eliminarAccesibilidad(
     @Param('id', ParseIntPipe) id: number,

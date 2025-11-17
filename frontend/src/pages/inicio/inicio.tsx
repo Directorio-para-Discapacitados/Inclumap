@@ -3,29 +3,40 @@ import { useLocation, useNavigate } from "react-router-dom";
 import "./inicio.css";
 import { API_URL } from "../../config/api";
 
+interface Accessibility {
+  accessibility_id: number | string;
+  accessibility_name: string;
+  description: string;
+}
 
 export default function Inicio() {
   const location = useLocation();
   const navigate = useNavigate();
   const cardsRef = useRef<HTMLDivElement | null>(null);
   
-  const defaultCards = [
-    { icon: "fa-wheelchair", title: "Rampas de Acceso", desc: "Ver lugares con acceso sin escalones." },
-    { icon: "fa-universal-access", title: "Baños Accesibles", desc: "Encuentra establecimientos con baños adaptados." },
-    { icon: "fa-sign-language", title: "Información en Braille", desc: "Locales con señalización o menús en Braille." },
-    { icon: "fa-hands-helping", title: "Apoyo y Comunidad", desc: "Foros, grupos de apoyo locales y recursos." },
-    { icon: "fa-briefcase", title: "Empleos Inclusivos", desc: "Oportunidades laborales y formación especializada." },
-    { icon: "fa-tools", title: "Ayudas Tecnológicas", desc: "Dispositivos y software de apoyo." },
-    { icon: "fa-heart", title: "Salud y Bienestar", desc: "Clínicas y centros de terapia accesibles." },
-    { icon: "fa-gavel", title: "Legal y Derechos", desc: "Defensa y ayuda legal para la comunidad." }
-  ];
+  const iconMap: Record<string, string> = {
+    "Rampa Acceso": "fa-wheelchair",
+    "Baño adaptado": "fa-universal-access",
+    "Estacionamiento para discapacitados": "fa-parking",
+    "Puertas Anchas": "fa-door-open",
+    "Circulación Interior": "fa-arrows-alt",
+    "Ascensor Accesible": "fa-elevator",
+    "Pisos": "fa-grip-lines",
+    "Barras de Apoyo": "fa-hands-helping",
+    "Lavamanos Accesible": "fa-sink",
+    "Mostrador/Caja Accesible": "fa-cash-register",
+    "Señalización (SIA)": "fa-sign",
+    "Señalización Táctil/Braille": "fa-braille"
+  };
 
-  const [cards, setCards] = useState(defaultCards);
+  const [cards, setCards] = useState<Accessibility[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [businesses, setBusinesses] = useState<any[]>([]);
   const [filtered, setFiltered] = useState<any[]>([]);
+  const [selectedAccessibility, setSelectedAccessibility] = useState<number | string | null>(null);
+  const [loadingAccessibilities, setLoadingAccessibilities] = useState(true);
   const goToDetail = (id: number | string) => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -35,14 +46,55 @@ export default function Inicio() {
     }
   };
 
+  // Cargar accesibilidades desde BD
+  useEffect(() => {
+    const fetchAccessibilities = async () => {
+      try {
+        setLoadingAccessibilities(true);
+        console.log("Cargando accesibilidades desde:", `${API_URL}/accessibility`);
+        
+        const resp = await fetch(`${API_URL}/accessibility`, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" }
+        });
+        
+        if (!resp.ok) {
+          throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+        }
+        
+        const data: Accessibility[] = await resp.json();
+        console.log("Accesibilidades cargadas:", data);
+        setCards(data || []);
+      } catch (e: any) {
+        console.error("Error cargando accesibilidades:", e.message, e);
+        setCards([]);
+      } finally {
+        setLoadingAccessibilities(false);
+      }
+    };
+    fetchAccessibilities();
+  }, []);
+
+  // Manejar clic en accesibilidad - navegar a página dedicada
+  const handleAccessibilityClick = (accessibilityId: number | string) => {
+    navigate(`/accesibilidad/${accessibilityId}`);
+  };
+
+  // Limpiar filtro de accesibilidad
+  const handleClearAccessibilityFilter = () => {
+    setSelectedAccessibility(null);
+    setFiltered([]);
+    setError(null);
+  };
+
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const q = (params.get("q") || "").trim();
     setQuery(q);
 
     if (!q) {
-      setCards(defaultCards);
       setFiltered([]);
+      setSelectedAccessibility(null);
       setError(null);
       setLoading(false);
       return;
@@ -74,6 +126,7 @@ export default function Inicio() {
           return name.includes(qLower) || address.includes(qLower);
         });
         setFiltered(filteredList);
+        setSelectedAccessibility(null);
       } catch (e: any) {
         if (e?.name === 'AbortError') return; // ignorar abortos
         setError(e?.message || "Error al cargar locales");
@@ -114,8 +167,9 @@ export default function Inicio() {
   }, [query, loading, filtered.length]);
 
   const handleClearSearch = () => {
-    setCards(defaultCards);
     setQuery("");
+    setSelectedAccessibility(null);
+    setFiltered([]);
     if (location.search) window.history.replaceState({}, "", window.location.pathname);
   };
 
@@ -205,13 +259,15 @@ export default function Inicio() {
         <h2>Explora por Categoría y Filtra tus Necesidades</h2>
         <p className="sub-title">Filtra por distancia, tipo de servicio o directamente por elementos de accesibilidad específicos.</p>
 
-        {/* Resultados de búsqueda (si hay query) */}
-        {query && (
+        {/* Resultados de búsqueda o filtro de accesibilidad */}
+        {(query || selectedAccessibility) && (
           <div className="cards-grid" ref={cardsRef}>
             {loading && <div className="loading">Cargando locales...</div>}
             {error && !loading && <div className="error">{error}</div>}
             {!loading && !error && filtered.length === 0 && (
-              <div className="no-results">No se encontraron locales para "{query}"</div>
+              <div className="no-results">
+                {query ? `No se encontraron locales para "${query}"` : "No se encontraron locales con esa accesibilidad"}
+              </div>
             )}
             {!loading && !error && filtered.map((b) => (
               <article
@@ -251,23 +307,40 @@ export default function Inicio() {
                 </div>
               </article>
             ))}
+            {(query || selectedAccessibility) && filtered.length > 0 && (
+              <div style={{ gridColumn: '1 / -1', textAlign: 'center', marginTop: 20 }}>
+                <button className="btn btn-outline" onClick={handleClearSearch}>
+                  Limpiar filtro
+                </button>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Grid de categorías SIEMPRE visible */}
-        <div className="cards-grid">
-          {cards.length === 0 ? (
-            <div className="no-results">No se encontraron resultados</div>
-          ) : (
-            cards.map((c) => (
-              <article key={c.title} className="card">
-                <div className="card-icon"><i className={`fas ${c.icon}`} /></div>
-                <h3 className="card-title">{c.title}</h3>
-                <p className="card-desc">{c.desc}</p>
-              </article>
-            ))
-          )}
-        </div>
+        {/* Grid de accesibilidades como botones (mostrar solo si NO hay búsqueda o filtro activo) */}
+        {!query && !selectedAccessibility && (
+          <div className="cards-grid">
+            {loadingAccessibilities && <div className="loading">Cargando accesibilidades...</div>}
+            {!loadingAccessibilities && cards.length === 0 && (
+              <div className="no-results">No se encontraron accesibilidades</div>
+            )}
+            {!loadingAccessibilities && cards.map((c) => (
+              <button
+                key={c.accessibility_id}
+                className="accessibility-btn"
+                onClick={() => handleAccessibilityClick(c.accessibility_id)}
+              >
+                <div className="card">
+                  <div className="card-icon">
+                    <i className={`fas ${iconMap[c.accessibility_name] || 'fa-check-circle'}`} />
+                  </div>
+                  <h3 className="card-title">{c.accessibility_name}</h3>
+                  <p className="card-desc">{c.description || 'Haz clic para ver locales con esta accesibilidad'}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
       </main>
     </div>
   );
