@@ -11,6 +11,7 @@ import { Repository } from 'typeorm';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { ReviewEntity } from './entity/review.entity';
 import { UpdateReviewDto } from './dto/update-review.dto';
+import { SentimentService } from 'src/sentiment/sentiment.service';
 
 @Injectable()
 export class ReviewService {
@@ -19,6 +20,7 @@ export class ReviewService {
     private readonly reviewRepository: Repository<ReviewEntity>,
     @InjectRepository(BusinessEntity)
     private readonly businessRepository: Repository<BusinessEntity>,
+    private readonly sentimentService: SentimentService,
   ) {}
 
   //Crea una nueva reseña.
@@ -49,11 +51,20 @@ export class ReviewService {
       throw new ConflictException('Ya has enviado una reseña para este local.');
     }
 
+    // Analizar sentimiento y coherencia
+    const sentimentAnalysis = this.sentimentService.analyzeReview(
+      rating,
+      comment,
+    );
+
     const newReview = this.reviewRepository.create({
       rating,
       comment,
       business,
       user,
+      sentiment_label: sentimentAnalysis.sentiment_label,
+      coherence_check: sentimentAnalysis.coherence_check,
+      suggested_action: sentimentAnalysis.suggested_action,
     });
 
     const savedReview = await this.reviewRepository.save(newReview);
@@ -92,6 +103,21 @@ export class ReviewService {
       );
     }
 
+    // Si se actualizó rating o comment, re-analizar sentimiento
+    if (updateReviewDto.rating !== undefined || updateReviewDto.comment !== undefined) {
+      const newRating = updateReviewDto.rating ?? review.rating;
+      const newComment = updateReviewDto.comment ?? review.comment;
+      
+      const sentimentAnalysis = this.sentimentService.analyzeReview(
+        newRating,
+        newComment,
+      );
+      
+      updateReviewDto.sentiment_label = sentimentAnalysis.sentiment_label;
+      updateReviewDto.coherence_check = sentimentAnalysis.coherence_check;
+      updateReviewDto.suggested_action = sentimentAnalysis.suggested_action;
+    }
+
     const updatedReview = this.reviewRepository.merge(review, updateReviewDto);
     await this.reviewRepository.save(updatedReview);
 
@@ -121,6 +147,9 @@ export class ReviewService {
         'review.rating',
         'review.comment',
         'review.created_at',
+        'review.sentiment_label',
+        'review.coherence_check',
+        'review.suggested_action',
         // Usuario (Solo ID)
         'user.user_id',
       ])
@@ -163,6 +192,9 @@ export class ReviewService {
         'review.rating',
         'review.comment',
         'review.created_at',
+        'review.sentiment_label',
+        'review.coherence_check',
+        'review.suggested_action',
         // Local (Business)
         'business.business_id',
         'business.business_name',
@@ -188,6 +220,7 @@ export class ReviewService {
       .leftJoin('user.people', 'people') 
       .select([
         'review.review_id', 'review.rating', 'review.comment', 'review.created_at',
+        'review.sentiment_label', 'review.coherence_check', 'review.suggested_action',
         'business.business_id', 'business.business_name', 'business.average_rating',
         'user.user_id',
         'people.firstName', 
@@ -202,6 +235,9 @@ export class ReviewService {
       rating: review.rating,
       comment: review.comment,
       created_at: review.created_at,
+      sentiment_label: review.sentiment_label,
+      coherence_check: review.coherence_check,
+      suggested_action: review.suggested_action,
       business: review.business, 
       user: {
         user_id: review.user.user_id,
@@ -219,6 +255,7 @@ export class ReviewService {
       .select([
         // Reseña
         'review.review_id', 'review.rating', 'review.comment', 'review.created_at',
+        'review.sentiment_label', 'review.coherence_check', 'review.suggested_action',
         // Local (Business) - Campos mínimos
         'business.business_id', 'business.business_name', 'business.average_rating',
         // Usuario (User) - Solo ID

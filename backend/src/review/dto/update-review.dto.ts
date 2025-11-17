@@ -16,4 +16,16 @@ export class UpdateReviewDto {
   @IsOptional()
   @IsString()
   comment?: string;
+
+  @IsOptional()
+  @IsString()
+  sentiment_label?: string;
+
+  @IsOptional()
+  @IsString()
+  coherence_check?: string;
+
+  @IsOptional()
+  @IsString()
+  suggested_action?: string;
 }
