@@ -1,0 +1,182 @@
+.location-picker-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  
+  .location-picker-modal {
+    background: white;
+    width: 100%;
+    max-width: 700px;
+    height: 80vh;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  }
+  
+  .lp-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .lp-header h3 { margin: 0; color: #333; font-size: 1.2rem; }
+  .lp-close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #666; }
+  
+  .lp-map-container {
+    flex: 1;
+    position: relative;
+  }
+  
+  .lp-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #eee;
+    background: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .lp-address-preview {
+    font-size: 0.9rem;
+    color: #555;
+    background: #fff;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    text-align: center;
+  }
+  
+  .lp-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  
+  .lp-btn-cancel {
+    padding: 8px 16px;
+    border: 1px solid #ccc;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  .lp-btn-confirm {
+    padding: 8px 20px;
+    background: #0ea5e9;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  
+  .lp-btn-confirm:hover { background: #0284c7; }
+
+  /* ... estilos anteriores ... */
+
+/* Botón flotante de localización dentro del mapa */
+.locate-me-btn {
+    background-color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 4px; /* Estilo Leaflet */
+    box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+  }
+  
+  .locate-me-btn:hover {
+    background-color: #f4f4f4;
+  }
+  
+  /* Asegurar que los controles de Leaflet se vean bien */
+  .leaflet-bottom.leaflet-right {
+    margin-bottom: 20px;
+    margin-right: 10px;
+    pointer-events: auto;
+  }
+
+  /* Reemplaza o agrega al final de LocationPicker.css */
+
+.lp-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #eee;
+    background: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .lp-input-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 100%;
+  }
+  
+  .lp-input-container label {
+    font-size: 0.85rem;
+    color: #666;
+    font-weight: 500;
+  }
+  
+  .input-wrapper {
+    display: flex;
+    align-items: center;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 0 10px;
+    transition: border-color 0.2s;
+  }
+  
+  .input-wrapper:focus-within {
+    border-color: #0ea5e9;
+    box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.1);
+  }
+  
+  .input-icon {
+    font-size: 1.2rem;
+    margin-right: 8px;
+    color: #888;
+  }
+  
+  .lp-address-input {
+    flex: 1;
+    border: none;
+    padding: 10px 0;
+    font-size: 1rem;
+    color: #333;
+    outline: none;
+    background: transparent;
+  }
+  
+  .lp-address-input::placeholder {
+    color: #aaa;
+  }
+  
+  .lp-address-input:disabled {
+    background-color: transparent;
+    color: #999;
+  }
+  .lp-status-text {
+    font-size: 0.9rem;
+    color: #666;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+}

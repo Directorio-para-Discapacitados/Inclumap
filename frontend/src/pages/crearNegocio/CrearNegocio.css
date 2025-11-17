@@ -15,6 +15,37 @@ body:has(.crear-negocio-fondo) #root {
   padding: 0;
 }
 
+/* En CrearNegocio.css */
+.input-with-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 15px;
+}
+
+.input-with-action input {
+  margin-bottom: 0 !important; /* Sobrescribir margen del input original */
+}
+
+.map-picker-btn {
+  background-color: #0ea5e9;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  width: 45px;
+  height: 45px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.map-picker-btn:hover {
+  background-color: #0284c7;
+}
+
 /* Contenedor del formulario */
 .crear-negocio-form {
   background: white;
