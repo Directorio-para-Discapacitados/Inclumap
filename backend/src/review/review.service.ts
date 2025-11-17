@@ -21,6 +21,8 @@ export class ReviewService {
     private readonly reviewRepository: Repository<ReviewEntity>,
     @InjectRepository(BusinessEntity)
     private readonly businessRepository: Repository<BusinessEntity>,
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
     private readonly sentimentService: SentimentService,
     private readonly notificationService: NotificationService,
   ) {}
@@ -107,7 +109,16 @@ export class ReviewService {
       throw new NotFoundException(`Reseña con ID ${review_id} no encontrada.`);
     }
 
-    if (review.user.user_id !== user.user_id) {
+    // Cargar roles del usuario para verificar si es admin
+    const userWithRoles = await this.userRepository.findOne({
+      where: { user_id: user.user_id },
+      relations: ['userroles', 'userroles.rol'],
+    });
+
+    const isAdmin = userWithRoles?.userroles?.some((ur) => ur.rol.rol_id === 1);
+
+    // Permitir actualización si es el dueño de la reseña O es administrador
+    if (review.user.user_id !== user.user_id && !isAdmin) {
       throw new ForbiddenException(
         'No tienes permiso para actualizar esta reseña.',
       );
@@ -341,6 +352,53 @@ export class ReviewService {
       total_items: total,
       total_pages: Math.ceil(total / limit),
       current_page: page,
+    };
+  }
+
+  /**
+   * Reanálisis de todas las reseñas existentes
+   * Útil para reseñas creadas antes de implementar el análisis de sentimientos
+   */
+  async reanalyzeAllReviews() {
+    const reviews = await this.reviewRepository.find({
+      relations: ['business'],
+    });
+
+    let analyzed = 0;
+    let incoherent = 0;
+
+    for (const review of reviews) {
+      if (review.comment && review.comment.trim().length > 0) {
+        // Analizar sentimiento
+        const sentimentAnalysis = this.sentimentService.analyzeReview(
+          review.rating,
+          review.comment,
+        );
+
+        // Actualizar la reseña
+        review.sentiment_label = sentimentAnalysis.sentiment_label;
+        review.coherence_check = sentimentAnalysis.coherence_check;
+        review.suggested_action = sentimentAnalysis.suggested_action;
+
+        await this.reviewRepository.save(review);
+        analyzed++;
+
+        // Si es incoherente, notificar a admins
+        if (sentimentAnalysis.coherence_check.startsWith('Incoherente')) {
+          incoherent++;
+          await this.notificationService.notifyAllAdmins(
+            `Reseña incoherente detectada (ID: ${review.review_id}): ${sentimentAnalysis.coherence_check} - "${review.comment?.substring(0, 50)}..."`,
+            review.review_id,
+          );
+        }
+      }
+    }
+
+    return {
+      message: 'Reanálisis completado',
+      total_reviews: reviews.length,
+      analyzed: analyzed,
+      incoherent_found: incoherent,
     };
   }
 
