@@ -65,13 +65,18 @@ const NotificationBell: React.FC = () => {
 
   const handleNavigate = (notification: Notification) => {
     setIsOpen(false);
+    
+    // Marcar como leída automáticamente al hacer clic
+    if (!notification.is_read) {
+      handleMarkAsRead(notification.notification_id);
+    }
 
     if (notification.type === 'SUGGESTION') {
       // CORRECCIÓN: Usar '/local/' en lugar de '/business/'
       navigate(`/local/${notification.related_id}`);
     } else if (notification.type === 'REVIEW_ALERT') {
-      // Asegúrate de que esta ruta exista en App.tsx o redirige a '/reviews'
-      navigate(`/reviews`);
+      // Redirigir a la página de reviews con filtro de incoherentes activado
+      navigate(`/reviews?filter=incoherent`);
     }
   };
 

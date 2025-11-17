@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../../config/api";
+import { useAuth } from "../../context/AuthContext";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./reviews.css";
 
 function StarRating({ value }: { value: number }) {
@@ -22,13 +25,28 @@ export default function ReviewsPage() {
   const [reviews, setReviews] = useState<any[]>([]);
   const [filtered, setFiltered] = useState<any[]>([]);
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [searchParams] = useSearchParams();
 
   const [category, setCategory] = useState("all");
   const [rating, setRating] = useState("");
   const [sortBy, setSortBy] = useState("newest");
+  const [filterIncoherent, setFilterIncoherent] = useState(false);
 
   // ⭐ LOCAL LIKES
   const [likes, setLikes] = useState<Record<string, boolean>>({});
+
+  // Verificar si el usuario es admin (rolIds incluye 1 = Administrador)
+  const isAdmin = user?.rolIds?.includes(1);
+
+  // Detectar parámetro de URL para activar filtro de incoherentes
+  useEffect(() => {
+    const filterParam = searchParams.get('filter');
+    if (filterParam === 'incoherent' && isAdmin) {
+      setFilterIncoherent(true);
+      toast.info("🔍 Mostrando reseñas incoherentes que requieren revisión");
+    }
+  }, [searchParams, isAdmin]);
 
   // cargar likes guardados
   useEffect(() => {
@@ -47,6 +65,61 @@ export default function ReviewsPage() {
   const localLikesCount = (r: any) => {
     const base = r.likes_count ?? 0;
     return likes[r.review_id] ? base + 1 : base;
+  };
+
+  // Función para corregir una reseña incoherente
+  const handleCorrectReview = async (reviewId: number, newRating: number) => {
+    try {
+      await api.patch(`/reviews/${reviewId}`, {
+        rating: newRating
+      }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      
+      toast.success("✅ Reseña corregida exitosamente");
+      fetchReviews(); // Recargar reseñas
+    } catch (error: any) {
+      toast.error(`❌ Error al corregir la reseña: ${error.response?.data?.message || error.message}`);
+    }
+  };
+
+  // Sugerencia de calificación basada en el sentimiento
+  const getSuggestedRating = (review: any): number | null => {
+    if (!review.sentiment_label || !review.coherence_check) return null;
+    if (!review.coherence_check.startsWith('Incoherente')) return null;
+
+    const sentiment = review.sentiment_label;
+    const currentRating = review.rating;
+
+    // Si tiene comentario positivo pero calificación baja
+    if (sentiment === 'Positivo' && currentRating <= 2) {
+      return 4; // Sugerir 4 estrellas
+    }
+    // Si tiene comentario negativo pero calificación alta
+    if (sentiment === 'Negativo' && currentRating >= 4) {
+      return 2; // Sugerir 2 estrellas
+    }
+
+    return null;
+  };
+
+  // Función para reanalizar todas las reseñas
+  const handleReanalyzeAll = async () => {
+    if (!window.confirm('¿Deseas reanalizar todas las reseñas existentes? Esto puede tardar unos momentos.')) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await api.post('/reviews/reanalyze-all', {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      toast.success(`✅ ${res.data.message}: ${res.data.analyzed} reseñas analizadas, ${res.data.incoherent_found} incoherentes detectadas`);
+      fetchReviews(); // Recargar reseñas
+    } catch (error: any) {
+      toast.error(`❌ Error al reanalizar: ${error.response?.data?.message || error.message}`);
+    }
   };
 
   const categories = [
@@ -76,6 +149,11 @@ export default function ReviewsPage() {
 
     if (category !== "all") temp = temp.filter((r) => r.category === category);
     if (rating !== "") temp = temp.filter((r) => r.rating === Number(rating));
+    
+    // Filtro de reseñas incoherentes (solo para admin)
+    if (filterIncoherent && isAdmin) {
+      temp = temp.filter((r) => r.coherence_check && r.coherence_check.startsWith('Incoherente'));
+    }
 
     if (sortBy === "newest") {
       temp.sort(
@@ -92,10 +170,22 @@ export default function ReviewsPage() {
     }
 
     setFiltered(temp);
-  }, [category, rating, sortBy, reviews]);
+  }, [category, rating, sortBy, reviews, filterIncoherent, isAdmin]);
 
   return (
     <div className="revContainer">
+
+      {/* Botón de reanálisis para admin - Ubicación superior */}
+      {isAdmin && (
+        <div className="revAdminPanel">
+          <button className="revReanalyzeBtn" onClick={handleReanalyzeAll}>
+            🔄 Reanalizar Todas las Reseñas
+          </button>
+          <p className="revAdminHint">
+            Usa este botón para analizar reseñas antiguas que no tienen análisis de sentimientos
+          </p>
+        </div>
+      )}
 
       <div className="revHeader">
         <h2 className="revTitle">Reseñas de la comunidad</h2>
@@ -139,6 +229,20 @@ export default function ReviewsPage() {
             </select>
           </div>
 
+          {/* Filtro de incoherentes solo para admin */}
+          {isAdmin && (
+            <div className="revFilterItem">
+              <label className="revCheckboxLabel">
+                <input
+                  type="checkbox"
+                  checked={filterIncoherent}
+                  onChange={(e) => setFilterIncoherent(e.target.checked)}
+                />
+                <span>Mostrar solo incoherentes</span>
+              </label>
+            </div>
+          )}
+
         </div>
       </div>
 
@@ -172,6 +276,46 @@ export default function ReviewsPage() {
 
             <p className="revComment">{r.comment}</p>
 
+            {/* Panel de análisis de sentimientos para admins */}
+            {isAdmin && r.sentiment_label && (
+              <div className={`revSentimentPanel ${r.coherence_check?.startsWith('Incoherente') ? 'incoherent' : 'coherent'}`}>
+                <h4>📊 Análisis de Sentimiento:</h4>
+                <div className="revSentimentInfo">
+                  <span><strong>Sentimiento:</strong> {r.sentiment_label}</span>
+                  <span><strong>Coherencia:</strong> {r.coherence_check}</span>
+                  <span><strong>Acción Sugerida:</strong> {r.suggested_action}</span>
+                </div>
+                
+                {/* Botón de corrección solo si es incoherente */}
+                {r.coherence_check?.startsWith('Incoherente') && (
+                  <div className="revCorrectionPanel">
+                    <p className="revCorrectionHint">
+                      💡 Esta reseña parece incoherente. 
+                      {getSuggestedRating(r) && (
+                        <> Calificación sugerida: {getSuggestedRating(r)} ⭐</>
+                      )}
+                    </p>
+                    <div className="revCorrectionButtons">
+                      {[1, 2, 3, 4, 5].map((stars) => (
+                        <button
+                          key={stars}
+                          className={`revCorrectionBtn ${getSuggestedRating(r) === stars ? 'suggested' : ''}`}
+                          onClick={() => {
+                            if (window.confirm(`¿Corregir calificación a ${stars} estrellas?`)) {
+                              handleCorrectReview(r.review_id, stars);
+                            }
+                          }}
+                          title={`Corregir a ${stars} estrellas`}
+                        >
+                          {stars} ⭐
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {r.images?.length > 0 && (
               <div className="revImages">
                 {r.images.map((img: string, i: number) => (
@@ -201,6 +345,8 @@ export default function ReviewsPage() {
       <div className="revWriteContainer">
         <button className="revWriteBtn">✚ Escribe tu reseña</button>
       </div>
+
+      <ToastContainer theme="colored" position="top-center" />
 
     </div>
   );
