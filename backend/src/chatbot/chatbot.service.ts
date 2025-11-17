@@ -68,11 +68,33 @@ export class ChatbotService {
     userLongitude?: number,
   ): Promise<ChatResponseDto> {
     const allAccessibilities = await this.accessibilityRepo.find();
-    const keywords = allAccessibilities.map((a) =>
-      a.accessibility_name.toLowerCase(),
-    );
-
-    const foundKeyword = keywords.find((k) => message.includes(k));
+    
+    // Buscar coincidencia flexible: palabra por palabra
+    let foundKeyword: string | undefined;
+    let foundAccessibility: AccessibilityEntity | undefined;
+    
+    for (const accessibility of allAccessibilities) {
+      const accessibilityName = accessibility.accessibility_name.toLowerCase();
+      const words = accessibilityName.split(/\s+/); // Dividir en palabras
+      
+      // Verificar si el mensaje incluye el nombre completo o alguna palabra clave
+      if (message.includes(accessibilityName)) {
+        foundKeyword = accessibilityName;
+        foundAccessibility = accessibility;
+        break;
+      }
+      
+      // Si no, verificar si incluye al menos una palabra significativa (> 3 caracteres)
+      for (const word of words) {
+        if (word.length > 3 && message.includes(word)) {
+          foundKeyword = accessibilityName;
+          foundAccessibility = accessibility;
+          break;
+        }
+      }
+      
+      if (foundKeyword) break;
+    }
 
     if (!foundKeyword) {
       return {
