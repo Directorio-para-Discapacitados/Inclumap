@@ -171,17 +171,17 @@ const AjustesPage = () => {
     <div className="ajustes-page">
    
       <div className="ajustes-header">
-        <button 
-          className="back-button-ajustes"
-          onClick={() => navigate('/')}
-        >
-          <span>←</span>
-          Volver al Inicio
-        </button>
-        <div className="header-content">
+        <div className="header-title-row">
+          <button 
+            className="back-button-ajustes"
+            onClick={() => navigate('/')}
+          >
+            <span>←</span>
+            Volver
+          </button>
           <h1 className="page-title-ajustes">⚙️ Ajustes y Configuración</h1>
-          <p className="page-subtitle">Gestiona tu cuenta y preferencias del sistema</p>
         </div>
+        <p className="page-subtitle">Gestiona tu cuenta y preferencias del sistema</p>
       </div>
 
       <div className="ajustes-container">
@@ -219,6 +219,55 @@ const AjustesPage = () => {
           </div>
         ) : (
           <div className="user-settings-wrapper">
+            {/* TARJETA DE PERFIL */}
+            <div className="user-profile-card">
+              <div className="profile-header">
+                <div className="profile-avatar">
+                  <div className="avatar-circle">
+                    <span className="avatar-text">
+                      {user?.first_name?.charAt(0).toUpperCase() || 'U'}
+                      {user?.last_name?.charAt(0).toUpperCase() || 'S'}
+                    </span>
+                  </div>
+                </div>
+                <div className="profile-info">
+                  <h2 className="profile-name">
+                    {user?.first_name} {user?.last_name}
+                  </h2>
+                  <p className="profile-email">{user?.email}</p>
+                  <div className="profile-badge">
+                    <span className="badge-icon">🎖️</span>
+                    <span className="badge-text">{user?.roleDescription || 'Usuario'}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="profile-stats">
+                <div className="stat-item">
+                  <span className="stat-icon">📅</span>
+                  <div className="stat-content">
+                    <span className="stat-label">Miembro desde</span>
+                    <span className="stat-value">
+                      {user?.createdAt 
+                        ? new Date(user.createdAt).toLocaleDateString('es-ES', { 
+                            year: 'numeric', 
+                            month: 'long' 
+                          })
+                        : 'Fecha no disponible'}
+                    </span>
+                  </div>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-icon">🔐</span>
+                  <div className="stat-content">
+                    <span className="stat-label">Estado de cuenta</span>
+                    <span className="stat-value status-active">Activa</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* SECCIÓN DE SEGURIDAD */}
             <div className="security-section">
               <div 
                 className="security-header"
