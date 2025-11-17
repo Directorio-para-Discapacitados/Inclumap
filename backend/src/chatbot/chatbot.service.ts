@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { BusinessEntity } from 'src/business/entity/business.entity';
 import { AccessibilityEntity } from 'src/accessibility/entity/accesibility.entity';
 import { Repository, Like } from 'typeorm';
-import { ChatRequestDto, ChatResponseDto } from './dto/chat.dto';
+import { ChatRequestDto, ChatResponseDto, BusinessLocationDto } from './dto/chat.dto';
 
 @Injectable()
 export class ChatbotService {
@@ -16,6 +16,7 @@ export class ChatbotService {
 
   async generateResponse(dto: ChatRequestDto): Promise<ChatResponseDto> {
     const message = dto.message.toLowerCase().trim();
+    const { latitude, longitude } = dto;
 
     try {
       if (this.esSaludo(message)) {
@@ -31,7 +32,7 @@ export class ChatbotService {
         message.includes('restaurantes') ||
         message.includes('tiendas')
       ) {
-        return this.findBusinessesByAccessibility(message);
+        return this.findBusinessesByAccessibility(message, latitude, longitude);
       }
 
       if (message.includes('qué es') || message.includes('información sobre')) {
@@ -63,6 +64,8 @@ export class ChatbotService {
 
   private async findBusinessesByAccessibility(
     message: string,
+    userLatitude?: number,
+    userLongitude?: number,
   ): Promise<ChatResponseDto> {
     const allAccessibilities = await this.accessibilityRepo.find();
     const keywords = allAccessibilities.map((a) =>
@@ -89,6 +92,8 @@ export class ChatbotService {
         'business.business_id',
         'business.business_name',
         'business.address',
+        'business.latitude',
+        'business.longitude',
       ])
       .getMany();
 
@@ -98,16 +103,96 @@ export class ChatbotService {
       };
     }
 
-    const suggestions = businesses.map(
-      (b) => `${b.business_name} (Ubicado en: ${b.address})`,
+    // Si el usuario NO proporcionó coordenadas, responder sin distancia
+    if (!userLatitude || !userLongitude) {
+      const suggestions = businesses.map(
+        (b) => `${b.business_name} (Ubicado en: ${b.address})`,
+      );
+
+      return {
+        response: `¡Buenas noticias! Encontré ${
+          businesses.length
+        } ${businesses.length === 1 ? 'lugar' : 'lugares'} con "${foundKeyword}":`,
+        suggestions: suggestions,
+      };
+    }
+
+    // Si el usuario SÍ proporcionó coordenadas, calcular distancias
+    const businessesWithDistance: BusinessLocationDto[] = businesses
+      .filter((b) => b.latitude !== null && b.longitude !== null) // Solo negocios con coordenadas
+      .map((b) => {
+        const distance = this.calculateDistance(
+          userLatitude,
+          userLongitude,
+          Number(b.latitude),
+          Number(b.longitude),
+        );
+
+        return {
+          id: b.business_id,
+          name: b.business_name,
+          address: b.address,
+          latitude: Number(b.latitude),
+          longitude: Number(b.longitude),
+          distance: Number(distance.toFixed(2)), // Redondear a 2 decimales
+        };
+      })
+      .sort((a, b) => a.distance - b.distance) // Ordenar por distancia ascendente
+      .slice(0, 5); // Limitar a los top 5 más cercanos
+
+    if (businessesWithDistance.length === 0) {
+      return {
+        response: `Encontré ${businesses.length} ${businesses.length === 1 ? 'lugar' : 'lugares'} con "${foundKeyword}", pero ninguno tiene coordenadas disponibles.`,
+      };
+    }
+
+    const suggestions = businessesWithDistance.map(
+      (b) => `${b.name} - ${b.distance} km (${b.address})`,
     );
 
     return {
-      response: `¡Buenas noticias! Encontré ${
-        businesses.length
-      } ${businesses.length === 1 ? 'lugar' : 'lugares'} con "${foundKeyword}":`,
+      response: `¡Encontré estos lugares cerca de ti con "${foundKeyword}":`,
       suggestions: suggestions,
+      businesses: businessesWithDistance,
     };
+  }
+
+  /**
+   * Calcula la distancia entre dos puntos geográficos usando la fórmula de Haversine
+   * @param lat1 Latitud del punto 1
+   * @param lon1 Longitud del punto 1
+   * @param lat2 Latitud del punto 2
+   * @param lon2 Longitud del punto 2
+   * @returns Distancia en kilómetros
+   */
+  private calculateDistance(
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number,
+  ): number {
+    const R = 6371; // Radio de la Tierra en kilómetros
+    const dLat = this.toRad(lat2 - lat1);
+    const dLon = this.toRad(lon2 - lon1);
+
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.toRad(lat1)) *
+        Math.cos(this.toRad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
+
+    return distance;
+  }
+
+  /**
+   * Convierte grados a radianes
+   */
+  private toRad(degrees: number): number {
+    return degrees * (Math.PI / 180);
   }
 
   private async findAccessibilityInfo(
