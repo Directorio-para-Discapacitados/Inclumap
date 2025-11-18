@@ -260,16 +260,32 @@
 }
 
 .favorite-btn {
-  background: var(--color-surface);
+  background: var(--color-card-bg);
   color: var(--color-text) !important;
   border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
 }
 
 .favorite-btn.is-favorite {
-  background: #f5b50a;
-  color: #000000 !important;
+  background: rgba(245, 181, 10, 0.12);
+  color: #f5b50a !important;
+  border-color: rgba(245, 181, 10, 0.9);
 }
 
+.favorite-btn:hover {
+  background: var(--color-hover-bg);
+  border-color: var(--color-primary);
+  color: var(--color-text) !important;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+}
+
+.favorite-btn.is-favorite:hover {
+  background: rgba(245, 181, 10, 0.2);
+  border-color: rgba(245, 181, 10, 1);
+  color: #f5b50a !important;
+  box-shadow: 0 0 0 2px rgba(245, 181, 10, 0.35);
+}
 
 /* SECCIÓN DE RESEÑAS */
 .reviews-section {

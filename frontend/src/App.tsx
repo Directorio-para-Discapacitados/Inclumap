@@ -30,6 +30,8 @@ function AppContent() {
   const { user } = useAuth();
   const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
   const [sessionPromiseResolve, setSessionPromiseResolve] = useState<((value: boolean) => void) | null>(null);
+  const [savedVersion, setSavedVersion] = useState(0);
+  const [hoveredSavedId, setHoveredSavedId] = useState<number | null>(null);
 
   useEffect(() => {
     // Configurar el callback que usará el interceptor para mostrar el modal
@@ -85,16 +87,71 @@ function AppContent() {
             <Route
               path="/guardados"
               element={
-                <div style={{ padding: '2rem' }}>
-                  <h2>⭐ Mis Lugares Guardados</h2>
-                  <p>Aquí se listarán los lugares que has marcado como favoritos.</p>
+                <div
+                  style={{
+                    maxWidth: '1100px',
+                    margin: '2.5rem auto 3rem',
+                    padding: '2.5rem 2rem 2.8rem',
+                    borderRadius: '30px',
+                    background:
+                      'linear-gradient(135deg, rgba(56,189,248,0.25) 0%, rgba(129,140,248,0.25) 50%, #e5f1ff 100%)',
+                    boxShadow: '0 25px 60px rgba(15,23,42,0.35)',
+                  }}
+                >
+                  <header
+                    style={{
+                      borderRadius: '22px',
+                      background: '#ffffff',
+                      boxShadow: '0 18px 40px rgba(15,23,42,0.15)',
+                      padding: '1.6rem 2rem',
+                      marginBottom: '1.8rem',
+                      border: '1px solid rgba(148,163,184,0.3)',
+                    }}
+                  >
+                    <h1
+                      style={{
+                        margin: 0,
+                        fontSize: '1.9rem',
+                        fontWeight: 800,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.7rem',
+                        color: '#0f172a',
+                      }}
+                    >
+                      <span style={{ fontSize: '1.8rem' }}>⭐</span>
+                      Mis Lugares Guardados
+                    </h1>
+                    <p
+                      style={{
+                        margin: '0.5rem 0 0',
+                        fontSize: '0.96rem',
+                        color: '#6b7280',
+                      }}
+                    >
+                      Accede rápido a los locales que más te gustan y que consideras accesibles.
+                    </p>
+                  </header>
+
                   {(() => {
                     const userId = user?.user_id;
+                    void savedVersion; // asegurar re-render cuando cambia
+
                     if (!userId) {
                       return (
-                        <p style={{ marginTop: '1rem' }}>
+                        <div
+                          style={{
+                            padding: '1.6rem',
+                            borderRadius: '18px',
+                            background: '#ffffff',
+                            border: '1px solid rgba(148,163,184,0.35)',
+                            textAlign: 'center',
+                            fontSize: '0.95rem',
+                            color: '#374151',
+                          }}
+                        >
                           Inicia sesión para ver y gestionar tus lugares guardados.
-                        </p>
+                        </div>
                       );
                     }
 
@@ -114,84 +171,210 @@ function AppContent() {
 
                     if (!places.length) {
                       return (
-                        <p style={{ marginTop: '1rem' }}>
-                          Aún no has guardado ningún local como favorito.
-                        </p>
+                        <div
+                          style={{
+                            padding: '2rem 1.5rem',
+                            borderRadius: '22px',
+                            background: '#ffffff',
+                            border: '1px dashed rgba(148,163,184,0.7)',
+                            textAlign: 'center',
+                            color: '#6b7280',
+                            fontSize: '0.95rem',
+                          }}
+                        >
+                          <p style={{ margin: 0 }}>
+                            Aún no has guardado ningún local como favorito.
+                          </p>
+                          <p style={{ margin: '0.3rem 0 0' }}>
+                            Explora los negocios accesibles y usa el botón ⭐ para añadirlos aquí.
+                          </p>
+                        </div>
                       );
                     }
 
+                    const count = places.length;
+
                     return (
-                      <ul
+                      <section
                         style={{
-                          marginTop: '1.5rem',
-                          listStyle: 'none',
-                          padding: 0,
-                          display: 'grid',
-                          gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-                          gap: '1rem',
+                          borderRadius: '24px',
+                          background: '#ffffff',
+                          border: '1px solid rgba(148,163,184,0.4)',
+                          padding: '1.6rem 1.7rem 1.8rem',
+                          boxShadow: '0 18px 40px rgba(15,23,42,0.18)',
                         }}
                       >
-                        {places.map((p) => (
-                          <li
-                            key={p.business_id}
-                            style={{
-                              border: '1px solid var(--color-border)',
-                              borderRadius: '16px',
-                              background: 'var(--color-card-bg)',
-                              boxShadow: 'var(--shadow-sm)',
-                            }}
-                          >
-                            <Link
-                              to={`/local/${p.business_id}`}
-                              style={{
-                                display: 'flex',
-                                gap: '0.75rem',
-                                alignItems: 'center',
-                                padding: '0.9rem 1rem',
-                                textDecoration: 'none',
-                                color: 'inherit',
-                              }}
-                            >
-                              {p.logo_url && (
-                                <img
-                                  src={p.logo_url}
-                                  alt={p.business_name}
+                        <p
+                          style={{
+                            margin: 0,
+                            marginBottom: '1.2rem',
+                            fontSize: '0.9rem',
+                            color: '#6b7280',
+                          }}
+                        >
+                          Tienes {count} {count === 1 ? 'lugar guardado' : 'lugares guardados'}.
+                        </p>
+
+                        <ul
+                          style={{
+                            listStyle: 'none',
+                            padding: 0,
+                            margin: 0,
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                            gap: '1.3rem',
+                          }}
+                        >
+                          {places.map((p) => {
+                            const ratingLabel =
+                              p.average_rating !== undefined && p.average_rating !== null
+                                ? `${Number(p.average_rating).toFixed(1)} / 5`
+                                : 'Sin calificación';
+                            const numericId = Number(p.business_id);
+                            const isHovered = hoveredSavedId === numericId;
+
+                            return (
+                              <li
+                                key={p.business_id}
+                                style={{
+                                  borderRadius: '20px',
+                                  border: isHovered
+                                    ? '1px solid #2563eb'
+                                    : '1px solid rgba(209,213,219,0.9)',
+                                  background: isHovered ? '#ffffff' : '#f9fafb',
+                                  boxShadow: isHovered
+                                    ? '0 18px 40px rgba(15,23,42,0.22)'
+                                    : '0 10px 30px rgba(15,23,42,0.12)',
+                                  overflow: 'hidden',
+                                  transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
+                                  transition:
+                                    'transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background-color 0.18s ease',
+                                }}
+                                onMouseEnter={() => setHoveredSavedId(numericId)}
+                                onMouseLeave={() => setHoveredSavedId(null)}
+                              >
+                                <Link
+                                  to={`/local/${p.business_id}`}
                                   style={{
-                                    width: 52,
-                                    height: 52,
-                                    borderRadius: 14,
-                                    objectFit: 'cover',
-                                  }}
-                                />
-                              )}
-                              <div>
-                                <h3 style={{ margin: 0, fontSize: '1rem' }}>{p.business_name}</h3>
-                                {p.address && (
-                                  <p
-                                    style={{
-                                      margin: '0.25rem 0 0',
-                                      fontSize: '0.9rem',
-                                      color: 'var(--color-text-muted)',
-                                    }}
-                                  >
-                                    {p.address}
-                                  </p>
-                                )}
-                                <p
-                                  style={{
-                                    marginTop: '0.3rem',
-                                    fontSize: '0.9rem',
+                                    display: 'flex',
+                                    gap: '0.9rem',
+                                    alignItems: 'center',
+                                    padding: '1rem 1.2rem 0.85rem',
+                                    textDecoration: 'none',
+                                    color: 'inherit',
                                   }}
                                 >
-                                  {p.average_rating !== undefined && p.average_rating !== null
-                                    ? `⭐ ${Number(p.average_rating).toFixed(1)} / 5`
-                                    : 'Sin calificación'}
-                                </p>
-                              </div>
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
+                                  {p.logo_url && (
+                                    <img
+                                      src={p.logo_url}
+                                      alt={p.business_name}
+                                      style={{
+                                        width: 58,
+                                        height: 58,
+                                        borderRadius: '50%',
+                                        objectFit: 'cover',
+                                        flexShrink: 0,
+                                        border: '2px solid rgba(59,130,246,0.6)',
+                                        boxShadow: '0 4px 12px rgba(15,23,42,0.35)',
+                                      }}
+                                    />
+                                  )}
+                                  <div style={{ flex: 1 }}>
+                                    <span
+                                      style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        padding: '0.12rem 0.55rem',
+                                        borderRadius: '999px',
+                                        fontSize: '0.7rem',
+                                        letterSpacing: '0.06em',
+                                        textTransform: 'uppercase',
+                                        background: 'rgba(37,99,235,0.12)',
+                                        color: '#2563eb',
+                                        marginBottom: '0.35rem',
+                                        fontWeight: 600,
+                                      }}
+                                    >
+                                      Favorito
+                                    </span>
+                                    <h3
+                                      style={{
+                                        margin: 0,
+                                        fontSize: '1.02rem',
+                                        fontWeight: 700,
+                                        color: '#111827',
+                                      }}
+                                    >
+                                      {p.business_name}
+                                    </h3>
+                                    {p.address && (
+                                      <p
+                                        style={{
+                                          margin: '0.28rem 0 0',
+                                          fontSize: '0.9rem',
+                                          color: '#6b7280',
+                                        }}
+                                      >
+                                        {p.address}
+                                      </p>
+                                    )}
+                                    <p
+                                      style={{
+                                        marginTop: '0.45rem',
+                                        fontSize: '0.85rem',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '0.3rem',
+                                        padding: '0.23rem 0.55rem',
+                                        borderRadius: '999px',
+                                        background: '#ffffff',
+                                        border: '1px solid rgba(209,213,219,0.7)',
+                                      }}
+                                    >
+                                      <span>⭐</span>
+                                      <span>{ratingLabel}</span>
+                                    </p>
+                                  </div>
+                                </Link>
+
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    try {
+                                      const keyInner = `saved_places_${userId}`;
+                                      const rawInner = localStorage.getItem(keyInner);
+                                      let listInner = rawInner ? JSON.parse(rawInner) : [];
+                                      if (!Array.isArray(listInner)) listInner = [];
+                                      listInner = listInner.filter(
+                                        (x: any) => Number(x.business_id) !== Number(p.business_id)
+                                      );
+                                      localStorage.setItem(keyInner, JSON.stringify(listInner));
+                                      setSavedVersion((v) => v + 1);
+                                    } catch {
+                                      // si falla, simplemente no actualizamos
+                                    }
+                                  }}
+                                  style={{
+                                    width: '100%',
+                                    border: 'none',
+                                    borderTop: '1px solid rgba(229,231,235,0.9)',
+                                    background: 'transparent',
+                                    padding: '0.7rem 1.2rem 0.85rem',
+                                    textAlign: 'right',
+                                    fontSize: '0.86rem',
+                                    color: '#6b7280',
+                                    cursor: 'pointer',
+                                  }}
+                                >
+                                  Quitar de favoritos
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </section>
                     );
                   })()}
                 </div>
