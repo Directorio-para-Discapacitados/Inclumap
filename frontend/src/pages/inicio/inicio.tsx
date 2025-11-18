@@ -27,7 +27,8 @@ export default function Inicio() {
   const location = useLocation();
   const navigate = useNavigate();
   const cardsRef = useRef<HTMLDivElement | null>(null);
-  
+  const communityRef = useRef<HTMLElement | null>(null);
+
   const iconMap: Record<string, string> = {
     "Rampa Acceso": "fa-wheelchair",
     "Baño adaptado": "fa-universal-access",
@@ -206,6 +207,34 @@ export default function Inicio() {
     }, 50);
     return () => clearTimeout(t);
   }, [query, loading, filtered.length]);
+
+  // Scroll automático a la sección Comunidad y Respaldo
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const section = params.get("section");
+    if (section !== "community") return;
+
+    let attempts = 0;
+    const maxAttempts = 5;
+
+    const doScroll = () => {
+      const el = communityRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const offset = 140;
+      const top = rect.top + window.scrollY - offset;
+      window.scrollTo({ top, behavior: "smooth" });
+    };
+
+    doScroll();
+    const interval = setInterval(() => {
+      attempts += 1;
+      doScroll();
+      if (attempts >= maxAttempts) clearInterval(interval);
+    }, 400);
+
+    return () => clearInterval(interval);
+  }, [location.search]);
 
   const handleClearSearch = () => {
     setQuery("");
@@ -433,7 +462,7 @@ export default function Inicio() {
       </main>
 
       {/* 4. Comunidad y Respaldo */}
-      <section className="info-banner">
+      <section className="info-banner" ref={communityRef}>
           <div 
             className="info-banner-image" 
             style={{backgroundImage: `url('https://media.istockphoto.com/id/1428075845/es/foto/amigos-con-discapacidades-d%C3%A1ndose-la-mano.jpg?s=612x612&w=0&k=20&c=9kmptc8ckRTptHn7K-dZcY8OaNZfHggo5KkPtlXDeNM=')`}}

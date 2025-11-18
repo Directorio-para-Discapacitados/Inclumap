@@ -259,6 +259,17 @@
   height: 22px;
 }
 
+.favorite-btn {
+  background: var(--color-surface);
+  color: var(--color-text) !important;
+  border: 1px solid var(--color-border);
+}
+
+.favorite-btn.is-favorite {
+  background: #f5b50a;
+  color: #000000 !important;
+}
+
 
 /* SECCIÓN DE RESEÑAS */
 .reviews-section {

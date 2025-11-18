@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { API_URL, api } from "../../config/api";
+import { useAuth } from "../../context/AuthContext";
 import "./LocalDetalle.css";
 
 import Swal from "sweetalert2";
@@ -230,9 +231,11 @@ const LocalDetalle: React.FC = () => {
   const [comment, setComment] = useState("");
   const [editing, setEditing] = useState<any | null>(null);
   const [copied, setCopied] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
 
+  const { user } = useAuth();
   const token = localStorage.getItem("token");
-  const userId = Number(localStorage.getItem("user_id"));
+  const userId = user?.user_id;
 
   /* Cargar info del local */
   useEffect(() => {
@@ -288,20 +291,59 @@ const LocalDetalle: React.FC = () => {
         setReviews(res.data || []);
       } catch {
         Swal.fire({
-  title: "Error",
-  text: "No se pudieron cargar las reseñas.",
-  icon: "error",
-  customClass: {
-    popup: "my-swal-dark",
-    title: "my-swal-title",
-    htmlContainer: "my-swal-text"
-  }
-});
-
+          title: "Error",
+          text: "No se pudieron cargar las reseñas.",
+          icon: "error",
+          customClass: {
+            popup: "my-swal-dark",
+            title: "my-swal-title",
+            htmlContainer: "my-swal-text",
+          },
+        });
       }
     };
     loadReviews();
   }, [id, token]);
+
+  useEffect(() => {
+    if (!data || !userId) return;
+
+    const key = `saved_places_${userId}`;
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) {
+        setIsFavorite(false);
+        return;
+      }
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) {
+        setIsFavorite(false);
+        return;
+      }
+
+      const index = parsed.findIndex(
+        (p: any) => Number(p.business_id) === Number(data.business_id)
+      );
+
+      if (index >= 0) {
+        setIsFavorite(true);
+        const current = parsed[index] || {};
+        parsed[index] = {
+          ...current,
+          business_id: data.business_id,
+          business_name: data.business_name,
+          address: data.address,
+          logo_url: data.logo_url,
+          average_rating: data.average_rating,
+        };
+        localStorage.setItem(key, JSON.stringify(parsed));
+      } else {
+        setIsFavorite(false);
+      }
+    } catch {
+      setIsFavorite(false);
+    }
+  }, [data, userId]);
 
   const myReview = reviews.find((r) => r.user?.user_id === userId);
 
@@ -346,45 +388,108 @@ const LocalDetalle: React.FC = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const updateFavoriteAverage = (newAverage: number | null) => {
+    if (!userId || !data) return;
+    const key = `saved_places_${userId}`;
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return;
+      const index = parsed.findIndex(
+        (p: any) => Number(p.business_id) === Number(data.business_id)
+      );
+      if (index === -1) return;
+      const current = parsed[index] || {};
+      parsed[index] = {
+        ...current,
+        average_rating: newAverage ?? undefined,
+      };
+      localStorage.setItem(key, JSON.stringify(parsed));
+    } catch {}
+  };
+
+  const applyNewAverageFromReviews = (reviewsArray: any[]) => {
+    if (!Array.isArray(reviewsArray) || reviewsArray.length === 0) {
+      setData((prev) => (prev ? { ...prev, average_rating: undefined } : prev));
+      updateFavoriteAverage(null);
+      return;
+    }
+    const sum = reviewsArray.reduce(
+      (acc, r) => acc + Number(r.rating || 0),
+      0
+    );
+    const avg = sum / reviewsArray.length;
+    setData((prev) => (prev ? { ...prev, average_rating: avg } : prev));
+    updateFavoriteAverage(avg);
+  };
+
+  const handleToggleFavorite = () => {
+    if (!data || !userId) return;
+
+    const key = `saved_places_${userId}`;
+    try {
+      const raw = localStorage.getItem(key);
+      let list = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(list)) list = [];
+      const index = list.findIndex(
+        (p: any) => Number(p.business_id) === Number(data.business_id)
+      );
+      if (index >= 0) {
+        list.splice(index, 1);
+        setIsFavorite(false);
+      } else {
+        const item = {
+          business_id: data.business_id,
+          business_name: data.business_name,
+          address: data.address,
+          logo_url: data.logo_url,
+          average_rating: data.average_rating,
+        };
+        list.push(item);
+        setIsFavorite(true);
+      }
+      localStorage.setItem(key, JSON.stringify(list));
+    } catch {}
+  };
+
   /* Crear reseña */
   const handleCreateReview = async () => {
     if (!token)
       return Swal.fire({
-  title: "Inicia sesión",
-  text: "Debes iniciar sesión para reseñar.",
-  icon: "info",
-  customClass: {
-    popup: "my-swal-dark",
-    title: "my-swal-title",
-    htmlContainer: "my-swal-text",
-  }
-});
-
+        title: "Inicia sesión",
+        text: "Debes iniciar sesión para reseñar.",
+        icon: "info",
+        customClass: {
+          popup: "my-swal-dark",
+          title: "my-swal-title",
+          htmlContainer: "my-swal-text",
+        },
+      });
 
     if (myReview)
       return Swal.fire({
-  title: "Ya tienes una reseña",
-  text: "Solo puedes dejar una reseña por local.",
-  icon: "warning",
-  customClass: {
-    popup: "my-swal-dark",
-    title: "my-swal-title",
-    htmlContainer: "my-swal-text",
-  }
-});
+        title: "Ya tienes una reseña",
+        text: "Solo puedes dejar una reseña por local.",
+        icon: "warning",
+        customClass: {
+          popup: "my-swal-dark",
+          title: "my-swal-title",
+          htmlContainer: "my-swal-text",
+        },
+      });
 
     if (!rating)
       return Swal.fire({
-  title: "Falta calificación",
-  text: "Selecciona una cantidad de estrellas.",
-  icon: "warning",
-  customClass: {
-    popup: "my-swal-dark",
-    title: "my-swal-title",
-    htmlContainer: "my-swal-text",
-  }
-});
-
+        title: "Falta calificación",
+        text: "Selecciona una cantidad de estrellas.",
+        icon: "warning",
+        customClass: {
+          popup: "my-swal-dark",
+          title: "my-swal-title",
+          htmlContainer: "my-swal-text",
+        },
+      });
 
     try {
       await api.post(
@@ -394,16 +499,15 @@ const LocalDetalle: React.FC = () => {
       );
 
       Swal.fire({
-  title: "¡Listo!",
-  text: "¡ Tu reseña fue publicada !",
-  icon: "success",
-  customClass: {
-    popup: "my-swal-dark",
-    title: "my-swal-title",
-    htmlContainer: "my-swal-text",
-  }
-});
-
+        title: "¡Listo!",
+        text: "¡ Tu reseña fue publicada !",
+        icon: "success",
+        customClass: {
+          popup: "my-swal-dark",
+          title: "my-swal-title",
+          htmlContainer: "my-swal-text",
+        },
+      });
 
       setRating(0);
       setComment("");
@@ -413,18 +517,18 @@ const LocalDetalle: React.FC = () => {
       });
 
       setReviews(res.data);
+      applyNewAverageFromReviews(res.data);
     } catch (e: any) {
-     Swal.fire({
-  title: "Error",
-  text: e?.response?.data?.message || "No se pudo enviar la reseña.",
-  icon: "error",
-  customClass: {
-    popup: "my-swal-dark",
-    title: "my-swal-title",
-    htmlContainer: "my-swal-text",
-  }
-});
-
+      Swal.fire({
+        title: "Error",
+        text: e?.response?.data?.message || "No se pudo enviar la reseña.",
+        icon: "error",
+        customClass: {
+          popup: "my-swal-dark",
+          title: "my-swal-title",
+          htmlContainer: "my-swal-text",
+        },
+      });
     }
   };
 
@@ -460,6 +564,7 @@ const LocalDetalle: React.FC = () => {
       });
 
       setReviews(res.data);
+      applyNewAverageFromReviews(res.data);
     } catch {
       Swal.fire("Error", "No se pudo eliminar la reseña.", "error");
     }
@@ -485,6 +590,7 @@ const LocalDetalle: React.FC = () => {
       });
 
       setReviews(res.data);
+      applyNewAverageFromReviews(res.data);
     } catch {
       Swal.fire("Error", "No se pudo actualizar la reseña.", "error");
     }
@@ -545,6 +651,17 @@ const LocalDetalle: React.FC = () => {
 
               <button className="local-details-btn" onClick={handleShare}>
                 <Share2 size={16} /> Compartir
+              </button>
+
+              <button
+                className={`local-details-btn favorite-btn ${
+                  isFavorite ? "is-favorite" : ""
+                }`}
+                type="button"
+                onClick={handleToggleFavorite}
+              >
+                <Star size={16} />
+                {isFavorite ? "Quitar de favoritos" : "Agregar a favoritos"}
               </button>
             </div>
 
