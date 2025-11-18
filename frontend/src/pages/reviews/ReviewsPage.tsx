@@ -188,6 +188,12 @@ export default function ReviewsPage() {
       )}
 
       <div className="revHeader">
+        <button
+          className="revBackBtn"
+          onClick={() => navigate("/?section=community")}
+        >
+          ← Volver
+        </button>
         <h2 className="revTitle">Reseñas de la comunidad</h2>
         <div className="revStats">
           <span className="revScore">¡Descubre nuevos negocios!</span>
