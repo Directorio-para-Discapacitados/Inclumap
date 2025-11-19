@@ -4,6 +4,12 @@ import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
 import { localRecognitionService } from "../../services/localRecognition";
 import { businessLogoService } from "../../services/businessLogo";
+import { useJsApiLoader } from "@react-google-maps/api";
+import LocationPicker from "../../pages/LocationPicker/LocationPicker";
+import { MapPin } from "lucide-react";
+
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
+const libraries: ("places" | "geometry" | "drawing" | "visualization")[] = ["places"];
 
 interface BusinessData {
   business_id: number;
@@ -13,6 +19,9 @@ interface BusinessData {
   description: string;
   logo_url?: string | null;
   verified?: boolean;
+  coordinates?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 interface EditState {
@@ -37,6 +46,19 @@ export default function OwnerBusinessProfile() {
     description: "",
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Estados para el mapa
+  const [showMap, setShowMap] = useState(false);
+  const [coordinates, setCoordinates] = useState<string>("");
+  const [mapInitialCoords, setMapInitialCoords] = useState({ lat: 1.1522, lng: -76.6526 });
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+    libraries: libraries,
+    language: 'es',
+  });
 
   // Obtener datos del negocio del usuario
   useEffect(() => {
@@ -79,6 +101,18 @@ export default function OwnerBusinessProfile() {
           description: userBusiness.description,
           logoPreview: userBusiness.logo_url,
         });
+
+        // Configurar coordenadas si existen
+        if (userBusiness.coordinates) {
+          setCoordinates(userBusiness.coordinates);
+          const [lat, lng] = userBusiness.coordinates.split(',').map(Number);
+          if (!isNaN(lat) && !isNaN(lng)) {
+            setMapInitialCoords({ lat, lng });
+          }
+        } else if (userBusiness.latitude && userBusiness.longitude) {
+          setCoordinates(`${userBusiness.latitude},${userBusiness.longitude}`);
+          setMapInitialCoords({ lat: userBusiness.latitude, lng: userBusiness.longitude });
+        }
       } catch (error: any) {
         toast.error("Error al cargar los datos del negocio");
       } finally {
@@ -99,6 +133,70 @@ export default function OwnerBusinessProfile() {
       ...prev,
       [name]: value,
     }));
+  };
+
+  // Funciones para el mapa
+  const handleMapConfirm = (lat: number, lng: number, address?: string) => {
+    setCoordinates(`${lat},${lng}`);
+    setMapInitialCoords({ lat, lng });
+    if (address) {
+      setEditData(prev => ({ ...prev, business_address: address }));
+      toast.success("📍 Dirección actualizada desde el mapa", {
+        position: "top-center",
+        autoClose: 2000
+      });
+    } else {
+      toast.success("📍 Coordenadas exactas guardadas", {
+        position: "top-center",
+        autoClose: 2000
+      });
+    }
+    setShowMap(false);
+  };
+
+  const handleOpenMap = () => {
+    // Si ya tenemos ubicación, abrir directamente
+    if (coordinates) {
+      setShowMap(true);
+      return;
+    }
+    // Si no, intentar detectar antes de abrir
+    if (navigator.geolocation && isLoaded) {
+      setIsDetectingLocation(true);
+      toast.info("🔍 Detectando tu ubicación actual...", {
+        position: "top-center",
+        autoClose: 2000
+      });
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          setCoordinates(`${latitude},${longitude}`);
+          setMapInitialCoords({ lat: latitude, lng: longitude });
+          setIsDetectingLocation(false);
+          setShowMap(true);
+          toast.success("✅ Ubicación detectada", {
+            position: "top-center",
+            autoClose: 2000
+          });
+        },
+        (error) => {
+          console.warn("Error al obtener ubicación:", error);
+          setIsDetectingLocation(false);
+          setShowMap(true);
+          toast.warning("⚠️ No se pudo detectar tu ubicación automáticamente. Selecciona manualmente en el mapa.", {
+            position: "top-center",
+            autoClose: 4000
+          });
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
+        }
+      );
+    } else {
+      setShowMap(true);
+    }
   };
 
   const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -264,6 +362,11 @@ export default function OwnerBusinessProfile() {
         description: editData.description,
       };
       
+      // Incluir coordenadas si existen
+      if (coordinates) {
+        requestBody.coordinates = coordinates;
+      }
+      
       // SOLO incluir 'verified' si hay una NUEVA imagen (la cual ya fue validada)
       if (editData.logo) {
         requestBody.verified = verificationStatus;
@@ -344,6 +447,15 @@ export default function OwnerBusinessProfile() {
 
   if (!businessData) {
     return (
+      <>
+      {showMap && isLoaded && (
+        <LocationPicker
+          initialLat={mapInitialCoords.lat}
+          initialLng={mapInitialCoords.lng}
+          onConfirm={handleMapConfirm}
+          onCancel={() => setShowMap(false)}
+        />
+      )}
       <div className="owner-profile-container">
         <div className="no-business-message">
           <i className="fas fa-store"></i>
@@ -354,11 +466,21 @@ export default function OwnerBusinessProfile() {
           </a>
         </div>
       </div>
+      </>
     );
   }
 
   return (
-    <div className="owner-profile-container">
+    <>
+      {showMap && isLoaded && (
+        <LocationPicker
+          initialLat={mapInitialCoords.lat}
+          initialLng={mapInitialCoords.lng}
+          onConfirm={handleMapConfirm}
+          onCancel={() => setShowMap(false)}
+        />
+      )}
+      <div className="owner-profile-container">
       <div className="owner-profile-card">
         <div className="profile-header">
           <h2>
@@ -474,13 +596,34 @@ export default function OwnerBusinessProfile() {
 
               <div className="form-group">
                 <label>Dirección *</label>
-                <input
-                  type="text"
-                  name="business_address"
-                  value={editData.business_address}
-                  onChange={handleInputChange}
-                  placeholder="Dirección del negocio"
-                />
+                <div className="input-with-action">
+                  <input
+                    type="text"
+                    name="business_address"
+                    value={editData.business_address}
+                    onChange={handleInputChange}
+                    placeholder="Dirección del negocio (o selecciona en mapa)"
+                  />
+                  <button
+                    type="button"
+                    className="map-picker-btn"
+                    onClick={handleOpenMap}
+                    disabled={isDetectingLocation}
+                    title={isDetectingLocation ? "Detectando ubicación..." : "Seleccionar ubicación en el mapa"}
+                  >
+                    {isDetectingLocation ? (
+                      <span style={{ fontSize: '12px' }}>...</span>
+                    ) : (
+                      <MapPin size={20} />
+                    )}
+                  </button>
+                </div>
+                {coordinates && coordinates !== "0,0" && (
+                  <div className="location-status-info">
+                    <span className="location-icon">✓</span>
+                    <span className="location-text">Ubicación: {coordinates}</span>
+                  </div>
+                )}
               </div>
 
               <div className="form-group">
@@ -523,5 +666,6 @@ export default function OwnerBusinessProfile() {
         )}
       </div>
     </div>
+    </>
   );
 }

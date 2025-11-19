@@ -641,7 +641,7 @@ export default function Inicio() {
             center={[4.6097, -74.0817]} // Coordenadas por defecto (ej. Bogotá)
             zoom={6} 
             style={{ height: "100%", width: "100%" }}
-            scrollWheelZoom={false}
+            scrollWheelZoom="center"
           >
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
