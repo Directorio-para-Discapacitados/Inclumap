@@ -19,7 +19,9 @@ export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Obtener todas las notificaciones del usuario autenticado' })
+  @ApiOperation({
+    summary: 'Obtener todas las notificaciones del usuario autenticado',
+  })
   async getMyNotifications(@Request() req) {
     const userId = req.user.user_id;
     return await this.notificationService.getUserNotifications(userId);

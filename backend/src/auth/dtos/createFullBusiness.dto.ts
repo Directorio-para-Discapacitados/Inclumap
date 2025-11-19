@@ -1,4 +1,3 @@
-// auth/dtos/createFullBusiness.dto.ts
 import {
   IsEmail,
   IsNotEmpty,
@@ -69,6 +68,15 @@ export class CreateFullBusinessDto {
   @IsNumber({}, { message: 'El NIT debe ser un número' })
   NIT: number;
 
+  @ApiProperty({ description: 'IDs de las categorías del negocio' })
+  @IsNotEmpty({ message: 'Debe seleccionar al menos una categoría' })
+  @IsArray()
+  @IsNumber(
+    {},
+    { each: true, message: 'Cada categoría debe ser un ID numérico' },
+  )
+  categoryIds: number[];
+
   @ApiProperty({ description: 'Descripción del negocio y sus servicios' })
   @IsNotEmpty({ message: 'La descripción es obligatoria' })
   @IsString({ message: 'La descripción debe ser una cadena de texto' })
@@ -100,4 +108,6 @@ export class CreateFullBusinessDto {
     { each: true, message: 'Cada accesibilidad debe ser un número' },
   )
   accessibilityIds?: number[];
+
+  
 }

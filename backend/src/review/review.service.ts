@@ -125,15 +125,18 @@ export class ReviewService {
     }
 
     // Si se actualizó rating o comment, re-analizar sentimiento
-    if (updateReviewDto.rating !== undefined || updateReviewDto.comment !== undefined) {
+    if (
+      updateReviewDto.rating !== undefined ||
+      updateReviewDto.comment !== undefined
+    ) {
       const newRating = updateReviewDto.rating ?? review.rating;
       const newComment = updateReviewDto.comment ?? review.comment;
-      
+
       const sentimentAnalysis = this.sentimentService.analyzeReview(
         newRating,
         newComment,
       );
-      
+
       updateReviewDto.sentiment_label = sentimentAnalysis.sentiment_label;
       updateReviewDto.coherence_check = sentimentAnalysis.coherence_check;
       updateReviewDto.suggested_action = sentimentAnalysis.suggested_action;
@@ -238,21 +241,28 @@ export class ReviewService {
       .createQueryBuilder('review')
       .leftJoin('review.business', 'business')
       .leftJoin('review.user', 'user')
-      .leftJoin('user.people', 'people') 
+      .leftJoin('user.people', 'people')
       .select([
-        'review.review_id', 'review.rating', 'review.comment', 'review.created_at',
-        'review.sentiment_label', 'review.coherence_check', 'review.suggested_action',
-        'business.business_id', 'business.business_name', 'business.average_rating',
+        'review.review_id',
+        'review.rating',
+        'review.comment',
+        'review.created_at',
+        'review.sentiment_label',
+        'review.coherence_check',
+        'review.suggested_action',
+        'business.business_id',
+        'business.business_name',
+        'business.average_rating',
         'user.user_id',
-        'people.firstName', 
-        'people.firstLastName', 
-        'people.avatar'
+        'people.firstName',
+        'people.firstLastName',
+        'people.avatar',
       ])
       .orderBy('review.created_at', 'DESC')
       .getMany();
 
     // Mapear para la estructura de usuario deseada
-    return reviews.map(review => ({
+    return reviews.map((review) => ({
       review_id: review.review_id,
       rating: review.rating,
       comment: review.comment,
@@ -260,13 +270,13 @@ export class ReviewService {
       sentiment_label: review.sentiment_label,
       coherence_check: review.coherence_check,
       suggested_action: review.suggested_action,
-      business: review.business, 
+      business: review.business,
       user: {
         user_id: review.user.user_id,
         name: review.user.people?.firstName,
         lastname: review.user.people?.firstLastName,
-        avatar: review.user.people?.avatar
-      }
+        avatar: review.user.people?.avatar,
+      },
     }));
   }
 
@@ -278,15 +288,23 @@ export class ReviewService {
       .leftJoin('user.people', 'people')
       .select([
         // Reseña
-        'review.review_id', 'review.rating', 'review.comment', 'review.created_at',
-        'review.sentiment_label', 'review.coherence_check', 'review.suggested_action',
+        'review.review_id',
+        'review.rating',
+        'review.comment',
+        'review.created_at',
+        'review.sentiment_label',
+        'review.coherence_check',
+        'review.suggested_action',
         // Local (Business) - Campos mínimos
-        'business.business_id', 'business.business_name', 'business.average_rating',
+        'business.business_id',
+        'business.business_name',
+        'business.average_rating',
         // Usuario (User) - Solo ID
         'user.user_id',
         // Persona (People)
-        'people.avatar', 'people.firstName',    
-        'people.firstLastName'
+        'people.avatar',
+        'people.firstName',
+        'people.firstLastName',
       ])
       .where('user.user_id = :userId', { userId })
       .orderBy('review.created_at', 'DESC')
@@ -401,6 +419,4 @@ export class ReviewService {
       incoherent_found: incoherent,
     };
   }
-
-
 }

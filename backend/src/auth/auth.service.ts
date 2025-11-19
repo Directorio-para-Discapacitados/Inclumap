@@ -36,6 +36,8 @@ import { MapsService } from 'src/maps/maps.service';
 import { PayloadInterface } from './payload/payload.interface';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/entity/notification.entity';
+import { BusinessCategoryEntity } from 'src/business_category/entity/business_category.entity';
+import { CategoryEntity } from 'src/category/entity/category.entity';
 
 @Injectable()
 export class AuthService {
@@ -62,6 +64,12 @@ export class AuthService {
 
     @InjectRepository(AccessibilityEntity)
     private readonly accessibilityRepository: Repository<AccessibilityEntity>,
+
+    @InjectRepository(CategoryEntity)
+    private readonly categoryRepository: Repository<CategoryEntity>,
+
+    @InjectRepository(BusinessCategoryEntity)
+    private readonly businessCategoryRepository: Repository<BusinessCategoryEntity>,
 
     private readonly jwtService: JwtService,
     private readonly mailService: MailsService,
@@ -140,6 +148,8 @@ export class AuthService {
         business_name: null,
         business_address: null,
         NIT: null,
+        
+
       };
 
       // Generar el token JWT
@@ -157,7 +167,7 @@ export class AuthService {
         if (topBusiness) {
           const rating = parseFloat(topBusiness.average_rating.toString());
           const welcomeMessage = `🌟 ¡Bienvenido a Inclumap! Te recomendamos "${topBusiness.business_name}" con ${rating.toFixed(1)} estrellas. ¡Explóralo!`;
-          
+
           await this.notificationService.createNotification(
             newUser.user_id,
             NotificationType.SUGGESTION,
@@ -167,7 +177,10 @@ export class AuthService {
         }
       } catch (notificationError) {
         // Si falla la notificación, no afecta el registro
-        console.error('Error creando notificación de bienvenida:', notificationError);
+        console.error(
+          'Error creando notificación de bienvenida:',
+          notificationError,
+        );
       }
 
       return { message: 'Usuario registrados exitosamente', token };
@@ -189,173 +202,193 @@ export class AuthService {
     }
   }
 
- // backend/src/auth/auth.service.ts
-
- async registerFullBusiness(
-  businessData: CreateFullBusinessDto,
-): Promise<{ message: string; token: string }> {
-  try {
-    // 1. Validaciones previas
-    const existingUser: UserEntity | null = await this.userRepository.findOne(
-      { where: { user_email: businessData.user_email } },
-    );
-    if (existingUser) {
-      throw new BadRequestException('El correo electrónico ya está registrado');
-    }
-
-    const existingBusiness: BusinessEntity | null =
-      await this.businessRepository.findOne({
-        where: { NIT: businessData.NIT },
-      });
-    if (existingBusiness) {
-      throw new BadRequestException('El NIT ya está registrado');
-    }
-
-    // 2. Crear Usuario
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(
-      businessData.user_password,
-      salt,
-    );
-
-    const newUser: UserEntity = this.userRepository.create({
-      user_email: businessData.user_email,
-      user_password: hashedPassword,
-    });
-    await this.userRepository.save(newUser);
-
-    // 3. Asignar Roles (Usuario + Propietario)
-    const rolesToAssign =
-      businessData.rolIds && businessData.rolIds.length > 0
-        ? businessData.rolIds
-        : [2, 3]; 
-
-    for (const rolId of rolesToAssign) {
-      const rol: RolEntity | null = await this.rolRepository.findOne({
-        where: { rol_id: rolId },
-      });
-
-      if (rol) {
-        const userRole = this.userRolesRepository.create({
-          user: newUser,
-          rol: rol,
-        });
-        await this.userRolesRepository.save(userRole);
-      }
-    }
-
-    // 4. Crear Persona
-    const newPeople: PeopleEntity = this.peopleRepository.create({
-      firstName: businessData.firstName,
-      firstLastName: businessData.firstLastName,
-      cellphone: businessData.cellphone,
-      address: businessData.address,
-      gender: businessData.gender,
-      user: newUser,
-    });
-    await this.peopleRepository.save(newPeople);
-
-    // 5. Geocodificación SEGURA (Corrección del Error 500)
-    let latitude: number | null = null;
-    let longitude: number | null = null;
-
+  async registerFullBusiness(
+    businessData: CreateFullBusinessDto,
+  ): Promise<{ message: string; token: string }> {
     try {
-      if (businessData.business_address) {
-        const coordinates = await this.mapsService.getCoordinates(
-          businessData.business_address,
+      // 1. Validaciones previas
+      const existingUser: UserEntity | null = await this.userRepository.findOne(
+        { where: { user_email: businessData.user_email } },
+      );
+      if (existingUser) {
+        throw new BadRequestException(
+          'El correo electrónico ya está registrado',
         );
+      }
 
-        if (coordinates) {
-          latitude = coordinates.lat;
-          longitude = coordinates.lon;
+      const existingBusiness: BusinessEntity | null =
+        await this.businessRepository.findOne({
+          where: { NIT: businessData.NIT },
+        });
+      if (existingBusiness) {
+        throw new BadRequestException('El NIT ya está registrado');
+      }
+
+      // 2. Crear Usuario
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(
+        businessData.user_password,
+        salt,
+      );
+
+      const newUser: UserEntity = this.userRepository.create({
+        user_email: businessData.user_email,
+        user_password: hashedPassword,
+      });
+      await this.userRepository.save(newUser);
+
+      // 3. Asignar Roles (Usuario + Propietario)
+      const rolesToAssign =
+        businessData.rolIds && businessData.rolIds.length > 0
+          ? businessData.rolIds
+          : [2, 3];
+
+      for (const rolId of rolesToAssign) {
+        const rol: RolEntity | null = await this.rolRepository.findOne({
+          where: { rol_id: rolId },
+        });
+
+        if (rol) {
+          const userRole = this.userRolesRepository.create({
+            user: newUser,
+            rol: rol,
+          });
+          await this.userRolesRepository.save(userRole);
         }
       }
-    } catch (mapError) {
-      // Si falla Google Maps, solo lo registramos y continuamos
-      console.warn('⚠️ Advertencia: No se pudieron obtener coordenadas automáticas:', mapError.message);
-    }
 
-    // 6. Crear Negocio
-    const newBusiness: BusinessEntity = this.businessRepository.create({
-      business_name: businessData.business_name,
-      address: businessData.business_address,
-      NIT: businessData.NIT,
-      description: businessData.description,
-      coordinates: businessData.coordinates, // Usamos las que vienen del front o string vacío
-      latitude: latitude,
-      longitude: longitude,
-      user: newUser,
-    });
+      // 4. Crear Persona
+      const newPeople: PeopleEntity = this.peopleRepository.create({
+        firstName: businessData.firstName,
+        firstLastName: businessData.firstLastName,
+        cellphone: businessData.cellphone,
+        address: businessData.address,
+        gender: businessData.gender,
+        user: newUser,
+      });
+      await this.peopleRepository.save(newPeople);
 
-    const savedBusiness: BusinessEntity =
-      await this.businessRepository.save(newBusiness);
+      // 5. Geocodificación SEGURA (Corrección del Error 500)
+      let latitude: number | null = null;
+      let longitude: number | null = null;
 
-    // 7. Asignar Accesibilidad
-    if (
-      businessData.accessibilityIds &&
-      businessData.accessibilityIds.length > 0
-    ) {
-      for (const accessibilityId of businessData.accessibilityIds) {
-        const accessibility: AccessibilityEntity | null =
-          await this.accessibilityRepository.findOne({
-            where: { accessibility_id: accessibilityId },
+      try {
+        if (businessData.business_address) {
+          const coordinates = await this.mapsService.getCoordinates(
+            businessData.business_address,
+          );
+
+          if (coordinates) {
+            latitude = coordinates.lat;
+            longitude = coordinates.lon;
+          }
+        }
+      } catch (mapError) {
+        // Si falla Google Maps, solo lo registramos y continuamos
+        console.warn(
+          '⚠️ Advertencia: No se pudieron obtener coordenadas automáticas:',
+          mapError.message,
+        );
+      }
+
+      // 6. Crear Negocio
+      const newBusiness: BusinessEntity = this.businessRepository.create({
+        business_name: businessData.business_name,
+        address: businessData.business_address,
+        NIT: businessData.NIT,
+        description: businessData.description,
+        coordinates: businessData.coordinates, // Usamos las que vienen del front o string vacío
+        latitude: latitude,
+        longitude: longitude,
+        user: newUser,
+      });
+
+      const savedBusiness: BusinessEntity =
+        await this.businessRepository.save(newBusiness);
+
+      // 7. Asignar Accesibilidad
+      if (
+        businessData.accessibilityIds &&
+        businessData.accessibilityIds.length > 0
+      ) {
+        for (const accessibilityId of businessData.accessibilityIds) {
+          const accessibility: AccessibilityEntity | null =
+            await this.accessibilityRepository.findOne({
+              where: { accessibility_id: accessibilityId },
+            });
+
+          if (accessibility) {
+            const businessAccessibility =
+              this.businessAccessibilityRepository.create({
+                business: savedBusiness,
+                accessibility: accessibility,
+              });
+            await this.businessAccessibilityRepository.save(
+              businessAccessibility,
+            );
+          }
+        }
+      }
+
+      if (businessData.categoryIds && businessData.categoryIds.length > 0) {
+        for (const categoryId of businessData.categoryIds) {
+          const category = await this.categoryRepository.findOne({
+            where: { category_id: categoryId },
           });
 
-        if (accessibility) {
-          const businessAccessibility =
-            this.businessAccessibilityRepository.create({
+          if (category) {
+            const businessCategory = this.businessCategoryRepository.create({
               business: savedBusiness,
-              accessibility: accessibility,
+              category: category,
             });
-          await this.businessAccessibilityRepository.save(
-            businessAccessibility,
-          );
+            await this.businessCategoryRepository.save(businessCategory);
+          }
         }
       }
+
+      // 8. Generar Token
+      const userRoles: UserRolesEntity[] = await this.userRolesRepository.find({
+        where: { user: { user_id: newUser.user_id } },
+        relations: ['rol'],
+      });
+
+      const rolIds = userRoles.map((ur) => ur.rol.rol_id);
+
+      const payload: PayloadInterface = {
+        user_id: newUser.user_id,
+        user_email: newUser.user_email,
+        firstName: newPeople.firstName,
+        firstLastName: newPeople.firstLastName,
+        cellphone: newPeople.cellphone,
+        address: newPeople.address,
+        business_id: savedBusiness.business_id,
+        business_name: savedBusiness.business_name,
+        business_address: savedBusiness.address,
+        NIT: savedBusiness.NIT,
+        rolIds: rolIds,
+        accessibilityIds: businessData.accessibilityIds || [],
+        categoryIds: businessData.categoryIds || [],
+      };
+
+      const token = this.jwtService.sign(payload);
+
+      return {
+        message: 'Negocio registrado exitosamente',
+        token,
+      };
+    } catch (error) {
+      console.error('❌ Error fatal en registro de negocio:', error);
+
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      // Devolver un mensaje más claro en caso de error desconocido
+      throw new HttpException(
+        `Error interno al registrar negocio: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
-
-    // 8. Generar Token
-    const userRoles: UserRolesEntity[] = await this.userRolesRepository.find({
-      where: { user: { user_id: newUser.user_id } },
-      relations: ['rol'],
-    });
-
-    const rolIds = userRoles.map((ur) => ur.rol.rol_id);
-
-    const payload: PayloadInterface = {
-      user_id: newUser.user_id,
-      user_email: newUser.user_email,
-      firstName: newPeople.firstName,
-      firstLastName: newPeople.firstLastName,
-      cellphone: newPeople.cellphone,
-      address: newPeople.address,
-      business_id: savedBusiness.business_id,
-      business_name: savedBusiness.business_name,
-      business_address: savedBusiness.address,
-      NIT: savedBusiness.NIT,
-      rolIds: rolIds,
-      accessibilityIds: businessData.accessibilityIds || [],
-    };
-
-    const token = this.jwtService.sign(payload);
-
-    return {
-      message: 'Negocio registrado exitosamente',
-      token,
-    };
-  } catch (error) {
-    console.error('❌ Error fatal en registro de negocio:', error);
-    
-    if (error instanceof HttpException) {
-      throw error;
-    }
-    // Devolver un mensaje más claro en caso de error desconocido
-    throw new HttpException(
-      `Error interno al registrar negocio: ${error.message}`,
-      HttpStatus.INTERNAL_SERVER_ERROR,
-    );
   }
-}
 
   async login(dto: LoginDto): Promise<{ message: string; token: string }> {
     try {
@@ -424,63 +457,42 @@ export class AuthService {
     businessData: UpgradeToBusinessDto,
   ): Promise<{ message: string; token: string }> {
     try {
-      // Verificar que el usuario existe
       const user: UserEntity | null = await this.userRepository.findOne({
         where: { user_id: userId },
         relations: ['people', 'business', 'userroles', 'userroles.rol'],
       });
 
-      if (!user) {
-        throw new BadRequestException('Usuario no encontrado');
-      }
-
-      if (user.business) {
+      if (!user) throw new BadRequestException('Usuario no encontrado');
+      if (user.business)
         throw new BadRequestException(
           'El usuario ya tiene un negocio registrado',
         );
-      }
 
-      // Verificar si el NIT ya está registrado
       const existingBusiness: BusinessEntity | null =
         await this.businessRepository.findOne({
           where: { NIT: businessData.NIT },
         });
-
-      if (existingBusiness) {
+      if (existingBusiness)
         throw new BadRequestException('El NIT ya está registrado');
-      }
 
-      // Verificar y agregar rol de negocio
       const hasBusinessRole = user.userroles.some((ur) => ur.rol.rol_id === 3);
       if (!hasBusinessRole) {
-        const businessRole: RolEntity | null = await this.rolRepository.findOne(
-          {
-            where: { rol_id: 3 },
-          },
-        );
-
-        if (!businessRole) {
-          throw new BadRequestException('Rol de negocio no encontrado');
-        }
-
-        const userRole = this.userRolesRepository.create({
-          user: user,
-          rol: businessRole,
+        const businessRole = await this.rolRepository.findOne({
+          where: { rol_id: 3 },
         });
-        await this.userRolesRepository.save(userRole);
+        if (businessRole) {
+          await this.userRolesRepository.save(
+            this.userRolesRepository.create({ user, rol: businessRole }),
+          );
+        }
       }
 
+      // Geocodificación
       const coordinates = await this.mapsService.getCoordinates(
         businessData.business_address,
       );
-
-      let latitude: number | null = null;
-      let longitude: number | null = null;
-
-      if (coordinates) {
-        latitude = coordinates.lat;
-        longitude = coordinates.lon;
-      }
+      const latitude = coordinates ? coordinates.lat : null;
+      const longitude = coordinates ? coordinates.lon : null;
 
       // Crear el negocio
       const newBusiness: BusinessEntity = this.businessRepository.create({
@@ -496,46 +508,58 @@ export class AuthService {
 
       await this.businessRepository.save(newBusiness);
 
-      // Crear relaciones de accesibilidad
+      //Asignar Accesibilidades (Existente)
       if (
         businessData.accessibilityIds &&
         businessData.accessibilityIds.length > 0
       ) {
         for (const accessibilityId of businessData.accessibilityIds) {
-          const accessibility: AccessibilityEntity | null =
-            await this.accessibilityRepository.findOne({
-              where: { accessibility_id: accessibilityId },
-            });
+          const accessibility = await this.accessibilityRepository.findOne({
+            where: { accessibility_id: accessibilityId },
+          });
 
           if (accessibility) {
-            const businessAccessibility =
+            await this.businessAccessibilityRepository.save(
               this.businessAccessibilityRepository.create({
                 business: newBusiness,
                 accessibility: accessibility,
-              });
-            await this.businessAccessibilityRepository.save(
-              businessAccessibility,
+              }),
             );
           }
         }
       }
 
-      // Obtener usuario actualizado con todos los roles
+      // signar Categorías
+      if (businessData.categoryIds && businessData.categoryIds.length > 0) {
+        for (const categoryId of businessData.categoryIds) {
+          const category = await this.categoryRepository.findOne({
+            where: { category_id: categoryId },
+          });
+
+          if (category) {
+            await this.businessCategoryRepository.save(
+              this.businessCategoryRepository.create({
+                business: newBusiness,
+                category: category,
+              }),
+            );
+          }
+        }
+      }
+
+      // Obtener usuario actualizado
       const updatedUser: UserEntity | null = await this.userRepository.findOne({
         where: { user_id: userId },
         relations: ['people', 'userroles', 'userroles.rol', 'business'],
       });
 
-      if (!updatedUser) {
+      if (!updatedUser || !updatedUser.people) {
         throw new BadRequestException('Error al actualizar el usuario');
-      }
-      if (!updatedUser.people) {
-        throw new BadRequestException('Datos de persona no encontrados');
       }
 
       const rolIds = updatedUser.userroles.map((ur) => ur.rol.rol_id);
 
-      // Generar nuevo token con la información actualizada
+      // 3. Generar Payload Actualizado
       const payload: PayloadInterface = {
         user_id: updatedUser.user_id,
         user_email: updatedUser.user_email,
@@ -549,6 +573,7 @@ export class AuthService {
         NIT: newBusiness.NIT,
         rolIds: rolIds,
         accessibilityIds: businessData.accessibilityIds || [],
+        categoryIds: businessData.categoryIds || [], // <--- AGREGADO AQUÍ
       };
 
       const token = this.jwtService.sign(payload);
@@ -558,24 +583,16 @@ export class AuthService {
         token,
       };
     } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      if (error instanceof Error) {
-        throw new HttpException(
-          error.message,
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
+      if (error instanceof HttpException) throw error;
       throw new HttpException(
-        'Un error inesperado ocurrió al actualizar a negocio',
+        `Un error inesperado ocurrió al actualizar a negocio: ${error instanceof Error ? error.message : error}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
   //Metodo refrescarToken
-  refreshToken(payload: PayloadInterface): string { 
+  refreshToken(payload: PayloadInterface): string {
     try {
       const newPayload: PayloadInterface = {
         user_id: payload.user_id,
@@ -589,12 +606,13 @@ export class AuthService {
         business_name: payload.business_name,
         business_address: payload.business_address || null,
         NIT: payload.NIT || null,
+        accessibilityIds: payload.accessibilityIds || [],
+        categoryIds: payload.categoryIds || [],
       };
 
       const token = this.jwtService.sign(newPayload);
 
       return token;
-      
     } catch (error) {
       if (error instanceof HttpException) {
         throw error;

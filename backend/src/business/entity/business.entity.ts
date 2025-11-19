@@ -1,4 +1,5 @@
 import { BusinessAccessibilityEntity } from 'src/business_accessibility/entity/business_accessibility.entity';
+import { BusinessCategoryEntity } from 'src/business_category/entity/business_category.entity';
 import { ReviewEntity } from 'src/review/entity/review.entity';
 import { UserEntity } from 'src/user/entity/user.entity';
 import {
@@ -87,4 +88,11 @@ export class BusinessEntity {
   })
   @JoinColumn({ name: 'user_id' })
   user: UserEntity | null;
+
+  @OneToMany(
+    () => BusinessCategoryEntity,
+    (businessCategory) => businessCategory.business,
+    { cascade: true },
+  )
+  business_categories: BusinessCategoryEntity[];
 }

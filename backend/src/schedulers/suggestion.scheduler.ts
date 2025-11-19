@@ -24,7 +24,9 @@ export class SuggestionScheduler {
     timeZone: 'America/Bogota',
   })
   async suggestTopBusiness() {
-    this.logger.log('🔄 Ejecutando tarea cada 10 minutos: Sugerir local top...');
+    this.logger.log(
+      '🔄 Ejecutando tarea cada 10 minutos: Sugerir local top...',
+    );
 
     try {
       // Buscar el local con mayor average_rating que sea mayor a 4.0

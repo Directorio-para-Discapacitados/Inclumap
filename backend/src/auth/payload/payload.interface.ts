@@ -11,4 +11,5 @@ export interface PayloadInterface {
   business_address: string | null;
   NIT: number | null;
   accessibilityIds?: number[];
+  categoryIds?: number[];
 }

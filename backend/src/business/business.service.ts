@@ -104,6 +104,8 @@ export class BusinessService {
           'user.userroles.rol',
           'business_accessibility',
           'business_accessibility.accessibility',
+          'business_categories',
+          'business_categories.category',
         ],
       });
 
@@ -154,6 +156,8 @@ export class BusinessService {
           verified: negocio.verified || false,
           user: userWithRoles,
           business_accessibility: negocio.business_accessibility,
+          business_category: negocio.business_categories
+          
         };
       });
     } catch (error) {
@@ -274,7 +278,7 @@ export class BusinessService {
   async eliminarNegocio(business_id: number): Promise<string> {
     const negocio = await this._businessRepository.findOne({
       where: { business_id },
-      relations: ['user', 'business_accessibility'],
+      relations: ['user', 'business_accessibility', 'business_categories'],
     });
 
     if (!negocio) {
@@ -602,7 +606,8 @@ export class BusinessService {
   async updateBusinessLogo(
     user: UserEntity,
     logoBuffer: Buffer,
-  ): Promise<{ message: string; logo_url: string }> { // <--- CAMBIO 1: Tipo de retorno explícito
+  ): Promise<{ message: string; logo_url: string }> {
+    // <--- CAMBIO 1: Tipo de retorno explícito
     try {
       const negocio = await this._businessRepository.findOne({
         where: { user: { user_id: user.user_id } },
@@ -618,7 +623,7 @@ export class BusinessService {
       const uploadResult = await this.cloudinaryService.uploadImage(
         logoBuffer,
         'inclumap/business-logos',
-        `business_${negocio.business_id}`, 
+        `business_${negocio.business_id}`,
       );
 
       negocio.logo_url = uploadResult.secure_url;
