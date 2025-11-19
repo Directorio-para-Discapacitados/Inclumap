@@ -4,8 +4,6 @@ import { useAuth } from "../../context/AuthContext";
 import ProfileSidebar from "../../Components/ProfileSidebar/ProfileSidebar";
 import UserProfileSection from "../../Components/UserProfileSection/UserProfileSection";
 import OwnerBusinessProfile from "../../Components/OwnerBusinessProfile/OwnerBusinessProfile";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import "./perfil.css";
 
 export default function Perfil() {
@@ -80,18 +78,6 @@ export default function Perfil() {
           </div>
         </div>
       </div>
-      <ToastContainer 
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={true}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="colored"
-      />
     </div>
   );
 }

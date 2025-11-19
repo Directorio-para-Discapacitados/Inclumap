@@ -7,6 +7,7 @@ import { API_URL, api } from "../../config/api";
 import { useJsApiLoader } from "@react-google-maps/api";
 import LocationPicker from "../../pages/LocationPicker/LocationPicker";
 import { MapPin } from "lucide-react";
+import { toast } from "react-toastify";
 import "./UserProfileSection.css";
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
@@ -22,17 +23,11 @@ type Profile = {
   avatar?: string;
 };
 
-type FeedbackMessage = {
-  type: "success" | "error";
-  text: string;
-} | null;
-
 export default function UserProfileSection() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [editedProfile, setEditedProfile] = useState<Profile>({});
-  const [feedback, setFeedback] = useState<FeedbackMessage>(null);
   const [saving, setSaving] = useState(false);
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const navigate = useNavigate();
@@ -61,7 +56,7 @@ export default function UserProfileSection() {
     const allowedRoles = [1, 2, 3];
     if (user && Array.isArray(user.rolIds) && !user.rolIds.some(r => allowedRoles.includes(r))) {
       setLoading(false);
-      showFeedback('error', 'No tienes permisos para ver este perfil');
+      toast.error('No tienes permisos para ver este perfil', { autoClose: 3000, position: 'top-right' });
       return;
     }
 
@@ -77,7 +72,10 @@ export default function UserProfileSection() {
         // El interceptor manejará esto automáticamente
         return;
       }
-      showFeedback("error", error.response?.data?.message || "Error al obtener perfil. Verifica la conexión.");
+      toast.error(error.response?.data?.message || "Error al obtener perfil. Verifica la conexión.", { 
+        autoClose: 3000, 
+        position: 'top-right' 
+      });
     } finally {
       setLoading(false);
     }
@@ -86,11 +84,6 @@ export default function UserProfileSection() {
   useEffect(() => {
     fetchProfile();
   }, []);
-
-  const showFeedback = (type: "success" | "error", text: string) => {
-    setFeedback({ type, text });
-    setTimeout(() => setFeedback(null), 3000);
-  };
 
   const handleEditToggle = () => {
     if (editMode && profile) {
@@ -157,16 +150,25 @@ export default function UserProfileSection() {
 
       if (!res.ok) {
         const errorData = await res.json();
-        showFeedback("error", errorData.message || "Error al guardar perfil");
+        toast.error(errorData.message || "Error al guardar perfil", { 
+          autoClose: 3000, 
+          position: 'top-right' 
+        });
         return;
       }
 
       setProfile(editedProfile);
       setEditMode(false);
-      showFeedback("success", "Perfil actualizado exitosamente");
+      toast.success("Perfil actualizado exitosamente", { 
+        autoClose: 3000, 
+        position: 'top-right' 
+      });
       await refreshUser();
     } catch (error) {
-      showFeedback("error", "Error al guardar perfil. Verifica la conexión.");
+      toast.error("Error al guardar perfil. Verifica la conexión.", { 
+        autoClose: 3000, 
+        position: 'top-right' 
+      });
     } finally {
       setSaving(false);
     }
@@ -196,12 +198,6 @@ export default function UserProfileSection() {
         <h3>Perfil de Usuario</h3>
         <p>Gestiona tu información personal y preferencias de cuenta</p>
       </div>
-
-      {feedback && (
-        <div className={`feedback-message ${feedback.type}`}>
-          {feedback.text}
-        </div>
-      )}
 
       <div className="profile-content">
         <div className="profile-avatar-section">

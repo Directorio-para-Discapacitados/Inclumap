@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./CrearNegocio.css";
 import { HelpCircle, MapPin } from "lucide-react"; 
 import { useNavigate } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
 import { useJsApiLoader } from "@react-google-maps/api";
 import LocationPicker from "../LocationPicker/LocationPicker";
@@ -139,7 +138,7 @@ export default function CrearNegocio() {
           setIsDetectingLocation(false);
           toast.warning("⚠️ No se pudo detectar tu ubicación. Puedes seleccionarla manualmente en el mapa.", {
             position: "top-center",
-            autoClose: 4000
+            autoClose: 3000
           });
         }
       );
@@ -207,7 +206,7 @@ export default function CrearNegocio() {
           setShowMap(true);
           toast.warning("⚠️ No se pudo detectar tu ubicación automáticamente. Selecciona manualmente en el mapa.", {
             position: "top-center",
-            autoClose: 4000
+            autoClose: 3000
           });
         },
         {
@@ -271,18 +270,18 @@ export default function CrearNegocio() {
     e.preventDefault();
 
     if (!formData.business_name.trim()) {
-      toast.warning("⚠️ El nombre del negocio es requerido", { position: "top-center", autoClose: 4000 });
+      toast.warning("⚠️ El nombre del negocio es requerido", { position: "top-center", autoClose: 3000 });
       return;
     }
 
     if (!formData.NIT || formData.NIT.length < 8) {
-      toast.warning("⚠️ El NIT debe tener al menos 8 dígitos", { position: "top-center", autoClose: 4000 });
+      toast.warning("⚠️ El NIT debe tener al menos 8 dígitos", { position: "top-center", autoClose: 3000 });
       return;
     }
 
     // Validar que se haya seleccionado al menos una categoría
     if (selectedCategories.length === 0) {
-      toast.warning("⚠️ Debes seleccionar al menos una categoría para tu negocio.", { position: "top-center", autoClose: 4000 });
+      toast.warning("⚠️ Debes seleccionar al menos una categoría para tu negocio.", { position: "top-center", autoClose: 3000 });
       return;
     }
 
@@ -290,7 +289,7 @@ export default function CrearNegocio() {
     const token = localStorage.getItem('token');
    
     if (!token) {
-      toast.error("❌ No hay sesión activa.", { position: "top-center", autoClose: 4000 });
+      toast.error("❌ No hay sesión activa.", { position: "top-center", autoClose: 3000 });
       setIsLoading(false);
       return;
     }
@@ -359,7 +358,7 @@ export default function CrearNegocio() {
 
     } catch (error: any) {
 
-      toast.error(`❌ ${error.message}`, { position: "top-center", autoClose: 4000 });
+      toast.error(`❌ ${error.message}`, { position: "top-center", autoClose: 3000 });
 
     } finally {
 
@@ -591,8 +590,6 @@ export default function CrearNegocio() {
         </div>
 
       </form>
-
-      <ToastContainer theme="colored" newestOnTop pauseOnHover />
 
     </div>
 
