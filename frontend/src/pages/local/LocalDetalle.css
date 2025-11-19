@@ -430,5 +430,47 @@
   color: #fff !important;
 }
 
+/* ===========================
+    CATEGORÍAS
+=========================== */
+.categorias-card {
+  margin-bottom: 1.5rem;
+}
+
+.categorias-card h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 1rem;
+}
+
+.categorias-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.categoria-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: var(--color-primary);
+  color: #ffffff;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.categoria-tag:hover {
+  background-color: var(--color-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+
+
+
 
 
