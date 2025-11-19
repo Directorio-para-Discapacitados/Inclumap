@@ -30,4 +30,14 @@ export class UpgradeToBusinessDto {
   @IsArray()
   @IsNumber({}, { each: true })
   accessibilityIds?: number[];
+
+  @ApiPropertyOptional({
+    description: 'Lista de IDs de categorías para actualizar',
+    isArray: true,
+  })
+  @IsOptional()
+  @IsArray()
+  @IsNumber({}, { each: true })
+  categoryIds?: number[];
+
 }

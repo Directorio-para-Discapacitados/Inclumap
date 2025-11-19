@@ -447,63 +447,32 @@ export class AuthService {
     businessData: UpgradeToBusinessDto,
   ): Promise<{ message: string; token: string }> {
     try {
-      // Verificar que el usuario existe
       const user: UserEntity | null = await this.userRepository.findOne({
         where: { user_id: userId },
         relations: ['people', 'business', 'userroles', 'userroles.rol'],
       });
 
-      if (!user) {
-        throw new BadRequestException('Usuario no encontrado');
-      }
+      if (!user) throw new BadRequestException('Usuario no encontrado');
+      if (user.business) throw new BadRequestException('El usuario ya tiene un negocio registrado');
 
-      if (user.business) {
-        throw new BadRequestException(
-          'El usuario ya tiene un negocio registrado',
-        );
-      }
-
-      // Verificar si el NIT ya está registrado
       const existingBusiness: BusinessEntity | null =
-        await this.businessRepository.findOne({
-          where: { NIT: businessData.NIT },
-        });
+        await this.businessRepository.findOne({ where: { NIT: businessData.NIT } });
+      if (existingBusiness) throw new BadRequestException('El NIT ya está registrado');
 
-      if (existingBusiness) {
-        throw new BadRequestException('El NIT ya está registrado');
-      }
-
-      // Verificar y agregar rol de negocio
+     
       const hasBusinessRole = user.userroles.some((ur) => ur.rol.rol_id === 3);
       if (!hasBusinessRole) {
-        const businessRole: RolEntity | null = await this.rolRepository.findOne(
-          {
-            where: { rol_id: 3 },
-          },
-        );
-
-        if (!businessRole) {
-          throw new BadRequestException('Rol de negocio no encontrado');
-        }
-
-        const userRole = this.userRolesRepository.create({
-          user: user,
-          rol: businessRole,
-        });
-        await this.userRolesRepository.save(userRole);
+       
+         const businessRole = await this.rolRepository.findOne({ where: { rol_id: 3 } });
+         if (businessRole) {
+            await this.userRolesRepository.save(this.userRolesRepository.create({ user, rol: businessRole }));
+         }
       }
 
-      const coordinates = await this.mapsService.getCoordinates(
-        businessData.business_address,
-      );
-
-      let latitude: number | null = null;
-      let longitude: number | null = null;
-
-      if (coordinates) {
-        latitude = coordinates.lat;
-        longitude = coordinates.lon;
-      }
+      // Geocodificación
+      const coordinates = await this.mapsService.getCoordinates(businessData.business_address);
+      const latitude = coordinates ? coordinates.lat : null;
+      const longitude = coordinates ? coordinates.lon : null;
 
       // Crear el negocio
       const newBusiness: BusinessEntity = this.businessRepository.create({
@@ -519,46 +488,55 @@ export class AuthService {
 
       await this.businessRepository.save(newBusiness);
 
-      // Crear relaciones de accesibilidad
-      if (
-        businessData.accessibilityIds &&
-        businessData.accessibilityIds.length > 0
-      ) {
+      //Asignar Accesibilidades (Existente)
+      if (businessData.accessibilityIds && businessData.accessibilityIds.length > 0) {
         for (const accessibilityId of businessData.accessibilityIds) {
-          const accessibility: AccessibilityEntity | null =
-            await this.accessibilityRepository.findOne({
-              where: { accessibility_id: accessibilityId },
-            });
+          const accessibility = await this.accessibilityRepository.findOne({
+            where: { accessibility_id: accessibilityId },
+          });
 
           if (accessibility) {
-            const businessAccessibility =
+            await this.businessAccessibilityRepository.save(
               this.businessAccessibilityRepository.create({
                 business: newBusiness,
                 accessibility: accessibility,
-              });
-            await this.businessAccessibilityRepository.save(
-              businessAccessibility,
+              })
             );
           }
         }
       }
 
-      // Obtener usuario actualizado con todos los roles
+      // signar Categorías 
+      if (businessData.categoryIds && businessData.categoryIds.length > 0) {
+        for (const categoryId of businessData.categoryIds) {
+          const category = await this.categoryRepository.findOne({
+            where: { category_id: categoryId },
+          });
+
+          if (category) {
+            await this.businessCategoryRepository.save(
+              this.businessCategoryRepository.create({
+                business: newBusiness,
+                category: category,
+              })
+            );
+          }
+        }
+      }
+
+      // Obtener usuario actualizado
       const updatedUser: UserEntity | null = await this.userRepository.findOne({
         where: { user_id: userId },
         relations: ['people', 'userroles', 'userroles.rol', 'business'],
       });
 
-      if (!updatedUser) {
+      if (!updatedUser || !updatedUser.people) {
         throw new BadRequestException('Error al actualizar el usuario');
-      }
-      if (!updatedUser.people) {
-        throw new BadRequestException('Datos de persona no encontrados');
       }
 
       const rolIds = updatedUser.userroles.map((ur) => ur.rol.rol_id);
 
-      // Generar nuevo token con la información actualizada
+      // 3. Generar Payload Actualizado
       const payload: PayloadInterface = {
         user_id: updatedUser.user_id,
         user_email: updatedUser.user_email,
@@ -572,6 +550,7 @@ export class AuthService {
         NIT: newBusiness.NIT,
         rolIds: rolIds,
         accessibilityIds: businessData.accessibilityIds || [],
+        categoryIds: businessData.categoryIds || [], // <--- AGREGADO AQUÍ
       };
 
       const token = this.jwtService.sign(payload);
@@ -581,17 +560,9 @@ export class AuthService {
         token,
       };
     } catch (error) {
-      if (error instanceof HttpException) {
-        throw error;
-      }
-      if (error instanceof Error) {
-        throw new HttpException(
-          error.message,
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
+      if (error instanceof HttpException) throw error;
       throw new HttpException(
-        'Un error inesperado ocurrió al actualizar a negocio',
+        `Un error inesperado ocurrió al actualizar a negocio: ${error instanceof Error ? error.message : error}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -612,6 +583,8 @@ export class AuthService {
         business_name: payload.business_name,
         business_address: payload.business_address || null,
         NIT: payload.NIT || null,
+        accessibilityIds: payload.accessibilityIds || [], 
+        categoryIds: payload.categoryIds || [],
       };
 
       const token = this.jwtService.sign(newPayload);

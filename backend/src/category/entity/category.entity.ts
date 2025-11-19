@@ -9,6 +9,9 @@ export class CategoryEntity {
   @Column({ unique: true })
   name: string;
 
+  @Column({ type: 'varchar', length: 255 })
+  description: string;
+
   @OneToMany(() => BusinessCategoryEntity, (business_categories) => business_categories.category)
   business_categories: BusinessCategoryEntity[];
 }
