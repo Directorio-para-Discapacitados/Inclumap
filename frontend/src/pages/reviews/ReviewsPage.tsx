@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../../config/api";
 import { useAuth } from "../../context/AuthContext";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 import "./reviews.css";
 
 function StarRating({ value }: { value: number }) {
@@ -44,7 +43,7 @@ export default function ReviewsPage() {
     const filterParam = searchParams.get('filter');
     if (filterParam === 'incoherent' && isAdmin) {
       setFilterIncoherent(true);
-      toast.info("🔍 Mostrando reseñas incoherentes que requieren revisión");
+      toast.info("🔍 Mostrando reseñas incoherentes que requieren revisión", { autoClose: 3000 });
     }
   }, [searchParams, isAdmin]);
 
@@ -76,10 +75,10 @@ export default function ReviewsPage() {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       
-      toast.success("✅ Reseña corregida exitosamente");
+      toast.success("✅ Reseña corregida exitosamente", { autoClose: 3000 });
       fetchReviews(); // Recargar reseñas
     } catch (error: any) {
-      toast.error(`❌ Error al corregir la reseña: ${error.response?.data?.message || error.message}`);
+      toast.error(`❌ Error al corregir la reseña: ${error.response?.data?.message || error.message}`, { autoClose: 3000 });
     }
   };
 
@@ -115,10 +114,10 @@ export default function ReviewsPage() {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      toast.success(`✅ ${res.data.message}: ${res.data.analyzed} reseñas analizadas, ${res.data.incoherent_found} incoherentes detectadas`);
+      toast.success(`✅ ${res.data.message}: ${res.data.analyzed} reseñas analizadas, ${res.data.incoherent_found} incoherentes detectadas`, { autoClose: 5000 });
       fetchReviews(); // Recargar reseñas
     } catch (error: any) {
-      toast.error(`❌ Error al reanalizar: ${error.response?.data?.message || error.message}`);
+      toast.error(`❌ Error al reanalizar: ${error.response?.data?.message || error.message}`, { autoClose: 3000 });
     }
   };
 
@@ -351,8 +350,6 @@ export default function ReviewsPage() {
       <div className="revWriteContainer">
         <button className="revWriteBtn">✚ Escribe tu reseña</button>
       </div>
-
-      <ToastContainer theme="colored" position="top-center" />
 
     </div>
   );

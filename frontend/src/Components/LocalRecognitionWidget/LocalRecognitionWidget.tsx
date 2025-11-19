@@ -53,7 +53,7 @@ export default function LocalRecognitionWidget({ isCreatingBusiness = false, bus
     // Validar formato
     if (!validateImageFormat(file)) {
       setError("Solo se aceptan imágenes en formato JPG o PNG");
-      toast.error("Formato de imagen no válido");
+      toast.error("Formato de imagen no válido", { autoClose: 3000 });
       return;
     }
 
@@ -61,7 +61,7 @@ export default function LocalRecognitionWidget({ isCreatingBusiness = false, bus
     const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
       setError("La imagen no debe superar 5MB");
-      toast.error("Archivo muy grande");
+      toast.error("Archivo muy grande", { autoClose: 3000 });
       return;
     }
 
@@ -152,7 +152,7 @@ export default function LocalRecognitionWidget({ isCreatingBusiness = false, bus
 
     } catch (err) {
       setError("No se pudo acceder a la cámara");
-      toast.error("Error al acceder a la cámara");
+      toast.error("Error al acceder a la cámara", { autoClose: 3000 });
     }
   };
 
@@ -182,7 +182,7 @@ export default function LocalRecognitionWidget({ isCreatingBusiness = false, bus
               accessibility: response.accessibility || {},
             });
             setShowResults(true);
-            toast.success("✅ Negocio verificado correctamente");
+            toast.success("✅ Negocio verificado correctamente", { autoClose: 3000 });
             if (onVerified) {
               onVerified();
             }
@@ -206,7 +206,7 @@ export default function LocalRecognitionWidget({ isCreatingBusiness = false, bus
               
               if (!data) {
                 setError("No se pudo procesar la imagen");
-                toast.error("Error al procesar la imagen");
+                toast.error("Error al procesar la imagen", { autoClose: 3000 });
                 setLoading(false);
                 return;
               }
@@ -221,7 +221,7 @@ export default function LocalRecognitionWidget({ isCreatingBusiness = false, bus
               // Si la imagen es muy oscura o muy clara (posible foto inválida)
               if (brightness < 20 || brightness > 240) {
                 setError("La imagen parece ser muy oscura o muy clara. Intenta con una foto más clara.");
-                toast.error("Imagen inválida");
+                toast.error("Imagen inválida", { autoClose: 3000 });
                 setLoading(false);
                 return;
               }
@@ -234,7 +234,7 @@ export default function LocalRecognitionWidget({ isCreatingBusiness = false, bus
                 accessibility: {},
               });
               setShowResults(true);
-              toast.success("✅ Imagen validada correctamente");
+              toast.success("✅ Imagen validada correctamente", { autoClose: 3000 });
               if (onVerified) {
                 onVerified();
               }
@@ -259,15 +259,15 @@ export default function LocalRecognitionWidget({ isCreatingBusiness = false, bus
             accessibility: response.accessibility || {},
           });
           setShowResults(true);
-          toast.success("Reconocimiento completado");
+          toast.success("Reconocimiento completado", { autoClose: 3000 });
         } else {
           setError("No se encontró coincidencia para esta imagen");
-          toast.warning("No se encontró coincidencia");
+          toast.warning("No se encontró coincidencia", { autoClose: 3000 });
         }
       }
     } catch (err: any) {
       setError(err.message || "Error al procesar la imagen");
-      toast.error("Error al reconocer el local");
+      toast.error("Error al reconocer el local", { autoClose: 3000 });
     } finally {
       setLoading(false);
     }

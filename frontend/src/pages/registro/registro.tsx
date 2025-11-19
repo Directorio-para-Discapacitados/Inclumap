@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./registro.css";
 import { Eye, EyeOff, HelpCircle, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 import { useJsApiLoader } from "@react-google-maps/api";
 import LocationPicker from "../LocationPicker/LocationPicker";
 import CategoryMultiSelect from "../../Components/CategoryMultiSelect/CategoryMultiSelect";
@@ -102,7 +101,7 @@ export default function Registro() {
       }));
     }
 
-    toast.success(" Ubicación guardada");
+    toast.success(" Ubicación guardada", { autoClose: 3000 });
     setShowMap(false);
   };
 
@@ -159,12 +158,12 @@ export default function Registro() {
     }
 
     if (!validarPassword(formData.user_password)) {
-      toast.warning("La contraseña debe tener 8 caracteres, mayúscula y número.");
+      toast.warning("La contraseña debe tener 8 caracteres, mayúscula y número.", { autoClose: 3000 });
       return;
     }
 
     if (isBusiness && selectedCategories.length === 0) {
-      toast.warning("Selecciona al menos una categoría.");
+      toast.warning("Selecciona al menos una categoría.", { autoClose: 3000 });
       return;
     }
 
@@ -197,10 +196,10 @@ export default function Registro() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
 
-      toast.success("Registro exitoso");
+      toast.success("Registro exitoso", { autoClose: 3000 });
       setTimeout(() => navigate("/login"), 2000);
     } catch (err: any) {
-      toast.error(err.message || "Error al registrar");
+      toast.error(err.message || "Error al registrar", { autoClose: 3000 });
     }
   };
 
@@ -451,7 +450,6 @@ export default function Registro() {
         </p>
       </form>
 
-      <ToastContainer newestOnTop pauseOnHover theme="colored" />
     </div>
   );
 }

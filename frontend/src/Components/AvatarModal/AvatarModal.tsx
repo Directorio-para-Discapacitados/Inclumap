@@ -47,7 +47,7 @@ export default function AvatarModal({
 
     const validationError = validateFile(file);
     if (validationError) {
-      toast.error(validationError);
+      toast.error(validationError, { autoClose: 3000 });
       return;
     }
 
@@ -63,7 +63,7 @@ export default function AvatarModal({
 
   const handleUpload = async () => {
     if (!selectedFile || !user?.user_id) {
-      toast.error('Selecciona una imagen primero');
+      toast.error('Selecciona una imagen primero', { autoClose: 3000 });
       return;
     }
 
@@ -77,14 +77,14 @@ export default function AvatarModal({
       // Luego actualizar el avatar en el componente padre
       onAvatarUpdate(response.avatar_url);
       
-      toast.success(response.message || 'Avatar actualizado exitosamente');
+      toast.success(response.message || 'Avatar actualizado exitosamente', { autoClose: 3000 });
       
       // Dar tiempo para que se actualice el contexto antes de cerrar
       setTimeout(() => {
         handleClose();
       }, 500);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Error al subir la imagen');
+      toast.error(error instanceof Error ? error.message : 'Error al subir la imagen', { autoClose: 3000 });
     } finally {
       setLoading(false);
     }
@@ -107,14 +107,14 @@ export default function AvatarModal({
       // Actualizar el avatar en el componente padre (sin avatar)
       onAvatarUpdate('');
       
-      toast.success(response.message || 'Avatar eliminado exitosamente');
+      toast.success(response.message || 'Avatar eliminado exitosamente', { autoClose: 3000 });
       
       // Dar tiempo para que se actualice el contexto antes de cerrar
       setTimeout(() => {
         handleClose();
       }, 500);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Error al eliminar la imagen');
+      toast.error(error instanceof Error ? error.message : 'Error al eliminar la imagen', { autoClose: 3000 });
     } finally {
       setLoading(false);
     }

@@ -9,6 +9,7 @@ import LocationPicker from "../../pages/LocationPicker/LocationPicker";
 import { MapPin } from "lucide-react";
 import CategoryMultiSelect from "../CategoryMultiSelect/CategoryMultiSelect";
 import { getAllCategories, Category } from "../../services/categoryService";
+import { getAllAccessibilities, Accessibility } from "../../services/accessibilityService";
 
 interface BusinessCategory {
   category_id: number;
@@ -17,6 +18,12 @@ interface BusinessCategory {
     name: string;
     description: string;
   };
+}
+
+interface BusinessAccessibility {
+  accessibility_id: number;
+  accessibility_name: string;
+  description?: string;
 }
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
@@ -34,6 +41,7 @@ interface BusinessData {
   latitude?: number;
   longitude?: number;
   business_categories?: BusinessCategory[];
+  business_accessibility?: BusinessAccessibility[];
 }
 
 interface EditState {
@@ -43,6 +51,7 @@ interface EditState {
   logo?: File;
   logoPreview?: string;
   categoryIds: number[];
+  accessibilityIds: number[];
 }
 
 const API_URL = "http://localhost:9080";
@@ -58,11 +67,15 @@ export default function OwnerBusinessProfile() {
     business_address: "",
     description: "",
     categoryIds: [],
+    accessibilityIds: [],
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Estados para categorías
   const [categories, setCategories] = useState<Category[]>([]);
+
+  // Estados para accesibilidades
+  const [accessibilities, setAccessibilities] = useState<Accessibility[]>([]);
 
   // Estados para el mapa
   const [showMap, setShowMap] = useState(false);
@@ -91,13 +104,28 @@ export default function OwnerBusinessProfile() {
     loadCategories();
   }, []);
 
+  // Cargar accesibilidades disponibles
+  useEffect(() => {
+    const loadAccessibilities = async () => {
+      try {
+        const accessibilityData = await getAllAccessibilities();
+        setAccessibilities(accessibilityData);
+      } catch (error) {
+        console.error("Error al cargar accesibilidades:", error);
+        toast.error("No se pudieron cargar las accesibilidades", { autoClose: 3000 });
+      }
+    };
+
+    loadAccessibilities();
+  }, []);
+
   // Obtener datos del negocio del usuario
   useEffect(() => {
     const fetchBusinessData = async () => {
       try {
         const token = localStorage.getItem("token");
         if (!token) {
-          toast.error("No hay sesión activa");
+          toast.error("No hay sesión activa", { autoClose: 3000 });
           return;
         }
 
@@ -132,12 +160,18 @@ export default function OwnerBusinessProfile() {
           (bc: BusinessCategory) => bc.category.category_id
         ) || [];
         
+        // Extraer IDs de accesibilidades
+        const accessibilityIds = userBusiness.business_accessibility?.map(
+          (acc: BusinessAccessibility) => acc.accessibility_id
+        ) || [];
+        
         setEditData({
           business_name: userBusiness.business_name,
           business_address: userBusiness.address,
           description: userBusiness.description,
           logoPreview: userBusiness.logo_url,
           categoryIds: categoryIds,
+          accessibilityIds: accessibilityIds,
         });
 
         // Configurar coordenadas si existen
@@ -152,7 +186,7 @@ export default function OwnerBusinessProfile() {
           setMapInitialCoords({ lat: userBusiness.latitude, lng: userBusiness.longitude });
         }
       } catch (error: any) {
-        toast.error("Error al cargar los datos del negocio");
+        toast.error("Error al cargar los datos del negocio", { autoClose: 3000 });
       } finally {
         setIsLoading(false);
       }
@@ -223,7 +257,7 @@ export default function OwnerBusinessProfile() {
           setShowMap(true);
           toast.warning("⚠️ No se pudo detectar tu ubicación automáticamente. Selecciona manualmente en el mapa.", {
             position: "top-center",
-            autoClose: 4000
+            autoClose: 3000
           });
         },
         {
@@ -243,13 +277,13 @@ export default function OwnerBusinessProfile() {
 
     // Validar tipo de archivo
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      toast.error("Solo se aceptan imágenes JPG, PNG o WebP");
+      toast.error("Solo se aceptan imágenes JPG, PNG o WebP", { autoClose: 3000 });
       return;
     }
 
     // Validar tamaño (máx 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("La imagen no debe superar 5MB");
+      toast.error("La imagen no debe superar 5MB", { autoClose: 3000 });
       return;
     }
 
@@ -268,21 +302,18 @@ export default function OwnerBusinessProfile() {
   };
 
   const validateLogoWithGoogleVision = async (file: File) => {
+    let loadingToastId: any = null;
     try {
-      const toastId = toast.info("🔍 Validando imagen del logo con Google Vision...", { 
-        autoClose: false,
-        closeButton: false 
-      });
+      loadingToastId = toast.loading("🔍 Validando imagen del logo con Google Vision...");
       
       const result = await localRecognitionService.recognizeLocal(file);
       
-      toast.dismiss(toastId);
+      toast.dismiss(loadingToastId);
       
       if (result.confidence >= 0.7) {
         // ✅ APROBADA - Permite subir la imagen
         toast.success(`✅ Logo validado (${Math.round(result.confidence * 100)}% confianza)`, { 
           autoClose: 3000,
-          closeButton: false,
           position: "top-right"
         });
         setEditData(prev => ({
@@ -293,7 +324,6 @@ export default function OwnerBusinessProfile() {
         // ❌ RECHAZADA - No permite subir
         toast.error(`❌ Imagen rechazada (${Math.round(result.confidence * 100)}% confianza)`, { 
           autoClose: 3500,
-          closeButton: false,
           position: "top-right"
         });
         // NO guardar el archivo - rechazar completamente
@@ -304,9 +334,9 @@ export default function OwnerBusinessProfile() {
         }));
       }
     } catch (error: any) {
+      if (loadingToastId) toast.dismiss(loadingToastId);
       toast.error("❌ Error al validar. Intenta de nuevo.", { 
         autoClose: 3000,
-        closeButton: false,
         position: "top-right"
       });
       // Rechazar en caso de error
@@ -318,9 +348,18 @@ export default function OwnerBusinessProfile() {
     }
   };
 
+  const handleAccessibilityChange = (id: number) => {
+    setEditData(prev => ({
+      ...prev,
+      accessibilityIds: prev.accessibilityIds.includes(id)
+        ? prev.accessibilityIds.filter(accId => accId !== id)
+        : [...prev.accessibilityIds, id]
+    }));
+  };
+
   const handleSave = async () => {
     if (!editData.business_name.trim()) {
-      toast.error("El nombre del negocio es requerido");
+      toast.error("El nombre del negocio es requerido", { autoClose: 3000 });
       return;
     }
 
@@ -328,7 +367,7 @@ export default function OwnerBusinessProfile() {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        toast.error("No hay sesión activa");
+        toast.error("No hay sesión activa", { autoClose: 3000 });
         return;
       }
 
@@ -338,55 +377,44 @@ export default function OwnerBusinessProfile() {
 
       // Si hay una NUEVA imagen, re-validarla
       if (editData.logo) {
+        let loadingToastId: any = null;
         try {
-          const processingToastId = toast.info("📸 Validando logo para guardar...", { 
-            autoClose: false,
-            closeButton: false 
-          });
+          loadingToastId = toast.loading("📸 Validando logo...");
           
           const validationResult = await localRecognitionService.recognizeLocal(editData.logo);
-          
-          toast.dismiss(processingToastId);
           
           if (validationResult.confidence >= 0.7) {
             // ✅ APROBADA - Proceder
             verificationStatus = true;
-            toast.success(`✅ Logo verificado (${Math.round(validationResult.confidence * 100)}%)`, { 
-              autoClose: 2500,
-              closeButton: false,
-              position: "top-right"
-            });
+            // Subir el logo sin mostrar notificación
             try {
               await businessLogoService.uploadLogo(editData.logo);
-              toast.success("✅ Logo subido", { 
-                autoClose: 2000,
-                position: "top-right",
-                closeButton: false
-              });
+              toast.dismiss(loadingToastId);
             } catch (logoError) {
-              toast.warning("⚠️ Error al subir logo", { 
-                autoClose: 2500,
-                position: "top-right",
-                closeButton: false
+              console.error("Error al subir logo:", logoError);
+              toast.dismiss(loadingToastId);
+              toast.warning("⚠️ Logo validado pero error al subir. Intenta de nuevo.", { 
+                autoClose: 3000,
+                position: "top-right"
               });
+              setIsSaving(false);
+              return;
             }
           } else {
             // ❌ RECHAZADA - No permitir guardar
+            toast.dismiss(loadingToastId);
             toast.error(`❌ Guardado cancelado: La imagen no cumple requisitos (${Math.round(validationResult.confidence * 100)}% confianza). Sube una imagen de tu negocio.`, { 
               autoClose: 4000,
-              closeButton: false,
-              position: "top-right",
-              draggable: false
+              position: "top-right"
             });
             setIsSaving(false);
             return;
           }
         } catch (error) {
+          if (loadingToastId) toast.dismiss(loadingToastId);
           toast.error("❌ Error al validar imagen - Guardado cancelado", { 
             autoClose: 3500, 
-            position: "top-right",
-            closeButton: false,
-            draggable: false
+            position: "top-right"
           });
           setIsSaving(false);
           return;
@@ -407,6 +435,9 @@ export default function OwnerBusinessProfile() {
       
       // Siempre incluir categorías (puede ser array vacío)
       requestBody.categoryIds = editData.categoryIds || [];
+      
+      // Incluir accesibilidades
+      requestBody.accessibilityIds = editData.accessibilityIds || [];
       
       // SOLO incluir 'verified' si hay una NUEVA imagen (la cual ya fue validada)
       if (editData.logo) {
@@ -443,12 +474,17 @@ export default function OwnerBusinessProfile() {
         (bc: any) => bc.category.category_id
       ) || [];
       
+      const accessibilityIds = updatedData.business_accessibility?.map(
+        (acc: any) => acc.accessibility_id
+      ) || [];
+      
       setEditData({
         business_name: updatedData.business_name,
         business_address: updatedData.address,
         description: updatedData.description,
         logoPreview: updatedData.logo_url,
         categoryIds: categoryIds,
+        accessibilityIds: accessibilityIds,
       });
       
       // Actualizar coordenadas si vienen en la respuesta
@@ -615,6 +651,22 @@ export default function OwnerBusinessProfile() {
                   )}
                 </div>
               </div>
+
+              <div className="info-item">
+                <label>Accesibilidades</label>
+                <div className="accessibility-display">
+                  {businessData.business_accessibility && businessData.business_accessibility.length > 0 ? (
+                    businessData.business_accessibility.map((acc) => (
+                      <span key={acc.accessibility_id} className="accessibility-badge-view">
+                        <i className="fas fa-check-circle"></i>
+                        {acc.accessibility_name}
+                      </span>
+                    ))
+                  ) : (
+                    <p className="no-accessibility">Sin accesibilidades registradas</p>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="profile-actions">
@@ -729,6 +781,29 @@ export default function OwnerBusinessProfile() {
                   selectedCategoryIds={editData.categoryIds}
                   onChange={(categoryIds) => setEditData(prev => ({ ...prev, categoryIds }))}
                 />
+              </div>
+
+              <div className="form-group">
+                <label>Accesibilidades</label>
+                <p className="form-description">Selecciona las características de accesibilidad de tu negocio</p>
+                <div className="accessibility-grid">
+                  {accessibilities.map((item) => (
+                    <button
+                      key={item.accessibility_id}
+                      type="button"
+                      className={`accessibility-item ${editData.accessibilityIds.includes(item.accessibility_id) ? 'selected' : ''}`}
+                      onClick={() => handleAccessibilityChange(item.accessibility_id)}
+                      title={item.description || item.accessibility_name}
+                    >
+                      <>
+                        <span className="accessibility-check">
+                          {editData.accessibilityIds.includes(item.accessibility_id) ? '✓' : ''}
+                        </span>
+                        <span className="accessibility-name">{item.accessibility_name}</span>
+                      </>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 

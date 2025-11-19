@@ -158,8 +158,22 @@ export class BusinessService {
           verification_image_url: negocio.verification_image_url,
           verified: negocio.verified || false,
           user: userWithRoles,
-          business_accessibility: negocio.business_accessibility,
-          business_categories: negocio.business_categories
+          business_accessibility: Array.isArray(negocio.business_accessibility)
+            ? negocio.business_accessibility.map((ba: any) => ({
+                accessibility_id: ba.accessibility?.accessibility_id,
+                accessibility_name: ba.accessibility?.accessibility_name,
+                description: ba.accessibility?.description,
+              }))
+            : [],
+          business_categories: Array.isArray(negocio.business_categories)
+            ? negocio.business_categories.map((bc: any) => ({
+                category_id: bc.category?.category_id,
+                category: {
+                  category_id: bc.category?.category_id,
+                  name: bc.category?.name,
+                },
+              }))
+            : [],
           
         };
       });
