@@ -299,7 +299,13 @@ const BusinessDataModal: React.FC<BusinessDataModalProps> = ({
                     required
                     rows={3}
                     placeholder="Describe tu negocio, servicios que ofreces, especialidades, etc."
+                    maxLength={255}
                   />
+                  <div className="character-counter">
+                    <span className={formData.description.length > 255 ? 'counter-exceeded' : ''}>
+                      {formData.description.length}/255 caracteres
+                    </span>
+                  </div>
                 </div>
 
                 <div className="step-buttons">

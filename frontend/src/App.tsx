@@ -33,6 +33,11 @@ function AppContent() {
   const [savedVersion, setSavedVersion] = useState(0);
   const [hoveredSavedId, setHoveredSavedId] = useState<number | null>(null);
 
+  // Scroll hacia arriba cuando cambia la ruta
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   useEffect(() => {
     // Configurar el callback que usará el interceptor para mostrar el modal
     const callback = () => {

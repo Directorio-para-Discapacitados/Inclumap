@@ -7,6 +7,17 @@ import { businessLogoService } from "../../services/businessLogo";
 import { useJsApiLoader } from "@react-google-maps/api";
 import LocationPicker from "../../pages/LocationPicker/LocationPicker";
 import { MapPin } from "lucide-react";
+import CategoryMultiSelect from "../CategoryMultiSelect/CategoryMultiSelect";
+import { getAllCategories, Category } from "../../services/categoryService";
+
+interface BusinessCategory {
+  category_id: number;
+  category: {
+    category_id: number;
+    name: string;
+    description: string;
+  };
+}
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 const libraries: ("places" | "geometry" | "drawing" | "visualization")[] = ["places"];
@@ -22,6 +33,7 @@ interface BusinessData {
   coordinates?: string;
   latitude?: number;
   longitude?: number;
+  business_categories?: BusinessCategory[];
 }
 
 interface EditState {
@@ -30,6 +42,7 @@ interface EditState {
   description: string;
   logo?: File;
   logoPreview?: string;
+  categoryIds: number[];
 }
 
 const API_URL = "http://localhost:9080";
@@ -44,8 +57,12 @@ export default function OwnerBusinessProfile() {
     business_name: "",
     business_address: "",
     description: "",
+    categoryIds: [],
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Estados para categorías
+  const [categories, setCategories] = useState<Category[]>([]);
 
   // Estados para el mapa
   const [showMap, setShowMap] = useState(false);
@@ -59,6 +76,20 @@ export default function OwnerBusinessProfile() {
     libraries: libraries,
     language: 'es',
   });
+
+  // Cargar categorías disponibles
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const categoriesData = await getAllCategories();
+        setCategories(categoriesData);
+      } catch (error) {
+        console.error("Error al cargar categorías:", error);
+      }
+    };
+
+    loadCategories();
+  }, []);
 
   // Obtener datos del negocio del usuario
   useEffect(() => {
@@ -95,11 +126,18 @@ export default function OwnerBusinessProfile() {
         }
 
         setBusinessData(userBusiness);
+        
+        // Extraer IDs de categorías
+        const categoryIds = userBusiness.business_categories?.map(
+          (bc: BusinessCategory) => bc.category.category_id
+        ) || [];
+        
         setEditData({
           business_name: userBusiness.business_name,
           business_address: userBusiness.address,
           description: userBusiness.description,
           logoPreview: userBusiness.logo_url,
+          categoryIds: categoryIds,
         });
 
         // Configurar coordenadas si existen
@@ -362,15 +400,20 @@ export default function OwnerBusinessProfile() {
         description: editData.description,
       };
       
-      // Incluir coordenadas si existen
-      if (coordinates) {
+      // Incluir coordenadas si existen y no son vacías
+      if (coordinates && coordinates !== "0,0" && coordinates.trim() !== "") {
         requestBody.coordinates = coordinates;
       }
+      
+      // Siempre incluir categorías (puede ser array vacío)
+      requestBody.categoryIds = editData.categoryIds || [];
       
       // SOLO incluir 'verified' si hay una NUEVA imagen (la cual ya fue validada)
       if (editData.logo) {
         requestBody.verified = verificationStatus;
       }
+
+      console.log('📤 Sending update request:', requestBody);
       
       const response = await fetch(
         `${API_URL}/business/${businessData?.business_id}`,
@@ -386,11 +429,33 @@ export default function OwnerBusinessProfile() {
 
       if (!response.ok) {
         const errorData = await response.text();
+        console.error('❌ Error response:', errorData);
         throw new Error("Error al actualizar el negocio");
       }
 
       const updatedData = await response.json();
+      console.log('✅ Updated data received:', updatedData);
+      
       setBusinessData(updatedData);
+      
+      // Actualizar también editData con los datos recibidos
+      const categoryIds = updatedData.business_categories?.map(
+        (bc: any) => bc.category.category_id
+      ) || [];
+      
+      setEditData({
+        business_name: updatedData.business_name,
+        business_address: updatedData.address,
+        description: updatedData.description,
+        logoPreview: updatedData.logo_url,
+        categoryIds: categoryIds,
+      });
+      
+      // Actualizar coordenadas si vienen en la respuesta
+      if (updatedData.coordinates) {
+        setCoordinates(updatedData.coordinates);
+      }
+      
       setIsEditing(false);
       
       // Actualizar el contexto de autenticación para reflejar los cambios
@@ -405,7 +470,7 @@ export default function OwnerBusinessProfile() {
           position: "top-right"
         });
       } else {
-        toast.info("ℹ️ Datos actualizados", { 
+        toast.success("✅ Cambios guardados correctamente", { 
           autoClose: 2500,
           closeButton: false,
           position: "top-right"
@@ -535,6 +600,21 @@ export default function OwnerBusinessProfile() {
                 <label>Descripción</label>
                 <p>{businessData.description}</p>
               </div>
+
+              <div className="info-item">
+                <label>Categorías</label>
+                <div className="categories-display">
+                  {businessData.business_categories && businessData.business_categories.length > 0 ? (
+                    businessData.business_categories.map((bc) => (
+                      <span key={bc.category_id} className="category-badge">
+                        {bc.category.name}
+                      </span>
+                    ))
+                  ) : (
+                    <p className="no-categories">Sin categorías asignadas</p>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="profile-actions">
@@ -634,6 +714,20 @@ export default function OwnerBusinessProfile() {
                   onChange={handleInputChange}
                   placeholder="Descripción del negocio"
                   rows={4}
+                  maxLength={255}
+                />
+                <div className="character-counter">
+                  <span className={editData.description.length > 255 ? 'counter-exceeded' : ''}>
+                    {editData.description.length}/255 caracteres
+                  </span>
+                </div>
+              </div>
+
+              <div className="form-group categories-group">
+                <CategoryMultiSelect
+                  categories={categories}
+                  selectedCategoryIds={editData.categoryIds}
+                  onChange={(categoryIds) => setEditData(prev => ({ ...prev, categoryIds }))}
                 />
               </div>
             </div>
