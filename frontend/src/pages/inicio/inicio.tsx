@@ -56,12 +56,7 @@ export default function Inicio() {
   const [loadingAccessibilities, setLoadingAccessibilities] = useState(true);
 
   const goToDetail = (id: number | string) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      navigate(`/local/${id}`);
-    } else {
-      navigate('/login');
-    }
+    navigate(`/local/${id}`);
   };
 
   // Cargar accesibilidades desde BD
