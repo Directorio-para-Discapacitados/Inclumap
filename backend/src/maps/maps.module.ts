@@ -7,7 +7,7 @@ import { MapsService } from './maps.service';
 @Module({
   imports: [
     HttpModule.register({
-      timeout: 10000, // 10 segundos
+      timeout: 30000, // 10 segundos
       maxRedirects: 3,
     }),
     ConfigModule,
