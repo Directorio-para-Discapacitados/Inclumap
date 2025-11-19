@@ -35,12 +35,7 @@ export default function Negocios() {
   }, []);
 
   const goToDetail = (id: number | string) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      navigate(`/local/${id}`);
-    } else {
-      navigate('/login');
-    }
+    navigate(`/local/${id}`);
   };
 
   return (
