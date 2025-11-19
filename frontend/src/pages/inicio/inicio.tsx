@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./inicio.css";
 import { API_URL } from "../../config/api";
+import { getAllCategories, Category } from "../../services/categoryService";
 
 /* --- IMPORTACIONES PARA EL MAPA --- */
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -54,6 +55,9 @@ export default function Inicio() {
   const [filtered, setFiltered] = useState<any[]>([]);
   const [selectedAccessibility, setSelectedAccessibility] = useState<number | string | null>(null);
   const [loadingAccessibilities, setLoadingAccessibilities] = useState(true);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [loadingCategories, setLoadingCategories] = useState(true);
 
   const goToDetail = (id: number | string) => {
     navigate(`/local/${id}`);
@@ -84,6 +88,23 @@ export default function Inicio() {
       }
     };
     fetchAccessibilities();
+  }, []);
+
+  // Cargar categorías desde BD
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoadingCategories(true);
+        const data = await getAllCategories();
+        setCategories(data || []);
+      } catch (e: any) {
+        console.error("Error cargando categorías:", e.message, e);
+        setCategories([]);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+    fetchCategories();
   }, []);
 
   // Cargar todos los negocios registrados
@@ -130,7 +151,8 @@ export default function Inicio() {
     const q = (params.get("q") || "").trim();
     setQuery(q);
 
-    if (!q) {
+    // Si no hay query y no hay categoría seleccionada, limpiar
+    if (!q && !selectedCategory) {
       setFiltered([]);
       setSelectedAccessibility(null);
       setError(null);
@@ -145,8 +167,28 @@ export default function Inicio() {
       try {
         setLoading(true);
         setError(null);
+        
+        // Construir URL con parámetros opcionales
+        let url = `${API_URL}/business/public/search`;
+        const params = new URLSearchParams();
+        
+        if (q) {
+          params.append('q', q);
+        }
+        if (selectedCategory) {
+          params.append('categoryId', selectedCategory.toString());
+          console.log('🔍 Frontend: Buscando con categoryId:', selectedCategory);
+        }
+        
+        const queryString = params.toString();
+        if (queryString) {
+          url += `?${queryString}`;
+        }
+        
+        console.log('📡 Frontend: Haciendo petición a:', url);
+        
         // Usar endpoint público de búsqueda para máxima fluidez
-        const resp = await fetch(`${API_URL}/business/public/search?q=${encodeURIComponent(q)}`, {
+        const resp = await fetch(url, {
           method: "GET",
           signal,
         });
@@ -154,16 +196,14 @@ export default function Inicio() {
           throw new Error("No se pudo obtener locales públicos");
         }
         const data = await resp.json();
+        console.log('📊 Frontend: Datos recibidos:', data.length, 'negocios');
+        if (data.length > 0) {
+          console.log('🏪 Primer negocio:', data[0].business_name, 'Categorías:', data[0].business_categories);
+        }
+        
         if (signal.aborted) return;
         setBusinesses(data || []);
-
-        const qLower = q.toLowerCase();
-        const filteredList = (data || []).filter((b: any) => {
-          const name = (b.business_name || b.name || "").toLowerCase();
-          const address = (b.address || "").toLowerCase();
-          return name.includes(qLower) || address.includes(qLower);
-        });
-        setFiltered(filteredList);
+        setFiltered(data || []);
         setSelectedAccessibility(null);
       } catch (e: any) {
         if (e?.name === 'AbortError') return; // ignorar abortos
@@ -175,7 +215,7 @@ export default function Inicio() {
 
     fetchData();
     return () => controller.abort();
-  }, [location.search]);
+  }, [location.search, selectedCategory]);
 
   // Escuchar evento global para limpiar resultados
   useEffect(() => {
@@ -185,9 +225,21 @@ export default function Inicio() {
       setBusinesses([]);
       setError(null);
       setLoading(false);
+      setSelectedCategory(null);
     };
     window.addEventListener('inclumap:clear-search', handler as EventListener);
     return () => window.removeEventListener('inclumap:clear-search', handler as EventListener);
+  }, []);
+
+  // Escuchar cambios de categoría desde el Navbar
+  useEffect(() => {
+    const handler = (e: CustomEvent) => {
+      const categoryId = e.detail?.categoryId;
+      console.log('🎯 Evento recibido - categoryId:', categoryId);
+      setSelectedCategory(categoryId);
+    };
+    window.addEventListener('inclumap:category-changed', handler as EventListener);
+    return () => window.removeEventListener('inclumap:category-changed', handler as EventListener);
   }, []);
 
   // Auto-scroll a resultados
@@ -234,8 +286,22 @@ export default function Inicio() {
   const handleClearSearch = () => {
     setQuery("");
     setSelectedAccessibility(null);
+    setSelectedCategory(null);
     setFiltered([]);
     if (location.search) window.history.replaceState({}, "", window.location.pathname);
+  };
+
+  // Manejar selección de categoría
+  const handleCategoryClick = (categoryId: number) => {
+    if (selectedCategory === categoryId) {
+      setSelectedCategory(null); // Deseleccionar si ya está seleccionada
+    } else {
+      setSelectedCategory(categoryId);
+      // Si no hay búsqueda de texto, iniciar búsqueda con solo categoría
+      if (!query) {
+        setQuery(" "); // Espacio para activar la búsqueda
+      }
+    }
   };
 
   /* --- LÓGICA DE PUNTOS DEL MAPA --- */
@@ -286,13 +352,16 @@ export default function Inicio() {
         </div>
         
         <div className="businesses-container">
-          {query ? (
+          {(query || selectedCategory) ? (
             <div className="businesses-grid businesses-grid--results" ref={cardsRef}>
               {loading && <div className="loading">Cargando locales...</div>}
               {error && !loading && <div className="error">{error}</div>}
               {!loading && !error && filtered.length === 0 && (
                 <div className="no-results">
-                  {`No se encontraron locales para "${query}"`}
+                  {query 
+                    ? `No se encontraron locales para "${query}"`
+                    : 'No se encontraron locales para esta categoría'
+                  }
                 </div>
               )}
               {!loading && !error && filtered.map((b) => {

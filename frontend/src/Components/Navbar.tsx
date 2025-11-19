@@ -7,10 +7,13 @@ import { useTheme } from "../context/ThemeContext";
 import { FaMoon, FaSun } from "react-icons/fa";
 import Avatar from "./Avatar/Avatar";
 import NotificationBell from "./Notifications/NotificationBell";
+import { getAllCategories, Category } from "../services/categoryService";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const { darkMode, toggleTheme } = useTheme();
   const [showNotification, setShowNotification] = useState(false);
   const [missingItems, setMissingItems] = useState<string[]>([]);
@@ -20,6 +23,20 @@ export default function Navbar() {
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
   const profileMenuRef = useRef<HTMLLIElement | null>(null);
+
+  // Cargar categorías
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await getAllCategories();
+        setCategories(data || []);
+      } catch (e: any) {
+        console.error("Error cargando categorías:", e.message, e);
+        setCategories([]);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   // Verificar notificación de perfil incompleto
   useEffect(() => {
@@ -77,11 +94,22 @@ export default function Navbar() {
 
   const clearSearch = () => {
     setSearchQuery("");
+    setSelectedCategory(null);
     if (location.pathname === "/") {
       window.history.replaceState({}, "", location.pathname);
     }
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('inclumap:clear-search'));
+    }
+  };
+
+  const handleCategorySelect = (categoryId: number | null) => {
+    console.log('🏷️ Navbar: Categoría seleccionada:', categoryId);
+    setSelectedCategory(categoryId);
+    // Emitir evento para filtrar en inicio.tsx
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('inclumap:category-changed', { detail: { categoryId } }));
+      console.log('📤 Navbar: Evento emitido con categoryId:', categoryId);
     }
   };
 
@@ -139,6 +167,31 @@ export default function Navbar() {
               <span className="clear-icon" onClick={clearSearch}>&times;</span>
             )}
             <span className="search-icon">🔍</span>
+            
+            {/* Selector de Categorías */}
+            {categories.length > 0 && (
+              <div className="category-selector-dropdown">
+                <select
+                  className="category-select"
+                  value={selectedCategory || ""}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val) {
+                      handleCategorySelect(parseInt(val, 10));
+                    } else {
+                      handleCategorySelect(null);
+                    }
+                  }}
+                >
+                  <option value="">Todas las categorías</option>
+                  {categories.map((cat) => (
+                    <option key={cat.category_id} value={cat.category_id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
         )}
 
