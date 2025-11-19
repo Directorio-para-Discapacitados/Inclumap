@@ -1,0 +1,140 @@
+.category-multi-select {
+  margin: 15px 0;
+  width: 100%;
+}
+
+.category-label {
+  font-weight: 600;
+  color: var(--color-primary);
+  text-align: center;
+  margin: 1rem 0;
+  font-size: 1rem;
+}
+
+.category-label .required {
+  color: #e74c3c;
+  margin-left: 3px;
+}
+
+.category-error {
+  background-color: #ffe6e6;
+  color: #c0392b;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: 10px;
+  border-left: 3px solid #e74c3c;
+}
+
+/* Grid de 3 columnas (igual que accesibilidad) */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.8rem;
+  margin-top: 0.5rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+/* Cada botón de categoría (estilo igual a accesibilidad-boton) */
+.category-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--color-surface);
+  border-radius: 10px;
+  padding: 0.75rem 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  border: 2px solid transparent;
+  box-shadow: 0 2px 6px var(--color-shadow);
+  min-height: 50px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-text);
+  user-select: none;
+}
+
+.category-chip:hover:not(.disabled) {
+  background-color: var(--color-card-hover);
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+}
+
+.category-chip.selected {
+  border-color: var(--color-primary);
+  background-color: var(--color-card-hover);
+}
+
+.category-chip.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.category-name {
+  flex: 1;
+  margin-right: 0.5rem;
+}
+
+/* Tooltip wrapper */
+.tooltip-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.help-icon {
+  color: var(--color-text-muted);
+  cursor: help;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.help-icon:hover {
+  color: var(--color-primary);
+}
+
+/* Tooltip text */
+.tooltip-text {
+  visibility: hidden;
+  opacity: 0;
+  width: 200px;
+  background-color: var(--color-primary);
+  color: #ffffff;
+  text-align: center;
+  border-radius: 8px;
+  padding: 6px;
+  position: absolute;
+  z-index: 10;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  transition: opacity 0.3s ease;
+}
+
+.tooltip-wrapper:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+}
+
+.category-hint {
+  font-size: 12px;
+  color: #7f8c8d;
+  margin-top: 8px;
+  font-style: italic;
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .category-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .category-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -7,6 +7,8 @@ import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../../context/AuthContext";
 import { useJsApiLoader } from "@react-google-maps/api";
 import LocationPicker from "../LocationPicker/LocationPicker";
+import CategoryMultiSelect from "../../Components/CategoryMultiSelect/CategoryMultiSelect";
+import { getAllCategories, Category } from "../../services/categoryService";
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
 const libraries: ("places" | "geometry" | "drawing" | "visualization")[] = ["places"];
@@ -38,6 +40,9 @@ export default function CrearNegocio() {
   const [showMap, setShowMap] = useState(false);
   const [mapInitialCoords, setMapInitialCoords] = useState({ lat: 4.6097, lng: -74.0817 }); // Default Bogotá
   const [selectedAccessibility, setSelectedAccessibility] = useState<number[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesError, setCategoriesError] = useState<string>("");
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [isDetectingLocation, setIsDetectingLocation] = useState(false);
@@ -48,6 +53,24 @@ export default function CrearNegocio() {
     NIT: "",
     description: "",
   });
+
+  // Cargar categorías disponibles
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const data = await getAllCategories();
+        setCategories(data);
+      } catch (error) {
+        console.error("Error al cargar categorías:", error);
+        setCategoriesError("No se pudieron cargar las categorías. Intenta nuevamente.");
+        toast.error("❌ Error al cargar las categorías", { 
+          position: "top-center", 
+          autoClose: 4000 
+        });
+      }
+    };
+    loadCategories();
+  }, []);
 
   // Cargar API de Google Maps
   const { isLoaded } = useJsApiLoader({
@@ -71,6 +94,24 @@ export default function CrearNegocio() {
       }
     });
   };
+
+  // Cargar categorías disponibles
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const data = await getAllCategories();
+        setCategories(data);
+      } catch (error) {
+        console.error("Error al cargar categorías:", error);
+        setCategoriesError("No se pudieron cargar las categorías. Intenta nuevamente.");
+        toast.error("❌ Error al cargar las categorías", { 
+          position: "top-center", 
+          autoClose: 4000 
+        });
+      }
+    };
+    loadCategories();
+  }, []);
 
   // Auto-detectar ubicación al cargar
   useEffect(() => {
@@ -227,63 +268,41 @@ export default function CrearNegocio() {
 
 
   const handleSubmit = async (e: React.FormEvent) => {
-
     e.preventDefault();
 
-
-
     if (!formData.business_name.trim()) {
-
       toast.warning("⚠️ El nombre del negocio es requerido", { position: "top-center", autoClose: 4000 });
-
       return;
-
     }
-
-
 
     if (!formData.NIT || formData.NIT.length < 8) {
-
       toast.warning("⚠️ El NIT debe tener al menos 8 dígitos", { position: "top-center", autoClose: 4000 });
-
       return;
-
     }
 
-
+    // Validar que se haya seleccionado al menos una categoría
+    if (selectedCategories.length === 0) {
+      toast.warning("⚠️ Debes seleccionar al menos una categoría para tu negocio.", { position: "top-center", autoClose: 4000 });
+      return;
+    }
 
     setIsLoading(true);
-
     const token = localStorage.getItem('token');
-
    
-
     if (!token) {
-
       toast.error("❌ No hay sesión activa.", { position: "top-center", autoClose: 4000 });
-
       setIsLoading(false);
-
       return;
-
     }
 
-
-
     const payload = {
-
       business_name: formData.business_name,
-
       business_address: formData.business_address,
-
       NIT: Number(formData.NIT),
-
       description: formData.description,
-
       coordinates,
-
       accessibilityIds: selectedAccessibility,
-
+      categoryIds: selectedCategories,
     };
 
 
@@ -505,6 +524,15 @@ export default function CrearNegocio() {
         {step === 2 && (
 
           <div className="fade-in">
+
+            
+            {/* Selector de categorías */}
+            <CategoryMultiSelect
+              categories={categories}
+              selectedCategoryIds={selectedCategories}
+              onChange={setSelectedCategories}
+              error={categoriesError}
+            />
 
             <h3 className="accesibilidad-titulo">Selecciona la accesibilidad de tu local</h3>
 

@@ -6,6 +6,8 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useJsApiLoader } from "@react-google-maps/api";
 import LocationPicker from "../LocationPicker/LocationPicker";
+import CategoryMultiSelect from "../../Components/CategoryMultiSelect/CategoryMultiSelect";
+import { getAllCategories, Category } from "../../services/categoryService";
 
 const API_URL = "http://localhost:9080";
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
@@ -31,6 +33,9 @@ export default function Registro() {
   const [mostrarPassword, setMostrarPassword] = useState(false);
   const [coordinates, setCoordinates] = useState("0,0");
   const [selectedAccessibility, setSelectedAccessibility] = useState<number[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesError, setCategoriesError] = useState<string>("");
   const [step, setStep] = useState(1);
   const navigate = useNavigate();
 
@@ -78,6 +83,24 @@ export default function Registro() {
       }
     });
   };
+
+  // Cargar categorías disponibles
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const data = await getAllCategories();
+        setCategories(data);
+      } catch (error) {
+        console.error("Error al cargar categorías:", error);
+        setCategoriesError("No se pudieron cargar las categorías. Intenta nuevamente.");
+        toast.error("❌ Error al cargar las categorías", { 
+          position: "top-center", 
+          autoClose: 4000 
+        });
+      }
+    };
+    loadCategories();
+  }, []);
 
   // Auto-detectar ubicación al cargar
   useEffect(() => {
@@ -211,9 +234,15 @@ export default function Registro() {
       return;
     }
 
+    // Validar que se haya seleccionado al menos una categoría para negocios
+    if (isBusiness && selectedCategories.length === 0) {
+      toast.warning("⚠️ Debes seleccionar al menos una categoría para tu negocio.", { position: "top-center", autoClose: 4000 });
+      return;
+    }
+
     const endpoint = isBusiness ? `${API_URL}/auth/registerBusiness` : `${API_URL}/auth/register`;
     const payload = isBusiness
-      ? { ...formData, NIT: Number(formData.NIT), coordinates: coordinates || "0,0", rolIds: [2, 3], accessibilityIds: selectedAccessibility }
+      ? { ...formData, NIT: Number(formData.NIT), coordinates: coordinates || "0,0", rolIds: [2, 3], accessibilityIds: selectedAccessibility, categoryIds: selectedCategories }
       : { ...formData, rolIds: [2] };
 
     try {
@@ -345,6 +374,15 @@ export default function Registro() {
         {step === 3 && isBusiness && (
           <div className="fade-in">
             <textarea name="description" placeholder="Descripción del negocio" value={formData.description} onChange={handleChange} rows={3} required />
+            
+            {/* Selector de categorías */}
+            <CategoryMultiSelect
+              categories={categories}
+              selectedCategoryIds={selectedCategories}
+              onChange={setSelectedCategories}
+              error={categoriesError}
+            />
+            
             <h3 className="accesibilidad-titulo">Selecciona la accesibilidad de tu local</h3>
             <div className="accesibilidad-grid">
               {accesibilidades.map((item) => (
