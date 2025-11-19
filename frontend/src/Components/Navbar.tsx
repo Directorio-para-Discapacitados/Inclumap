@@ -253,7 +253,7 @@ export default function Navbar() {
         >
           <div className="notification-badge"><i className="fas fa-exclamation-circle"></i></div>
           <div className="notification-message">
-            <span className="notification-title">Completa tu perfil</span>
+            <span className="notification-title">Completa tu perfil: </span>
             <span className="notification-detail">
               {missingItems.includes("logo") && missingItems.includes("verificación")
                 ? "Sube el logo de tu empresa"
