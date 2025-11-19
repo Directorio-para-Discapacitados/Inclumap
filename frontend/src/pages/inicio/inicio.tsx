@@ -149,10 +149,14 @@ export default function Inicio() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const q = (params.get("q") || "").trim();
+    const catParam = params.get("categoryId");
+    const catId = catParam ? parseInt(catParam, 10) : null;
+
     setQuery(q);
+    setSelectedCategory(catId);
 
     // Si no hay query y no hay categoría seleccionada, limpiar
-    if (!q && !selectedCategory) {
+    if (!q && !catId && !selectedAccessibility) {
       setFiltered([]);
       setSelectedAccessibility(null);
       setError(null);
@@ -175,9 +179,9 @@ export default function Inicio() {
         if (q) {
           params.append('q', q);
         }
-        if (selectedCategory) {
-          params.append('categoryId', selectedCategory.toString());
-          console.log('🔍 Frontend: Buscando con categoryId:', selectedCategory);
+        if (catId) {
+          params.append('categoryId', catId.toString());
+          console.log('🔍 Frontend: Buscando con categoryId:', catId);
         }
         
         const queryString = params.toString();
@@ -197,9 +201,6 @@ export default function Inicio() {
         }
         const data = await resp.json();
         console.log('📊 Frontend: Datos recibidos:', data.length, 'negocios');
-        if (data.length > 0) {
-          console.log('🏪 Primer negocio:', data[0].business_name, 'Categorías:', data[0].business_categories);
-        }
         
         if (signal.aborted) return;
         setBusinesses(data || []);
@@ -215,7 +216,7 @@ export default function Inicio() {
 
     fetchData();
     return () => controller.abort();
-  }, [location.search, selectedCategory]);
+  }, [location.search, selectedAccessibility]); // Dependemos de la URL
 
   // Escuchar evento global para limpiar resultados
   useEffect(() => {
@@ -244,16 +245,19 @@ export default function Inicio() {
 
   // Auto-scroll a resultados
   useEffect(() => {
-    if (!query) return;
-    const t = setTimeout(() => {
-      const el = cardsRef.current;
-      if (!el) return;
-      const offset = 80;
-      const top = el.getBoundingClientRect().top + window.scrollY - offset;
-      window.scrollTo({ top, behavior: 'smooth' });
-    }, 50);
-    return () => clearTimeout(t);
-  }, [query, loading, filtered.length]);
+    if (!query && !selectedCategory) return;
+    // Si hay resultados, scroll
+    if (filtered.length > 0) {
+        const t = setTimeout(() => {
+        const el = cardsRef.current;
+        if (!el) return;
+        const offset = 80;
+        const top = el.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top, behavior: 'smooth' });
+        }, 50);
+        return () => clearTimeout(t);
+    }
+  }, [query, selectedCategory, loading, filtered.length]);
 
   // Scroll automático a la sección Comunidad y Respaldo
   useEffect(() => {
@@ -299,15 +303,16 @@ export default function Inicio() {
       setSelectedCategory(categoryId);
       // Si no hay búsqueda de texto, iniciar búsqueda con solo categoría
       if (!query) {
-        setQuery(" "); // Espacio para activar la búsqueda
+        // setQuery(" "); // Espacio para activar la búsqueda (YA NO ES NECESARIO)
       }
     }
   };
 
-  /* --- LÓGICA DE PUNTOS DEL MAPA --- */
-  // Si hay búsqueda activa (query o resultados filtrados), el mapa muestra solo esos.
-  // Si no, muestra todos los negocios (allBusinesses).
-  const mapPoints = (query || filtered.length > 0) ? filtered : allBusinesses;
+  /* --- LÓGICA DE PUNTOS DEL MAPA CORREGIDA --- */
+  // Si hay CUALQUIER filtro activo (query O categoría), mostramos 'filtered'
+  // incluso si 'filtered' está vacío (0 resultados).
+  // Solo mostramos 'allBusinesses' si el usuario NO está buscando nada.
+  const mapPoints = (query || selectedCategory || selectedAccessibility) ? filtered : allBusinesses;
 
   return (
     <div className="inicio-root">
@@ -352,10 +357,13 @@ export default function Inicio() {
         </div>
         
         <div className="businesses-container">
+          {/* Mostrar resultados si hay búsqueda O categoría seleccionada */}
           {(query || selectedCategory) ? (
             <div className="businesses-grid businesses-grid--results" ref={cardsRef}>
               {loading && <div className="loading">Cargando locales...</div>}
               {error && !loading && <div className="error">{error}</div>}
+              
+              {/* Mensaje de SIN RESULTADOS cuando se filtra */}
               {!loading && !error && filtered.length === 0 && (
                 <div className="no-results">
                   {query 
@@ -364,6 +372,7 @@ export default function Inicio() {
                   }
                 </div>
               )}
+
               {!loading && !error && filtered.map((b) => {
                 const ownerName = b.owner_name || (b.user?.people ? `${b.user.people.firstName || ''} ${b.user.people.firstLastName || ''}`.trim() : '');
 
@@ -433,6 +442,7 @@ export default function Inicio() {
             </div>
           ) : (
             <>
+              {/* Vista por defecto (sin filtros) */}
               {loadingAllBusinesses && <div className="loading">Cargando negocios...</div>}
               {!loadingAllBusinesses && allBusinesses.length === 0 && (
                 <div className="no-results">No hay negocios registrados aún</div>
@@ -617,7 +627,7 @@ export default function Inicio() {
           </div>
       </section>
       
-      {/* 5. Mapa Global de Accesibilidad (Reemplaza Validación IA) */}
+      {/* 5. Mapa Global de Accesibilidad */}
       <section className="global-map-section">
         <div className="map-header">
           <h2>🗺️ Mapa Global de Accesibilidad</h2>

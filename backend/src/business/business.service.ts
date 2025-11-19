@@ -159,7 +159,7 @@ export class BusinessService {
           verified: negocio.verified || false,
           user: userWithRoles,
           business_accessibility: negocio.business_accessibility,
-          business_category: negocio.business_categories
+          business_categories: negocio.business_categories
           
         };
       });

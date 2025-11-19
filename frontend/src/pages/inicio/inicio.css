@@ -17,6 +17,8 @@
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+
+
 /* Topbar */
 .topbar { background-color: var(--color-primary); color: #ffffff !important; }
 .topbar-inner { max-width: var(--max-width); margin: 0 auto; display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem; }

@@ -14,6 +14,186 @@
   z-index: 2000;
 }
 
+.unified-search-bar {
+  display: flex;
+  align-items: center;
+  background-color: #f3f4f6; 
+  border: 1px solid #e5e7eb;
+  border-radius: 50px;
+  padding: 0 12px; 
+  width: 100%;
+  max-width: 600px;
+  height: 48px; 
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+  margin: 0 20px;
+  overflow: hidden;
+}
+
+.unified-search-bar:focus-within {
+  background-color: #fff;
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.search-select {
+  background-color: transparent;
+  border: none;
+  font-size: 1rem;
+  color: #4b5563;
+  cursor: pointer;
+  outline: none;
+  
+  width: auto;
+  min-width: 80px;
+  max-width: 150px;
+  
+  height: 100%;
+  padding-left: 5px;
+  padding-right: 25px; 
+  
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%234b5563%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 5px center;
+  background-size: 10px;
+}
+
+.search-select option {
+  background-color: #ffffff;
+  color: #333333;
+  padding: 10px;
+}
+
+.search-divider {
+  width: 1px;
+  height: 24px;
+  background-color: #d1d5db;
+  margin: 0 12px;
+  flex-shrink: 0;
+}
+
+.search-input-text {
+  flex: 1; 
+  min-width: 150px; 
+  border: none;
+  background: transparent;
+  font-size: 1rem; 
+  color: #1f2937;
+  outline: none;
+  padding: 0 5px;
+  height: 100%;
+}
+
+/* Estilo del Placeholder (Texto "Buscar locales...") */
+.search-input-text::placeholder {
+  color: #9ca3af;
+  opacity: 1;
+}
+
+/* --- Botones (Derecha) --- */
+.search-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.clear-btn {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 1.4rem;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+.clear-btn:hover {
+  color: #ef4444;
+}
+
+.search-btn {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.search-btn:hover {
+  background-color: #2563eb;
+  transform: scale(1.05);
+}
+
+.search-select:focus {
+  outline: none;
+  box-shadow: none; 
+  border: none;     
+}
+
+/* ================= MODO OSCURO ================= */
+
+.navbar.dark .unified-search-bar {
+  background-color: #1f2937; 
+  border-color: #374151;
+}
+
+.navbar.dark .unified-search-bar:focus-within {
+  background-color: #111827; 
+  border-color: #60a5fa;
+}
+
+/* Textos Claros */
+.navbar.dark .search-select {
+  color: #e5e7eb; 
+  /* Flecha Blanca */
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23e5e7eb%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+.navbar.dark .search-select option {
+  background-color: #1f2937; 
+  color: #e5e7eb;
+}
+
+.navbar.dark .search-input-text {
+  color: #e5e7eb;
+}
+
+/* Placeholder visible en oscuro */
+.navbar.dark .search-input-text::placeholder {
+  color: #9ca3af; 
+}
+
+.navbar.dark .search-divider {
+  background-color: #4b5563;
+}
+
+
+@media (max-width: 768px) {
+  .unified-search-bar {
+    max-width: 100%;
+    order: 3;
+    margin: 10px 0;
+  }
+  
+  .search-select {
+    max-width: 100px;
+    font-size: 0.9rem;
+  }
+}
+
 .navbar-inner {
   width: 95%;
   max-width: 1400px;
