@@ -125,6 +125,33 @@ export class NotificationService {
   }
 
   /**
+   * Elimina una notificación
+   * @param notificationId - ID de la notificación
+   * @param userId - ID del usuario que solicita eliminar
+   */
+  async deleteNotification(notificationId: number, userId: number): Promise<void> {
+    const notification = await this.notificationRepository.findOne({
+      where: { notification_id: notificationId },
+      relations: ['user'],
+    });
+
+    if (!notification) {
+      throw new NotFoundException(
+        `Notificación con ID ${notificationId} no encontrada`,
+      );
+    }
+
+    // Verificar que la notificación pertenece al usuario
+    if (notification.user.user_id !== userId) {
+      throw new NotFoundException(
+        `No tienes permiso para eliminar esta notificación`,
+      );
+    }
+
+    await this.notificationRepository.remove(notification);
+  }
+
+  /**
    * Notifica a todos los administradores sobre una reseña incoherente
    * @param message - Mensaje de la alerta
    * @param reviewId - ID de la reseña

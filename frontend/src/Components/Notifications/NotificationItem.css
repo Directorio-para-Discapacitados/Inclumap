@@ -1,3 +1,28 @@
+.notification-item-container {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-background);
+}
+
+.notification-delete-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+  display: flex;
+  align-items: center;
+  padding-left: 20px;
+  z-index: 0;
+}
+
+.delete-icon-bg {
+  width: 24px;
+  height: 24px;
+  opacity: 0.9;
+}
+
 .notification-item {
   display: flex;
   align-items: center;
@@ -7,6 +32,12 @@
   cursor: pointer;
   transition: background-color 0.2s ease;
   position: relative;
+  background-color: var(--color-background);
+  z-index: 1;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
 }
 
 .notification-item:hover {
@@ -58,4 +89,51 @@
   background-color: #3b82f6;
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+.notification-delete-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background-color: transparent;
+  color: #ef4444;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.notification-delete-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Mostrar botón de eliminar en desktop al hacer hover */
+@media (hover: hover) and (pointer: fine) {
+  .notification-item:hover .notification-delete-btn {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  
+  .notification-delete-btn:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+    transform: scale(1.1);
+  }
+  
+  .notification-delete-btn:active {
+    transform: scale(0.95);
+  }
+}
+
+/* En dispositivos táctiles, el botón se mantiene oculto (se usa el swipe) */
+@media (hover: none) and (pointer: coarse) {
+  .notification-delete-btn {
+    display: none;
+  }
 }

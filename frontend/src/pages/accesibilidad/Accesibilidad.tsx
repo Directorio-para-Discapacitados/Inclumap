@@ -101,12 +101,7 @@ export default function Accesibilidad() {
   }, [id]);
 
   const goToDetail = (businessId: number) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      navigate(`/local/${businessId}`);
-    } else {
-      navigate('/login');
-    }
+    navigate(`/local/${businessId}`);
   };
 
   if (loading) {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Notification } from '../../services/notificationService';
 import './NotificationItem.css';
 
@@ -6,13 +6,21 @@ interface NotificationItemProps {
   notification: Notification;
   onMarkAsRead: (id: number) => void;
   onNavigate: (notification: Notification) => void;
+  onDelete: (id: number) => void;
 }
 
 const NotificationItem: React.FC<NotificationItemProps> = ({
   notification,
   onMarkAsRead,
   onNavigate,
+  onDelete,
 }) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [currentX, setCurrentX] = useState(0);
+  const [translateX, setTranslateX] = useState(0);
+  const itemRef = useRef<HTMLDivElement>(null);
+
   const getTimeAgo = (date: string): string => {
     const now = new Date();
     const notifDate = new Date(date);
@@ -30,23 +38,113 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
   };
 
   const handleClick = () => {
-    if (!notification.is_read) {
-      onMarkAsRead(notification.notification_id);
+    if (!isDragging && translateX === 0) {
+      if (!notification.is_read) {
+        onMarkAsRead(notification.notification_id);
+      }
+      onNavigate(notification);
     }
-    onNavigate(notification);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setIsDragging(true);
+    setStartX(e.touches[0].clientX);
+    setCurrentX(e.touches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    setCurrentX(e.touches[0].clientX);
+    const diff = e.touches[0].clientX - startX;
+    // Solo permitir deslizar a la derecha
+    if (diff > 0) {
+      setTranslateX(Math.min(diff, 100)); // Máximo 100px
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    // Si se deslizó más de 80px, eliminar
+    if (translateX > 80) {
+      onDelete(notification.notification_id);
+    } else {
+      // Regresar a la posición original
+      setTranslateX(0);
+    }
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    // Solo activar en dispositivos táctiles
+    if (window.matchMedia('(pointer: coarse)').matches) {
+      setIsDragging(true);
+      setStartX(e.clientX);
+      setCurrentX(e.clientX);
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    setCurrentX(e.clientX);
+    const diff = e.clientX - startX;
+    if (diff > 0) {
+      setTranslateX(Math.min(diff, 100));
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    if (translateX > 80) {
+      onDelete(notification.notification_id);
+    } else {
+      setTranslateX(0);
+    }
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDelete(notification.notification_id);
   };
 
   return (
-    <div
-      className={`notification-item ${notification.is_read ? 'read' : 'unread'}`}
-      onClick={handleClick}
-    >
-      <div className="notification-icon">{getIcon()}</div>
-      <div className="notification-content">
-        <p className="notification-message">{notification.message}</p>
-        <span className="notification-time">{getTimeAgo(notification.created_at)}</span>
+    <div className="notification-item-container">
+      <div className="notification-delete-background">
+        <svg className="delete-icon-bg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
       </div>
-      {!notification.is_read && <div className="notification-badge"></div>}
+      <div
+        ref={itemRef}
+        className={`notification-item ${notification.is_read ? 'read' : 'unread'}`}
+        onClick={handleClick}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+        style={{
+          transform: `translateX(${translateX}px)`,
+          transition: isDragging ? 'none' : 'transform 0.3s ease',
+        }}
+      >
+        <div className="notification-icon">{getIcon()}</div>
+        <div className="notification-content">
+          <p className="notification-message">{notification.message}</p>
+          <span className="notification-time">{getTimeAgo(notification.created_at)}</span>
+        </div>
+        {!notification.is_read && <div className="notification-badge"></div>}
+        <button 
+          className="notification-delete-btn"
+          onClick={handleDeleteClick}
+          aria-label="Eliminar notificación"
+        >
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+      </div>
     </div>
   );
 };

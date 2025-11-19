@@ -35,12 +35,7 @@ export default function Negocios() {
   }, []);
 
   const goToDetail = (id: number | string) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      navigate(`/local/${id}`);
-    } else {
-      navigate('/login');
-    }
+    navigate(`/local/${id}`);
   };
 
   return (
@@ -112,6 +107,31 @@ export default function Negocios() {
                           ))}
                         </div>
                         <span className="negocio-rating-text">{Number(business.average_rating).toFixed(1)}</span>
+                      </div>
+                    )}
+
+                    {business.business_accessibility && business.business_accessibility.length > 0 && (
+                      <div className="negocio-accessibility-section">
+                        <p className="accessibility-title">
+                          <i className="fas fa-universal-access"></i>
+                          <span>Accesibilidades ({business.business_accessibility.length})</span>
+                        </p>
+                        <div className="negocio-accessibility-list">
+                          {business.business_accessibility.slice(0, 3).map((acc: any) => (
+                            <span 
+                              key={acc.accessibility_id} 
+                              className="accessibility-badge"
+                              title={acc.description}
+                            >
+                              {acc.accessibility_name}
+                            </span>
+                          ))}
+                          {business.business_accessibility.length > 3 && (
+                            <span className="accessibility-badge more-badge">
+                              +{business.business_accessibility.length - 3} más
+                            </span>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>

@@ -340,7 +340,6 @@
   align-items: center;
   gap: 8px;
   padding: 12px 24px;
-  border: none;
   border-radius: 8px;
   cursor: pointer;
   font-size: 14px;
@@ -349,13 +348,17 @@
 }
 
 .cancel-btn {
-  background: var(--color-surface);
+  background: var(--color-card-bg);
   color: var(--color-text);
-  transition: background 0.3s ease, color 0.3s ease;
+  border: 2px solid var(--color-border);
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .cancel-btn:hover:not(:disabled) {
-  background: var(--color-hover-bg);
+  background: var(--color-card-bg);
+  color: var(--color-text);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--shadow-focus);
 }
 
 .save-btn {
