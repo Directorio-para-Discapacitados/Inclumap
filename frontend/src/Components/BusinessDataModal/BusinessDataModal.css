@@ -269,6 +269,24 @@
   100% { transform: rotate(360deg); }
 }
 
+/* Contador de caracteres */
+.character-counter {
+  text-align: right;
+  margin-top: 6px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.character-counter span {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.character-counter .counter-exceeded {
+  color: #ef4444 !important;
+  font-weight: 600;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .business-data-modal {

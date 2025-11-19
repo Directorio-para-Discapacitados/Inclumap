@@ -961,7 +961,41 @@ export class BusinessService {
         updatedBusiness.business_id,
       );
 
-      return updatedBusiness;
+      // Actualizar categorías si se proporcionan
+      if (updateDto.categoryIds !== undefined && Array.isArray(updateDto.categoryIds)) {
+        console.log('🏷️ [updateOwnerBusiness] Updating categories:', updateDto.categoryIds);
+        
+        // Eliminar categorías existentes
+        await this._businessCategoryRepository.delete({
+          business: { business_id: businessId },
+        });
+
+        // Agregar nuevas categorías
+        if (updateDto.categoryIds.length > 0) {
+          for (const categoryId of updateDto.categoryIds) {
+            const businessCategory = this._businessCategoryRepository.create({
+              business: updatedBusiness,
+              category: { category_id: categoryId } as any,
+            });
+            await this._businessCategoryRepository.save(businessCategory);
+          }
+          console.log('✅ [updateOwnerBusiness] Categories updated successfully');
+        }
+      }
+
+      // Recargar el negocio con todas las relaciones para devolverlo actualizado
+      const finalBusiness = await this._businessRepository.findOne({
+        where: { business_id: businessId },
+        relations: ['user', 'business_categories', 'business_categories.category', 'business_accessibility', 'business_accessibility.accessibility'],
+      });
+
+      if (!finalBusiness) {
+        throw new NotFoundException('Negocio no encontrado después de actualizar');
+      }
+
+      console.log('🔄 [updateOwnerBusiness] Reloaded business with relations');
+
+      return finalBusiness;
     } catch (error) {
       console.error('❌ [updateOwnerBusiness] Error:', error.message);
       console.error('❌ [updateOwnerBusiness] Full error:', error);
