@@ -286,82 +286,162 @@ export default function Inicio() {
         </div>
         
         <div className="businesses-container">
-          {loadingAllBusinesses && <div className="loading">Cargando negocios...</div>}
-          {!loadingAllBusinesses && allBusinesses.length === 0 && (
-            <div className="no-results">No hay negocios registrados aún</div>
-          )}
-          {!loadingAllBusinesses && allBusinesses.length > 0 && (
-            <>
-              <div className="businesses-grid">
-                {allBusinesses.slice(0, 5).map((business) => (
+          {query ? (
+            <div className="businesses-grid businesses-grid--results" ref={cardsRef}>
+              {loading && <div className="loading">Cargando locales...</div>}
+              {error && !loading && <div className="error">{error}</div>}
+              {!loading && !error && filtered.length === 0 && (
+                <div className="no-results">
+                  {`No se encontraron locales para "${query}"`}
+                </div>
+              )}
+              {!loading && !error && filtered.map((b) => {
+                const ownerName = b.owner_name || (b.user?.people ? `${b.user.people.firstName || ''} ${b.user.people.firstLastName || ''}`.trim() : '');
+
+                return (
                   <article
-                    key={business.business_id}
+                    key={b.business_id || b.id}
                     className="business-card-static"
                   >
                     <div className="business-image-wrapper">
-                      <img 
-                        src={business.logo_url || 'https://res.cloudinary.com/demo/image/upload/sample.jpg'} 
-                        alt={business.business_name}
+                      <img
+                        src={b.logo_url || 'https://res.cloudinary.com/demo/image/upload/sample.jpg'}
+                        alt={b.business_name || b.name}
                         className="business-img"
                       />
-                      {business.verified && (
+                      {b.verified && (
                         <div className="verification-badge-static">
                           <i className="fas fa-check-circle"></i>
                           <span>Verificado</span>
                         </div>
                       )}
                     </div>
-                    
+
                     <div className="business-content">
-                      <h3 className="business-title">{business.business_name}</h3>
-                      
+                      <h3 className="business-title">{b.business_name || b.name}</h3>
+
                       <div className="business-info-list">
-                        {business.address && (
+                        {b.address && (
                           <p className="business-info-item">
                             <i className="fas fa-map-marker-alt"></i>
-                            <span>{business.address}</span>
+                            <span>{b.address}</span>
                           </p>
                         )}
-                        
-                        {business.owner_name && (
+
+                        {ownerName && (
                           <p className="business-info-item">
                             <i className="fas fa-user"></i>
-                            <span>{business.owner_name}</span>
+                            <span>{ownerName}</span>
                           </p>
                         )}
-                        
-                        {typeof business.average_rating !== 'undefined' && (
+
+                        {typeof b.average_rating !== 'undefined' && (
                           <p className="business-info-item">
                             <i className="fas fa-star"></i>
-                            <span>{Number(business.average_rating).toFixed(1)}</span>
+                            <span>{Number(b.average_rating).toFixed(1)}</span>
                           </p>
                         )}
                       </div>
-                      
+
                       <button
                         className="btn-details-static"
-                        onClick={() => goToDetail(business.business_id)}
+                        onClick={() => goToDetail(b.business_id || b.id)}
                       >
                         Ver Detalles
                       </button>
                     </div>
                   </article>
-                ))}
-                
-                {allBusinesses.length > 5 && (
-                  <article className="business-card-ver-mas" onClick={() => navigate('/negocios')}>
-                    <div className="ver-mas-card-content">
-                      <div className="ver-mas-icon-circle">
-                        <i className="fas fa-arrow-right"></i>
-                      </div>
-                      <h3 className="ver-mas-title">Ver Más Negocios</h3>
-                      <p className="ver-mas-text">
-                        {allBusinesses.length - 5} negocios más disponibles
-                      </p>
-                    </div>
-                  </article>
-                )}
-              </div>
+                );
+              })}
+
+              {!loading && !error && filtered.length > 0 && (
+                <div style={{ gridColumn: '1 / -1', textAlign: 'center', marginTop: 20 }}>
+                  <button className="btn btn-outline" onClick={handleClearSearch}>
+                    Limpiar filtro
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              {loadingAllBusinesses && <div className="loading">Cargando negocios...</div>}
+              {!loadingAllBusinesses && allBusinesses.length === 0 && (
+                <div className="no-results">No hay negocios registrados aún</div>
+              )}
+              {!loadingAllBusinesses && allBusinesses.length > 0 && (
+                <>
+                  <div className="businesses-grid">
+                    {allBusinesses.slice(0, 5).map((business) => (
+                      <article
+                        key={business.business_id}
+                        className="business-card-static"
+                      >
+                        <div className="business-image-wrapper">
+                          <img 
+                            src={business.logo_url || 'https://res.cloudinary.com/demo/image/upload/sample.jpg'} 
+                            alt={business.business_name}
+                            className="business-img"
+                          />
+                          {business.verified && (
+                            <div className="verification-badge-static">
+                              <i className="fas fa-check-circle"></i>
+                              <span>Verificado</span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="business-content">
+                          <h3 className="business-title">{business.business_name}</h3>
+                          
+                          <div className="business-info-list">
+                            {business.address && (
+                              <p className="business-info-item">
+                                <i className="fas fa-map-marker-alt"></i>
+                                <span>{business.address}</span>
+                              </p>
+                            )}
+                            
+                            {business.owner_name && (
+                              <p className="business-info-item">
+                                <i className="fas fa-user"></i>
+                                <span>{business.owner_name}</span>
+                              </p>
+                            )}
+                            
+                            {typeof business.average_rating !== 'undefined' && (
+                              <p className="business-info-item">
+                                <i className="fas fa-star"></i>
+                                <span>{Number(business.average_rating).toFixed(1)}</span>
+                              </p>
+                            )}
+                          </div>
+                          
+                          <button
+                            className="btn-details-static"
+                            onClick={() => goToDetail(business.business_id)}
+                          >
+                            Ver Detalles
+                          </button>
+                        </div>
+                      </article>
+                    ))}
+                    
+                    {allBusinesses.length > 5 && (
+                      <article className="business-card-ver-mas" onClick={() => navigate('/negocios')}>
+                        <div className="ver-mas-card-content">
+                          <div className="ver-mas-icon-circle">
+                            <i className="fas fa-arrow-right"></i>
+                          </div>
+                          <h3 className="ver-mas-title">Ver Más Negocios</h3>
+                          <p className="ver-mas-text">
+                            {allBusinesses.length - 5} negocios más disponibles
+                          </p>
+                        </div>
+                      </article>
+                    )}
+                  </div>
+                </>
+              )}
             </>
           )}
         </div>
@@ -373,13 +453,13 @@ export default function Inicio() {
         <p className="sub-title">Filtra por distancia, tipo de servicio o directamente por elementos de accesibilidad específicos.</p>
 
         {/* Resultados de búsqueda o filtro de accesibilidad */}
-        {(query || selectedAccessibility) && (
-          <div className="cards-grid" ref={cardsRef}>
+        {selectedAccessibility && !query && (
+          <div className="cards-grid cards-grid--results">
             {loading && <div className="loading">Cargando locales...</div>}
             {error && !loading && <div className="error">{error}</div>}
             {!loading && !error && filtered.length === 0 && (
               <div className="no-results">
-                {query ? `No se encontraron locales para "${query}"` : "No se encontraron locales con esa accesibilidad"}
+                {"No se encontraron locales con esa accesibilidad"}
               </div>
             )}
             {!loading && !error && filtered.map((b) => (
@@ -420,40 +500,31 @@ export default function Inicio() {
                 </div>
               </article>
             ))}
-            {(query || selectedAccessibility) && filtered.length > 0 && (
-              <div style={{ gridColumn: '1 / -1', textAlign: 'center', marginTop: 20 }}>
-                <button className="btn btn-outline" onClick={handleClearSearch}>
-                  Limpiar filtro
-                </button>
-              </div>
-            )}
           </div>
         )}
 
         {/* Grid de accesibilidades */}
-        {!query && !selectedAccessibility && (
-          <div className="cards-grid">
-            {loadingAccessibilities && <div className="loading">Cargando accesibilidades...</div>}
-            {!loadingAccessibilities && cards.length === 0 && (
-              <div className="no-results">No se encontraron accesibilidades</div>
-            )}
-            {!loadingAccessibilities && cards.map((c) => (
-              <button
-                key={c.accessibility_id}
-                className="accessibility-btn"
-                onClick={() => handleAccessibilityClick(c.accessibility_id)}
-              >
-                <div className="card">
-                  <div className="card-icon">
-                    <i className={`fas ${iconMap[c.accessibility_name] || 'fa-check-circle'}`} />
-                  </div>
-                  <h3 className="card-title">{c.accessibility_name}</h3>
-                  <p className="card-desc">{c.description || 'Haz clic para ver locales con esta accesibilidad'}</p>
+        <div className="cards-grid">
+          {loadingAccessibilities && <div className="loading">Cargando accesibilidades...</div>}
+          {!loadingAccessibilities && cards.length === 0 && (
+            <div className="no-results">No se encontraron accesibilidades</div>
+          )}
+          {!loadingAccessibilities && cards.map((c) => (
+            <button
+              key={c.accessibility_id}
+              className="accessibility-btn"
+              onClick={() => handleAccessibilityClick(c.accessibility_id)}
+            >
+              <div className="card">
+                <div className="card-icon">
+                  <i className={`fas ${iconMap[c.accessibility_name] || 'fa-check-circle'}`} />
                 </div>
-              </button>
-            ))}
-          </div>
-        )}
+                <h3 className="card-title">{c.accessibility_name}</h3>
+                <p className="card-desc">{c.description || 'Haz clic para ver locales con esta accesibilidad'}</p>
+              </div>
+            </button>
+          ))}
+        </div>
       </main>
 
       {/* 4. Comunidad y Respaldo */}
