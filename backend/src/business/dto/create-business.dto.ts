@@ -45,4 +45,13 @@ export class CreateBusinessDto {
   @IsOptional()
   @IsArray()
   accessibilityIds?: number[];
+
+  @ApiProperty({
+    description: 'IDs de las categorías asociadas al negocio',
+    isArray: true,
+  })
+  @IsNotEmpty()
+  @IsArray()
+  @IsNumber({}, { each: true })
+  categoryIds: number[];
 }

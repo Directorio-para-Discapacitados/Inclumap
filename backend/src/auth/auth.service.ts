@@ -36,6 +36,8 @@ import { MapsService } from 'src/maps/maps.service';
 import { PayloadInterface } from './payload/payload.interface';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/entity/notification.entity';
+import { BusinessCategoryEntity } from 'src/business_category/entity/business_category.entity';
+import { CategoryEntity } from 'src/category/entity/category.entity';
 
 @Injectable()
 export class AuthService {
@@ -62,6 +64,12 @@ export class AuthService {
 
     @InjectRepository(AccessibilityEntity)
     private readonly accessibilityRepository: Repository<AccessibilityEntity>,
+
+    @InjectRepository(CategoryEntity)
+    private readonly categoryRepository: Repository<CategoryEntity>,
+
+    @InjectRepository(BusinessCategoryEntity)
+    private readonly businessCategoryRepository: Repository<BusinessCategoryEntity>,
 
     private readonly jwtService: JwtService,
     private readonly mailService: MailsService,
@@ -189,8 +197,6 @@ export class AuthService {
     }
   }
 
- // backend/src/auth/auth.service.ts
-
  async registerFullBusiness(
   businessData: CreateFullBusinessDto,
 ): Promise<{ message: string; token: string }> {
@@ -314,6 +320,22 @@ export class AuthService {
       }
     }
 
+    if (businessData.categoryIds && businessData.categoryIds.length > 0) {
+      for (const categoryId of businessData.categoryIds) {
+        const category = await this.categoryRepository.findOne({
+          where: { category_id: categoryId },
+        });
+
+        if (category) {
+          const businessCategory = this.businessCategoryRepository.create({
+            business: savedBusiness,
+            category: category,
+          });
+          await this.businessCategoryRepository.save(businessCategory);
+        }
+      }
+    }
+
     // 8. Generar Token
     const userRoles: UserRolesEntity[] = await this.userRolesRepository.find({
       where: { user: { user_id: newUser.user_id } },
@@ -335,6 +357,7 @@ export class AuthService {
       NIT: savedBusiness.NIT,
       rolIds: rolIds,
       accessibilityIds: businessData.accessibilityIds || [],
+      categoryIds: businessData.categoryIds || [],
     };
 
     const token = this.jwtService.sign(payload);

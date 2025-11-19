@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsBoolean, IsNumber } from 'class-validator';
+import { IsOptional, IsString, IsBoolean, IsNumber, IsArray } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateBusinessDto {
@@ -41,4 +41,16 @@ export class UpdateBusinessDto {
   })
   @IsOptional()
   user_id?: number | null;
+
+  @ApiPropertyOptional({
+    description: 'Lista de IDs de categorías para actualizar',
+    isArray: true,
+  })
+  @IsOptional()
+  @IsArray()
+  @IsNumber({}, { each: true })
+  categoryIds?: number[];
+
 }
+
+
