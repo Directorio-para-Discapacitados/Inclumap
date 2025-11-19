@@ -1,4 +1,10 @@
-import { IsOptional, IsString, IsBoolean, IsNumber, IsArray } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsBoolean,
+  IsNumber,
+  IsArray,
+} from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class UpdateBusinessDto {
@@ -50,7 +56,4 @@ export class UpdateBusinessDto {
   @IsArray()
   @IsNumber({}, { each: true })
   categoryIds?: number[];
-
 }
-
-

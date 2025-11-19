@@ -602,7 +602,8 @@ export class BusinessService {
   async updateBusinessLogo(
     user: UserEntity,
     logoBuffer: Buffer,
-  ): Promise<{ message: string; logo_url: string }> { // <--- CAMBIO 1: Tipo de retorno explícito
+  ): Promise<{ message: string; logo_url: string }> {
+    // <--- CAMBIO 1: Tipo de retorno explícito
     try {
       const negocio = await this._businessRepository.findOne({
         where: { user: { user_id: user.user_id } },
@@ -618,7 +619,7 @@ export class BusinessService {
       const uploadResult = await this.cloudinaryService.uploadImage(
         logoBuffer,
         'inclumap/business-logos',
-        `business_${negocio.business_id}`, 
+        `business_${negocio.business_id}`,
       );
 
       negocio.logo_url = uploadResult.secure_url;

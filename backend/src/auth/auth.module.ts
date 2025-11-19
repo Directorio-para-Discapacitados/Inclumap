@@ -47,10 +47,18 @@ import { BusinessCategoryEntity } from 'src/business_category/entity/business_ca
       BusinessAccessibilityEntity,
       AccessibilityEntity,
       BusinessCategoryEntity,
-      CategoryEntity
+      CategoryEntity,
     ]),
   ],
-  providers: [AuthService, JwtStrategy, JwtRefreshStrategy, JwtAuthGuard, JwtRefreshGuard, RolesGuard, MailsService],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    JwtRefreshStrategy,
+    JwtAuthGuard,
+    JwtRefreshGuard,
+    RolesGuard,
+    MailsService,
+  ],
   controllers: [AuthController],
   exports: [JwtAuthGuard, RolesGuard],
 })

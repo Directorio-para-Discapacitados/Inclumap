@@ -11,7 +11,9 @@ export class TestSchedulerController {
   @Post('trigger-suggestion')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Ejecutar manualmente la sugerencia semanal (solo para testing)' })
+  @ApiOperation({
+    summary: 'Ejecutar manualmente la sugerencia semanal (solo para testing)',
+  })
   async triggerSuggestion() {
     await this.suggestionScheduler.executeSuggestionManually();
     return { message: 'Sugerencia ejecutada manualmente' };

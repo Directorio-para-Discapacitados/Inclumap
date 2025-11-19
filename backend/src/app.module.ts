@@ -28,7 +28,7 @@ import { ReviewModule } from './review/review.module';
 import { MapsModule } from './maps/maps.module';
 import { SentimentModule } from './sentiment/sentiment.module';
 import { NotificationModule } from './notification/notification.module';
-import { SuggestionScheduler } from './schedulers/suggestion.scheduler'
+import { SuggestionScheduler } from './schedulers/suggestion.scheduler';
 import { TestSchedulerController } from './schedulers/test-scheduler.controller';
 import { CategoryModule } from './category/category.module';
 import { BusinessCategoryModule } from './business_category/business_category.module';

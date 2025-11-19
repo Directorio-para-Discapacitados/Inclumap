@@ -1,6 +1,6 @@
-import { BusinessEntity } from "src/business/entity/business.entity";
-import { CategoryEntity } from "src/category/entity/category.entity";
-import { Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { BusinessEntity } from 'src/business/entity/business.entity';
+import { CategoryEntity } from 'src/category/entity/category.entity';
+import { Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity({ name: 'business_category' })
 export class BusinessCategoryEntity {

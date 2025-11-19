@@ -6,15 +6,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CategoryEntity } from './entity/category.entity';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([CategoryEntity]),
-  ],
-  controllers: [CategoryController], 
-  providers: [
-    CategoryService, 
-    CategorySeed,    
-  ],
-  exports: [CategorySeed, TypeOrmModule], 
+  imports: [TypeOrmModule.forFeature([CategoryEntity])],
+  controllers: [CategoryController],
+  providers: [CategoryService, CategorySeed],
+  exports: [CategorySeed, TypeOrmModule],
 })
 export class CategoryModule implements OnModuleInit {
   constructor(private readonly categorySeed: CategorySeed) {}

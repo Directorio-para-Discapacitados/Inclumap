@@ -26,7 +26,7 @@ export class CloudinaryService {
           public_id: publicId,
           // <--- CAMBIO CRÍTICO: Esto permite sobrescribir la imagen anterior sin errores
           unique_filename: !publicId, // Si hay publicId, NO usar nombre único (para sobrescribir)
-          overwrite: true,            // Permitir reemplazar el archivo existente
+          overwrite: true, // Permitir reemplazar el archivo existente
           resource_type: 'auto',
           // ---------------------------------------------------------------------
           transformation: [

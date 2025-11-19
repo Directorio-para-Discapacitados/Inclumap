@@ -39,5 +39,4 @@ export class UpgradeToBusinessDto {
   @IsArray()
   @IsNumber({}, { each: true })
   categoryIds?: number[];
-
 }

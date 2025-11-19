@@ -52,8 +52,4 @@ export class CreateFullUserDto {
   @IsNumber({}, { each: true, message: 'Cada rol debe ser un número' })
   rolIds: number[];
 
-  @IsNotEmpty()
-  @IsArray()
-  @IsNumber({}, { each: true })
-  categoryIds: number[];
 }

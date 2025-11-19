@@ -1,4 +1,3 @@
-
 import {
   IsEmail,
   IsNotEmpty,
@@ -69,10 +68,13 @@ export class CreateFullBusinessDto {
   @IsNumber({}, { message: 'El NIT debe ser un número' })
   NIT: number;
 
-  @ApiProperty({description: 'IDs de las categorías del negocio',})
+  @ApiProperty({ description: 'IDs de las categorías del negocio' })
   @IsNotEmpty({ message: 'Debe seleccionar al menos una categoría' })
   @IsArray()
-  @IsNumber({}, { each: true, message: 'Cada categoría debe ser un ID numérico' })
+  @IsNumber(
+    {},
+    { each: true, message: 'Cada categoría debe ser un ID numérico' },
+  )
   categoryIds: number[];
 
   @ApiProperty({ description: 'Descripción del negocio y sus servicios' })
@@ -106,4 +108,6 @@ export class CreateFullBusinessDto {
     { each: true, message: 'Cada accesibilidad debe ser un número' },
   )
   accessibilityIds?: number[];
+
+  
 }

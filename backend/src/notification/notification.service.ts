@@ -1,7 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { NotificationEntity, NotificationType } from './entity/notification.entity';
+import {
+  NotificationEntity,
+  NotificationType,
+} from './entity/notification.entity';
 import { UserEntity } from 'src/user/entity/user.entity';
 
 @Injectable()
@@ -134,7 +137,7 @@ export class NotificationService {
       .leftJoin('userroles.rol', 'rol')
       .where('rol.rol_name = :roleName', { roleName: 'Admin' })
       .getMany();
-    
+
     if (admins.length === 0) {
       return;
     }

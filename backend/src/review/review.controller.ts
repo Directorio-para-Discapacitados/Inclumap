@@ -55,16 +55,15 @@ export class ReviewController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('my') 
+  @Get('my')
   getMyReviews(@User() user: UserEntity) {
     return this.reviewService.getMyReviews(user.user_id);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(1) 
+  @Roles(1)
   @Get('all')
   getPaginatedReviews(
-
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
   ) {
@@ -72,8 +71,8 @@ export class ReviewController {
     return this.reviewService.getAllPaginated(page, limit);
   }
 
-@UseGuards(JwtAuthGuard)
-  @Delete(':id') 
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
   @HttpCode(HttpStatus.OK)
   delete(
     @Param('id', ParseIntPipe) review_id: number,

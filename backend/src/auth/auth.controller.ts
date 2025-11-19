@@ -101,11 +101,10 @@ export class AuthController {
   @UseGuards(JwtRefreshGuard)
   @Post('refresh')
   async refresh(
-    @User() userPayload: PayloadInterface, 
+    @User() userPayload: PayloadInterface,
   ): Promise<{ message: string; token: string }> {
-    
-    const newToken = this.authService.refreshToken(userPayload); 
-    
+    const newToken = this.authService.refreshToken(userPayload);
+
     return {
       message: 'Token refrescado exitosamente',
       token: newToken,
