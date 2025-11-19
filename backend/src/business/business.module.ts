@@ -11,6 +11,7 @@ import { UserEntity } from '../user/entity/user.entity';
 import { UserRolesEntity } from '../user_rol/entity/user_rol.entity';
 import { RolEntity } from '../roles/entity/rol.entity';
 import { BusinessAccessibilityEntity } from '../business_accessibility/entity/business_accessibility.entity';
+import { BusinessCategoryEntity } from 'src/business_category/entity/business_category.entity';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { BusinessAccessibilityEntity } from '../business_accessibility/entity/bu
       UserRolesEntity,
       RolEntity,
       BusinessAccessibilityEntity,
+      BusinessCategoryEntity
     ]),
     AuthModule,
     CloudinaryModule,
