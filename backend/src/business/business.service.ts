@@ -178,7 +178,13 @@ export class BusinessService {
     try {
       const negocio = await this._businessRepository.findOne({
         where: { business_id },
-        relations: ['user', 'business_accessibility'],
+        relations: [
+          'user',
+          'business_accessibility',
+          'business_accessibility.accessibility',
+          'business_categories',
+          'business_categories.category',
+        ],
       });
 
       if (!negocio) {
@@ -192,6 +198,24 @@ export class BusinessService {
         NIT: negocio.NIT,
         description: negocio.description,
         coordinates: negocio.coordinates,
+        latitude: negocio.latitude,
+        longitude: negocio.longitude,
+        logo_url: negocio.logo_url,
+        verified: negocio.verified,
+        average_rating: negocio.average_rating,
+        business_accessibility: Array.isArray(negocio.business_accessibility)
+          ? negocio.business_accessibility.map((ba: any) => ({
+              accessibility_id: ba.accessibility?.accessibility_id,
+              accessibility_name: ba.accessibility?.accessibility_name,
+              description: ba.accessibility?.description,
+            }))
+          : [],
+        business_categories: Array.isArray(negocio.business_categories)
+          ? negocio.business_categories.map((bc: any) => ({
+              category_id: bc.category?.category_id,
+              category_name: bc.category?.name,
+            }))
+          : [],
       };
     } catch (error) {
       throw new InternalServerErrorException('Error al obtener el negocio');

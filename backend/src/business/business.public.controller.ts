@@ -162,6 +162,12 @@ export class BusinessPublicController {
             description: ba.accessibility?.description ?? ba.description,
           }))
         : [],
+      business_categories: Array.isArray(b.business_categories)
+        ? b.business_categories.map((bc: any) => ({
+            category_id: bc.category?.category_id,
+            category_name: bc.category?.name,
+          }))
+        : [],
     };
   }
 }
