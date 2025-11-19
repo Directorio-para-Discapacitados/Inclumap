@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./inicio.css";
 import { API_URL } from "../../config/api";
+import { getAllCategories, Category } from "../../services/categoryService";
 
 /* --- IMPORTACIONES PARA EL MAPA --- */
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -54,6 +55,9 @@ export default function Inicio() {
   const [filtered, setFiltered] = useState<any[]>([]);
   const [selectedAccessibility, setSelectedAccessibility] = useState<number | string | null>(null);
   const [loadingAccessibilities, setLoadingAccessibilities] = useState(true);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [loadingCategories, setLoadingCategories] = useState(true);
 
   const goToDetail = (id: number | string) => {
     navigate(`/local/${id}`);
@@ -84,6 +88,23 @@ export default function Inicio() {
       }
     };
     fetchAccessibilities();
+  }, []);
+
+  // Cargar categorías desde BD
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoadingCategories(true);
+        const data = await getAllCategories();
+        setCategories(data || []);
+      } catch (e: any) {
+        console.error("Error cargando categorías:", e.message, e);
+        setCategories([]);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+    fetchCategories();
   }, []);
 
   // Cargar todos los negocios registrados
@@ -128,9 +149,14 @@ export default function Inicio() {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const q = (params.get("q") || "").trim();
-    setQuery(q);
+    const catParam = params.get("categoryId");
+    const catId = catParam ? parseInt(catParam, 10) : null;
 
-    if (!q) {
+    setQuery(q);
+    setSelectedCategory(catId);
+
+    // Si no hay query y no hay categoría seleccionada, limpiar
+    if (!q && !catId && !selectedAccessibility) {
       setFiltered([]);
       setSelectedAccessibility(null);
       setError(null);
@@ -145,8 +171,28 @@ export default function Inicio() {
       try {
         setLoading(true);
         setError(null);
+        
+        // Construir URL con parámetros opcionales
+        let url = `${API_URL}/business/public/search`;
+        const params = new URLSearchParams();
+        
+        if (q) {
+          params.append('q', q);
+        }
+        if (catId) {
+          params.append('categoryId', catId.toString());
+          console.log('🔍 Frontend: Buscando con categoryId:', catId);
+        }
+        
+        const queryString = params.toString();
+        if (queryString) {
+          url += `?${queryString}`;
+        }
+        
+        console.log('📡 Frontend: Haciendo petición a:', url);
+        
         // Usar endpoint público de búsqueda para máxima fluidez
-        const resp = await fetch(`${API_URL}/business/public/search?q=${encodeURIComponent(q)}`, {
+        const resp = await fetch(url, {
           method: "GET",
           signal,
         });
@@ -154,16 +200,11 @@ export default function Inicio() {
           throw new Error("No se pudo obtener locales públicos");
         }
         const data = await resp.json();
+        console.log('📊 Frontend: Datos recibidos:', data.length, 'negocios');
+        
         if (signal.aborted) return;
         setBusinesses(data || []);
-
-        const qLower = q.toLowerCase();
-        const filteredList = (data || []).filter((b: any) => {
-          const name = (b.business_name || b.name || "").toLowerCase();
-          const address = (b.address || "").toLowerCase();
-          return name.includes(qLower) || address.includes(qLower);
-        });
-        setFiltered(filteredList);
+        setFiltered(data || []);
         setSelectedAccessibility(null);
       } catch (e: any) {
         if (e?.name === 'AbortError') return; // ignorar abortos
@@ -175,7 +216,7 @@ export default function Inicio() {
 
     fetchData();
     return () => controller.abort();
-  }, [location.search]);
+  }, [location.search, selectedAccessibility]); // Dependemos de la URL
 
   // Escuchar evento global para limpiar resultados
   useEffect(() => {
@@ -185,23 +226,38 @@ export default function Inicio() {
       setBusinesses([]);
       setError(null);
       setLoading(false);
+      setSelectedCategory(null);
     };
     window.addEventListener('inclumap:clear-search', handler as EventListener);
     return () => window.removeEventListener('inclumap:clear-search', handler as EventListener);
   }, []);
 
+  // Escuchar cambios de categoría desde el Navbar
+  useEffect(() => {
+    const handler = (e: CustomEvent) => {
+      const categoryId = e.detail?.categoryId;
+      console.log('🎯 Evento recibido - categoryId:', categoryId);
+      setSelectedCategory(categoryId);
+    };
+    window.addEventListener('inclumap:category-changed', handler as EventListener);
+    return () => window.removeEventListener('inclumap:category-changed', handler as EventListener);
+  }, []);
+
   // Auto-scroll a resultados
   useEffect(() => {
-    if (!query) return;
-    const t = setTimeout(() => {
-      const el = cardsRef.current;
-      if (!el) return;
-      const offset = 80;
-      const top = el.getBoundingClientRect().top + window.scrollY - offset;
-      window.scrollTo({ top, behavior: 'smooth' });
-    }, 50);
-    return () => clearTimeout(t);
-  }, [query, loading, filtered.length]);
+    if (!query && !selectedCategory) return;
+    // Si hay resultados, scroll
+    if (filtered.length > 0) {
+        const t = setTimeout(() => {
+        const el = cardsRef.current;
+        if (!el) return;
+        const offset = 80;
+        const top = el.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top, behavior: 'smooth' });
+        }, 50);
+        return () => clearTimeout(t);
+    }
+  }, [query, selectedCategory, loading, filtered.length]);
 
   // Scroll automático a la sección Comunidad y Respaldo
   useEffect(() => {
@@ -234,14 +290,29 @@ export default function Inicio() {
   const handleClearSearch = () => {
     setQuery("");
     setSelectedAccessibility(null);
+    setSelectedCategory(null);
     setFiltered([]);
     if (location.search) window.history.replaceState({}, "", window.location.pathname);
   };
 
-  /* --- LÓGICA DE PUNTOS DEL MAPA --- */
-  // Si hay búsqueda activa (query o resultados filtrados), el mapa muestra solo esos.
-  // Si no, muestra todos los negocios (allBusinesses).
-  const mapPoints = (query || filtered.length > 0) ? filtered : allBusinesses;
+  // Manejar selección de categoría
+  const handleCategoryClick = (categoryId: number) => {
+    if (selectedCategory === categoryId) {
+      setSelectedCategory(null); // Deseleccionar si ya está seleccionada
+    } else {
+      setSelectedCategory(categoryId);
+      // Si no hay búsqueda de texto, iniciar búsqueda con solo categoría
+      if (!query) {
+        // setQuery(" "); // Espacio para activar la búsqueda (YA NO ES NECESARIO)
+      }
+    }
+  };
+
+  /* --- LÓGICA DE PUNTOS DEL MAPA CORREGIDA --- */
+  // Si hay CUALQUIER filtro activo (query O categoría), mostramos 'filtered'
+  // incluso si 'filtered' está vacío (0 resultados).
+  // Solo mostramos 'allBusinesses' si el usuario NO está buscando nada.
+  const mapPoints = (query || selectedCategory || selectedAccessibility) ? filtered : allBusinesses;
 
   return (
     <div className="inicio-root">
@@ -286,15 +357,22 @@ export default function Inicio() {
         </div>
         
         <div className="businesses-container">
-          {query ? (
+          {/* Mostrar resultados si hay búsqueda O categoría seleccionada */}
+          {(query || selectedCategory) ? (
             <div className="businesses-grid businesses-grid--results" ref={cardsRef}>
               {loading && <div className="loading">Cargando locales...</div>}
               {error && !loading && <div className="error">{error}</div>}
+              
+              {/* Mensaje de SIN RESULTADOS cuando se filtra */}
               {!loading && !error && filtered.length === 0 && (
                 <div className="no-results">
-                  {`No se encontraron locales para "${query}"`}
+                  {query 
+                    ? `No se encontraron locales para "${query}"`
+                    : 'No se encontraron locales para esta categoría'
+                  }
                 </div>
               )}
+
               {!loading && !error && filtered.map((b) => {
                 const ownerName = b.owner_name || (b.user?.people ? `${b.user.people.firstName || ''} ${b.user.people.firstLastName || ''}`.trim() : '');
 
@@ -364,6 +442,7 @@ export default function Inicio() {
             </div>
           ) : (
             <>
+              {/* Vista por defecto (sin filtros) */}
               {loadingAllBusinesses && <div className="loading">Cargando negocios...</div>}
               {!loadingAllBusinesses && allBusinesses.length === 0 && (
                 <div className="no-results">No hay negocios registrados aún</div>
@@ -548,7 +627,7 @@ export default function Inicio() {
           </div>
       </section>
       
-      {/* 5. Mapa Global de Accesibilidad (Reemplaza Validación IA) */}
+      {/* 5. Mapa Global de Accesibilidad */}
       <section className="global-map-section">
         <div className="map-header">
           <h2>🗺️ Mapa Global de Accesibilidad</h2>

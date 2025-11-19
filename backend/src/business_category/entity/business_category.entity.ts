@@ -5,7 +5,7 @@ import { Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 @Entity({ name: 'business_category' })
 export class BusinessCategoryEntity {
   @PrimaryGeneratedColumn()
-  category_id: number;
+  business_category_id: number;
 
   @ManyToOne(() => BusinessEntity, (business) => business.business_categories)
   @JoinColumn({ name: 'business_id' })

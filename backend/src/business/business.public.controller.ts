@@ -15,9 +15,51 @@ export class BusinessPublicController {
   ) {}
 
   @Get('search')
-  async searchPublic(@Query('q') q?: string): Promise<any[]> {
+  async searchPublic(
+    @Query('q') q?: string,
+    @Query('categoryId') categoryId?: string,
+  ): Promise<any[]> {
     const all = await this.businessService.obtenerNegocios();
     const list = Array.isArray(all) ? all : [];
+
+    // Filtrar por categoría si se proporciona
+    let filtered = list;
+    if (categoryId) {
+      const categoryIdNum = parseInt(categoryId, 10);
+      console.log('🔍 Filtrando por categoría ID:', categoryIdNum);
+      
+      if (!isNaN(categoryIdNum)) {
+        filtered = filtered.filter((b: any) => {
+          const hasCategory = Array.isArray(b.business_categories) &&
+            b.business_categories.some(
+              (bc: any) => bc.category?.category_id === categoryIdNum,
+            );
+          
+          if (hasCategory) {
+            console.log('✅ Negocio encontrado:', b.business_name, 'con categorías:', 
+              b.business_categories.map((bc: any) => ({
+                id: bc.category?.category_id,
+                name: bc.category?.name
+              }))
+            );
+          }
+          
+          return hasCategory;
+        });
+        
+        console.log(`📊 Negocios filtrados: ${filtered.length} de ${list.length} totales`);
+      }
+    }
+
+    // Filtrar por texto de búsqueda si se proporciona
+    if (q && q.trim()) {
+      const qLower = q.trim().toLowerCase();
+      filtered = filtered.filter((b: any) => {
+        const name = (b.business_name || '').toLowerCase();
+        const address = (b.address || '').toLowerCase();
+        return name.includes(qLower) || address.includes(qLower);
+      });
+    }
 
     const mapPublic = (b: any) => ({
       business_id: b.business_id,
@@ -41,17 +83,12 @@ export class BusinessPublicController {
             description: ba.accessibility?.description,
           }))
         : [],
-    });
-
-    if (!q || !q.trim()) {
-      return list.map(mapPublic);
-    }
-
-    const qLower = q.trim().toLowerCase();
-    const filtered = list.filter((b: any) => {
-      const name = (b.business_name || '').toLowerCase();
-      const address = (b.address || '').toLowerCase();
-      return name.includes(qLower) || address.includes(qLower);
+      business_categories: Array.isArray(b.business_categories)
+        ? b.business_categories.map((bc: any) => ({
+            category_id: bc.category?.category_id,
+            category_name: bc.category?.name,
+          }))
+        : [],
     });
 
     return filtered.map(mapPublic);
