@@ -919,6 +919,27 @@ export class BusinessService {
       ) {
         business.description = updateDto.description;
       }
+      // Actualizar coordenadas si se proporcionan
+      if (
+        updateDto.coordinates !== undefined &&
+        updateDto.coordinates !== null &&
+        updateDto.coordinates.trim().length > 0
+      ) {
+        business.coordinates = updateDto.coordinates;
+        // Extraer latitud y longitud de las coordenadas
+        const coords = this.mapsService.parseCoordinatesFromStorage(
+          updateDto.coordinates,
+        );
+        if (coords) {
+          business.latitude = coords.lat;
+          business.longitude = coords.lon;
+          console.log('📍 [updateOwnerBusiness] Updated coordinates:', {
+            coordinates: updateDto.coordinates,
+            lat: coords.lat,
+            lon: coords.lon,
+          });
+        }
+      }
       // NO actualizar logo con base64 - ignorar si viene en la solicitud
       if (updateDto.verified !== undefined && updateDto.verified !== null) {
         console.log(

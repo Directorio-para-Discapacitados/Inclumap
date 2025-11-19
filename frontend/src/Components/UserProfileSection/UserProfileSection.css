@@ -364,6 +364,54 @@
 
 /* Modo oscuro manejado automáticamente por variables CSS globales */
 
+/* Estilos para el selector de ubicación en el mapa */
+.input-with-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.input-with-action input {
+  flex: 1;
+}
+
+.map-picker-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  height: 42px;
+  width: 42px;
+  min-width: 42px;
+}
+
+body.dark-mode .map-picker-btn {
+  background: linear-gradient(135deg, rgba(74, 144, 226, 0.9), rgba(90, 159, 240, 0.9));
+  box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+  border: 1px solid rgba(74, 144, 226, 0.3);
+}
+
+.map-picker-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
+
+body.dark-mode .map-picker-btn:hover:not(:disabled) {
+  box-shadow: 0 4px 16px rgba(74, 144, 226, 0.6);
+  background: linear-gradient(135deg, rgba(74, 144, 226, 1), rgba(90, 159, 240, 1));
+}
+
+.map-picker-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Responsivo */
 @media (max-width: 768px) {
   .profile-content {

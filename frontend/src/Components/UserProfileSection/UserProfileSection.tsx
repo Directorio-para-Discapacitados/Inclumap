@@ -4,7 +4,13 @@ import { useAuth } from "../../context/AuthContext";
 import AvatarModal from "../AvatarModal/AvatarModal";
 import Avatar from "../Avatar/Avatar";
 import { API_URL, api } from "../../config/api";
+import { useJsApiLoader } from "@react-google-maps/api";
+import LocationPicker from "../../pages/LocationPicker/LocationPicker";
+import { MapPin } from "lucide-react";
 import "./UserProfileSection.css";
+
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
+const libraries: ("places" | "geometry" | "drawing" | "visualization")[] = ["places"];
 
 type Profile = {
   people_id?: number;
@@ -31,6 +37,18 @@ export default function UserProfileSection() {
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const navigate = useNavigate();
   const { user, refreshUser } = useAuth();
+
+  // Estados para el mapa
+  const [showMap, setShowMap] = useState(false);
+  const [mapInitialCoords, setMapInitialCoords] = useState({ lat: 1.1522, lng: -76.6526 });
+  const [isDetectingLocation, setIsDetectingLocation] = useState(false);
+
+  const { isLoaded } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
+    libraries: libraries,
+    language: 'es',
+  });
 
   // Función para obtener el perfil del backend
   const fetchProfile = async () => {
@@ -87,6 +105,40 @@ export default function UserProfileSection() {
       ...prev,
       [name]: value
     }));
+  };
+
+  // Funciones para el mapa
+  const handleMapConfirm = (lat: number, lng: number, address?: string) => {
+    setMapInitialCoords({ lat, lng });
+    if (address) {
+      setEditedProfile(prev => ({ ...prev, address }));
+    }
+    setShowMap(false);
+  };
+
+  const handleOpenMap = () => {
+    if (navigator.geolocation && isLoaded) {
+      setIsDetectingLocation(true);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          setMapInitialCoords({ lat: latitude, lng: longitude });
+          setIsDetectingLocation(false);
+          setShowMap(true);
+        },
+        () => {
+          setIsDetectingLocation(false);
+          setShowMap(true);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
+        }
+      );
+    } else {
+      setShowMap(true);
+    }
   };
 
   const handleSave = async () => {
@@ -226,15 +278,32 @@ export default function UserProfileSection() {
 
           <div className="form-group">
             <label htmlFor="address">Dirección</label>
-            <input
-              type="text"
-              id="address"
-              name="address"
-              value={editedProfile.address || ''}
-              onChange={handleInputChange}
-              disabled={!editMode}
-              placeholder="Ingresa tu dirección"
-            />
+            <div className="input-with-action">
+              <input
+                type="text"
+                id="address"
+                name="address"
+                value={editedProfile.address || ''}
+                onChange={handleInputChange}
+                disabled={!editMode}
+                placeholder="Ingresa tu dirección (o selecciona en mapa)"
+              />
+              {editMode && (
+                <button
+                  type="button"
+                  className="map-picker-btn"
+                  onClick={handleOpenMap}
+                  disabled={isDetectingLocation}
+                  title={isDetectingLocation ? "Detectando ubicación..." : "Seleccionar ubicación en el mapa"}
+                >
+                  {isDetectingLocation ? (
+                    <span style={{ fontSize: '12px' }}>...</span>
+                  ) : (
+                    <MapPin size={20} />
+                  )}
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="form-actions">
@@ -266,6 +335,15 @@ export default function UserProfileSection() {
           onClose={() => setIsAvatarModalOpen(false)}
           currentAvatar={profile.avatar}
           onAvatarUpdate={fetchProfile}
+        />
+      )}
+
+      {showMap && isLoaded && (
+        <LocationPicker
+          initialLat={mapInitialCoords.lat}
+          initialLng={mapInitialCoords.lng}
+          onConfirm={handleMapConfirm}
+          onCancel={() => setShowMap(false)}
         />
       )}
     </div>
