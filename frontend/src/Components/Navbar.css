@@ -17,45 +17,42 @@
 .unified-search-bar {
   display: flex;
   align-items: center;
-  background-color: #f3f4f6; 
-  border: 1px solid #e5e7eb;
+  background-color: var(--color-input-bg);
+  border: 1px solid var(--color-border);
   border-radius: 50px;
-  padding: 0 12px; 
+  padding: 0 12px;
   width: 100%;
   max-width: 600px;
-  height: 48px; 
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  height: 48px;
+  box-shadow: 0 2px 4px var(--color-shadow);
   transition: all 0.3s ease;
   margin: 0 20px;
   overflow: hidden;
 }
 
 .unified-search-bar:focus-within {
-  background-color: #fff;
-  border-color: #3b82f6;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  background-color: var(--color-surface);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--shadow-focus);
 }
 
 .search-select {
   background-color: transparent;
   border: none;
   font-size: 1rem;
-  color: #4b5563;
+  color: var(--color-text);
   cursor: pointer;
   outline: none;
-  
   width: auto;
   min-width: 80px;
   max-width: 150px;
-  
   height: 100%;
   padding-left: 5px;
-  padding-right: 25px; 
-  
+  padding-right: 25px;
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
-  
+  /* Flecha en tono neutro (se sobreescribe en modo oscuro más abajo) */
   background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%234b5563%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
   background-repeat: no-repeat;
   background-position: right 5px center;
@@ -63,26 +60,26 @@
 }
 
 .search-select option {
-  background-color: #ffffff;
-  color: #333333;
+  background-color: var(--color-card-bg);
+  color: var(--color-text);
   padding: 10px;
 }
 
 .search-divider {
   width: 1px;
   height: 24px;
-  background-color: #d1d5db;
+  background-color: var(--color-border);
   margin: 0 12px;
   flex-shrink: 0;
 }
 
 .search-input-text {
-  flex: 1; 
-  min-width: 150px; 
+  flex: 1;
+  min-width: 150px;
   border: none;
   background: transparent;
-  font-size: 1rem; 
-  color: #1f2937;
+  font-size: 1rem;
+  color: var(--color-text);
   outline: none;
   padding: 0 5px;
   height: 100%;
@@ -90,7 +87,7 @@
 
 /* Estilo del Placeholder (Texto "Buscar locales...") */
 .search-input-text::placeholder {
-  color: #9ca3af;
+  color: var(--color-text-muted);
   opacity: 1;
 }
 
@@ -146,19 +143,21 @@
 /* ================= MODO OSCURO ================= */
 
 .navbar.dark .unified-search-bar {
-  background-color: #1f2937; 
-  border-color: #374151;
+  /* Reutiliza las variables del tema oscuro para que coincida con el resto de inputs */
+  background-color: var(--color-input-bg);
+  border-color: var(--color-border);
 }
 
 .navbar.dark .unified-search-bar:focus-within {
-  background-color: #111827; 
-  border-color: #60a5fa;
+  background-color: var(--color-input-bg);
+  border-color: var(--color-border);
+  box-shadow: none;
 }
 
 /* Textos Claros */
 .navbar.dark .search-select {
-  color: #e5e7eb; 
-  /* Flecha Blanca */
+  color: #e5e7eb;
+  /* Flecha clara en modo oscuro */
   background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23e5e7eb%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
 }
 

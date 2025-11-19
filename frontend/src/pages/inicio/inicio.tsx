@@ -169,7 +169,6 @@ export default function Inicio() {
 
     const fetchData = async () => {
       try {
-        setLoading(true);
         setError(null);
         
         // Construir URL con parámetros opcionales
@@ -203,14 +202,13 @@ export default function Inicio() {
         console.log('📊 Frontend: Datos recibidos:', data.length, 'negocios');
         
         if (signal.aborted) return;
-        setBusinesses(data || []);
         setFiltered(data || []);
         setSelectedAccessibility(null);
       } catch (e: any) {
         if (e?.name === 'AbortError') return; // ignorar abortos
         setError(e?.message || "Error al cargar locales");
       } finally {
-        if (!signal.aborted) setLoading(false);
+        if (signal.aborted) return;
       }
     };
 

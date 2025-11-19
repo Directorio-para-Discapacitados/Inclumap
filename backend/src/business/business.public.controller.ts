@@ -57,7 +57,19 @@ export class BusinessPublicController {
       filtered = filtered.filter((b: any) => {
         const name = (b.business_name || '').toLowerCase();
         const address = (b.address || '').toLowerCase();
-        return name.includes(qLower) || address.includes(qLower);
+        const accessibilityNames = Array.isArray(b.business_accessibility)
+          ? b.business_accessibility
+              .map((ba: any) =>
+                (ba.accessibility?.accessibility_name || '').toLowerCase(),
+              )
+              .filter((x: string) => x)
+          : [];
+        const matchesAccessibility = accessibilityNames.some((acc: string) =>
+          acc.includes(qLower),
+        );
+        return (
+          name.includes(qLower) || address.includes(qLower) || matchesAccessibility
+        );
       });
     }
 
