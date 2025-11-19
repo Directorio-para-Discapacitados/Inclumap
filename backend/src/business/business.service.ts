@@ -15,6 +15,7 @@ import { MapsService } from 'src/maps/maps.service';
 import { UserEntity } from 'src/user/entity/user.entity';
 import { UserRolesEntity } from 'src/user_rol/entity/user_rol.entity';
 import { RolEntity } from 'src/roles/entity/rol.entity';
+import { BusinessCategoryEntity } from 'src/business_category/entity/business_category.entity';
 
 @Injectable()
 export class BusinessService {
@@ -27,6 +28,8 @@ export class BusinessService {
     private readonly _userRolesRepository: Repository<UserRolesEntity>,
     @InjectRepository(RolEntity)
     private readonly _rolRepository: Repository<RolEntity>,
+    @InjectRepository(BusinessCategoryEntity)
+    private readonly _businessCategoryRepository: Repository<BusinessCategoryEntity>,
     private readonly cloudinaryService: CloudinaryService,
     private readonly mapsService: MapsService,
   ) {}
@@ -258,6 +261,25 @@ export class BusinessService {
       }
 
       await this._businessRepository.save(negocio);
+
+      // Actualizar categorías si se proporcionan
+      if (dto.categoryIds !== undefined && Array.isArray(dto.categoryIds)) {
+        // Eliminar categorías existentes
+        await this._businessCategoryRepository.delete({
+          business: { business_id },
+        });
+
+        // Agregar nuevas categorías
+        if (dto.categoryIds.length > 0) {
+          for (const categoryId of dto.categoryIds) {
+            const businessCategory = this._businessCategoryRepository.create({
+              business: negocio,
+              category: { category_id: categoryId } as any,
+            });
+            await this._businessCategoryRepository.save(businessCategory);
+          }
+        }
+      }
 
       return 'Negocio actualizado correctamente';
     } catch (error) {
