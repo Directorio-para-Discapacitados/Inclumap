@@ -70,6 +70,7 @@ interface LocalData {
   latitude?: number | null;
   longitude?: number | null;
   business_accessibility?: BusinessAccessibilityItem[];
+  business_categories?: { category_id: number; category_name: string }[];
 }
 
 /* Fallback accesibilidad */
@@ -680,6 +681,21 @@ const LocalDetalle: React.FC = () => {
                 <h2>Descripción</h2>
                 <p>{data.description || "Sin descripción disponible"}</p>
               </div>
+
+              {/* Categorías */}
+              {Array.isArray(data.business_categories) &&
+                data.business_categories.length > 0 && (
+                  <div className="card categorias-card">
+                    <h2>Categorías</h2>
+                    <div className="categorias-container">
+                      {data.business_categories.map((cat) => (
+                        <span key={cat.category_id} className="categoria-tag">
+                          {cat.category_name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
               {/* Accesibilidad */}
               {Array.isArray(data.business_accessibility) &&
