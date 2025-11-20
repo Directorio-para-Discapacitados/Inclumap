@@ -18,8 +18,9 @@
   border-radius: 20px;
   width: 90%;
   max-width: 600px;
-  max-height: 80vh;
-  overflow-y: auto;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
   box-shadow: 
     0 25px 50px -12px rgba(0, 0, 0, 0.25),
     0 0 0 1px rgba(255, 255, 255, 0.2);
@@ -80,6 +81,9 @@
 /* ===== BODY ===== */
 .modal-body {
   padding: 30px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .user-info {
@@ -318,4 +322,99 @@
     align-items: flex-start;
     gap: 5px;
   }
+}
+
+/* ===== MODO OSCURO ===== */
+body.dark-mode .assign-business-modal {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+}
+
+body.dark-mode .modal-header {
+  border-bottom-color: #374151;
+}
+
+body.dark-mode .user-info {
+  background: linear-gradient(135deg, #1e3a5f 0%, #2d1b3d 100%);
+  border-left-color: #3b82f6;
+}
+
+body.dark-mode .user-info p {
+  color: #e5e7eb;
+}
+
+body.dark-mode .business-selection h3,
+body.dark-mode .business-preview h4,
+body.dark-mode .confirmation-content h3 {
+  color: #f3f4f6;
+}
+
+body.dark-mode .business-select {
+  background: #374151;
+  color: #e5e7eb;
+  border-color: #4b5563;
+}
+
+body.dark-mode .business-select option {
+  background: #374151;
+  color: #e5e7eb;
+}
+
+body.dark-mode .business-card {
+  background: #374151;
+  border-color: #4b5563;
+}
+
+body.dark-mode .business-card h5,
+body.dark-mode .business-card p,
+body.dark-mode .business-card strong {
+  color: #e5e7eb;
+}
+
+body.dark-mode .loading,
+body.dark-mode .no-businesses {
+  background: #374151;
+  color: #9ca3af;
+}
+
+body.dark-mode .confirmation-details {
+  background: #374151;
+  border-color: #4b5563;
+}
+
+body.dark-mode .detail-row {
+  color: #e5e7eb;
+}
+
+body.dark-mode .detail-row strong {
+  color: #f3f4f6;
+}
+
+body.dark-mode .business-description p {
+  background: #1f2937;
+  color: #e5e7eb;
+  border-left-color: #818cf8;
+}
+
+body.dark-mode .business-description strong {
+  color: #f3f4f6;
+}
+
+body.dark-mode .business-description {
+  border-top-color: #4b5563;
+}
+
+body.dark-mode .warning-notice {
+  background: linear-gradient(135deg, #78350f 0%, #92400e 100%);
+  border-left-color: #f59e0b;
+}
+
+body.dark-mode .warning-notice p,
+body.dark-mode .warning-notice ul,
+body.dark-mode .warning-notice li {
+  color: #fcd34d;
+}
+
+body.dark-mode .modal-footer {
+  background: #1f2937;
+  border-top-color: #374151;
 }

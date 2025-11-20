@@ -76,19 +76,27 @@ const ChangeRoleModal: React.FC<ChangeRoleModalProps> = ({
     setError(null);
 
     try {
-      await changeUserRole(userId, selectedRoleId);
-      
-      // Verificar si se está promoviendo a Propietario
+      // Verificar si se está intentando cambiar a Propietario
       const newRole = roles.find(role => role.id === selectedRoleId);
       const isPromotingToBusiness = newRole?.name.toLowerCase() === 'propietario' || selectedRoleId === 3;
       
-      if (isPromotingToBusiness && onPromoteToBusiness && userId) {
-        // Cerrar este modal primero
+      // Si se está promoviendo a propietario, primero abrir modal para crear negocio
+      if (isPromotingToBusiness) {
+        // NO cambiar el rol todavía - primero crear el negocio
+        // Cerrar este modal
         onClose();
+        
         // Abrir modal de datos de negocio
-        onPromoteToBusiness(userId, userName);
+        // El rol se cambiará DESPUÉS de crear el negocio exitosamente
+        if (onPromoteToBusiness && userId) {
+          onPromoteToBusiness(userId, userName);
+        } else {
+          // Si no hay callback, no hacer nada
+          setError('No se puede promover a propietario sin crear un negocio');
+        }
       } else {
-        // Flujo normal para otros cambios de rol
+        // Flujo normal para otros cambios de rol (Usuario regular, etc)
+        await changeUserRole(userId, selectedRoleId);
         onSuccess();
         onClose();
       }

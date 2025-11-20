@@ -3,12 +3,23 @@ import { obtenerNegociosDisponibles, asignarNegocioAPropietario } from '../../se
 import Toast from '../Toast/Toast';
 import './AssignBusinessModal.css';
 
+interface Category {
+  category_id: number;
+  name: string;
+}
+
+interface BusinessCategory {
+  category_id: number;
+  category: Category;
+}
+
 interface Business {
   business_id: number;
   business_name: string;
   description: string;
   address: string;
   coordinates: string;
+  business_categories?: BusinessCategory[];
 }
 
 interface AssignBusinessModalProps {
@@ -168,6 +179,28 @@ const AssignBusinessModal: React.FC<AssignBusinessModalProps> = ({
                     <div className="business-card">
                       <h5>{selectedBusiness.business_name}</h5>
                       <p><strong>Dirección:</strong> {selectedBusiness.address}</p>
+                      {selectedBusiness.business_categories && selectedBusiness.business_categories.length > 0 && (
+                        <p>
+                          <strong>Categorías:</strong>{' '}
+                          <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.25rem' }}>
+                            {selectedBusiness.business_categories.map((bc, idx) => (
+                              <span
+                                key={idx}
+                                style={{
+                                  background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                                  color: 'white',
+                                  padding: '3px 8px',
+                                  borderRadius: '10px',
+                                  fontSize: '0.75rem',
+                                  fontWeight: '500'
+                                }}
+                              >
+                                {bc.category.name}
+                              </span>
+                            ))}
+                          </span>
+                        </p>
+                      )}
                       <p><strong>Descripción:</strong> {selectedBusiness.description}</p>
                     </div>
                   </div>
@@ -209,6 +242,28 @@ const AssignBusinessModal: React.FC<AssignBusinessModalProps> = ({
                       <div className="detail-row">
                         <strong>Dirección:</strong> {selectedBusiness.address}
                       </div>
+                      {selectedBusiness.business_categories && selectedBusiness.business_categories.length > 0 && (
+                        <div className="detail-row">
+                          <strong>Categorías:</strong>{' '}
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.5rem' }}>
+                            {selectedBusiness.business_categories.map((bc, idx) => (
+                              <span
+                                key={idx}
+                                style={{
+                                  background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                                  color: 'white',
+                                  padding: '4px 10px',
+                                  borderRadius: '12px',
+                                  fontSize: '0.75rem',
+                                  fontWeight: '500'
+                                }}
+                              >
+                                {bc.category.name}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       <div className="business-description">
                         <strong>Descripción del negocio:</strong>
                         <p>{selectedBusiness.description}</p>

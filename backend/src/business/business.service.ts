@@ -491,6 +491,7 @@ export class BusinessService {
     try {
       const negociosSinPropietario = await this._businessRepository.find({
         where: { user: IsNull() }, // Negocios sin propietario asignado
+        relations: ['business_categories', 'business_categories.category'],
         select: [
           'business_id',
           'business_name',

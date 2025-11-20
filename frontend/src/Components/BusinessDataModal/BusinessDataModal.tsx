@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { HelpCircle } from 'lucide-react';
-import { createBusinessAsAdmin } from '../../services/admin';
+import { createBusinessAsAdmin, changeUserRole } from '../../services/admin';
+import { getAllCategories, Category } from '../../services/categoryService';
+import CategoryMultiSelect from '../CategoryMultiSelect/CategoryMultiSelect';
+import LocationPicker from '../../pages/LocationPicker/LocationPicker';
 import './BusinessDataModal.css';
 
 interface BusinessDataModalProps {
@@ -9,6 +12,7 @@ interface BusinessDataModalProps {
   userName: string;
   onClose: () => void;
   onSuccess: () => void;
+  onShowToast?: (message: string, type: 'success' | 'error' | 'info') => void;
 }
 
 interface BusinessFormData {
@@ -18,6 +22,7 @@ interface BusinessFormData {
   description: string;
   coordinates: string;
   accessibilityIds: number[];
+  categoryIds: number[];
 }
 
 const accesibilidades = [
@@ -40,7 +45,8 @@ const BusinessDataModal: React.FC<BusinessDataModalProps> = ({
   userId, 
   userName, 
   onClose, 
-  onSuccess 
+  onSuccess,
+  onShowToast
 }) => {
   const [formData, setFormData] = useState<BusinessFormData>({
     business_name: '',
@@ -48,12 +54,16 @@ const BusinessDataModal: React.FC<BusinessDataModalProps> = ({
     NIT: '',
     description: '',
     coordinates: '0,0',
-    accessibilityIds: []
+    accessibilityIds: [],
+    categoryIds: []
   });
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [step, setStep] = useState(1);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [showMapPicker, setShowMapPicker] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -75,8 +85,22 @@ const BusinessDataModal: React.FC<BusinessDataModalProps> = ({
           }
         );
       }
+      // Cargar categorías
+      loadCategories();
     }
   }, [isOpen]);
+
+  const loadCategories = async () => {
+    setLoadingCategories(true);
+    try {
+      const data = await getAllCategories();
+      setCategories(data);
+    } catch (err) {
+      console.error('Error al cargar categorías:', err);
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -96,11 +120,39 @@ const BusinessDataModal: React.FC<BusinessDataModalProps> = ({
   };
 
   const handleNext = () => {
-    if (step < 2) setStep(step + 1);
+    if (step < 3) setStep(step + 1);
   };
 
   const handlePrev = () => {
     if (step > 1) setStep(step - 1);
+  };
+
+  const handleCategoryChange = (categoryIds: number[]) => {
+    setFormData(prev => ({
+      ...prev,
+      categoryIds
+    }));
+  };
+
+  const handleMapClick = () => {
+    setShowMapPicker(true);
+  };
+
+  const handleCoordinatesChange = (lat: number, lng: number) => {
+    setFormData(prev => ({
+      ...prev,
+      coordinates: `${lat},${lng}`
+    }));
+    setShowMapPicker(false);
+  };
+
+  const handleLocationConfirm = (lat: number, lng: number, address?: string) => {
+    setFormData(prev => ({
+      ...prev,
+      coordinates: `${lat},${lng}`,
+      address: address || prev.address
+    }));
+    setShowMapPicker(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -114,10 +166,11 @@ const BusinessDataModal: React.FC<BusinessDataModalProps> = ({
       const payload = {
         business_name: formData.business_name,
         address: formData.address,
-        NIT: formData.NIT, // Mantener como string, no convertir a número
+        NIT: formData.NIT,
         description: formData.description,
         coordinates: formData.coordinates,
         accessibilityIds: formData.accessibilityIds,
+        categoryIds: formData.categoryIds,
         user_id: userId
       };
 
@@ -130,6 +183,14 @@ const BusinessDataModal: React.FC<BusinessDataModalProps> = ({
       // Usar función de admin que tiene los permisos necesarios
       const result = await createBusinessAsAdmin(payload);
 
+      // DESPUÉS de crear el negocio exitosamente, cambiar el rol a Propietario (ID: 3)
+      try {
+        await changeUserRole(userId, 3);
+      } catch (roleError) {
+        console.error('Error al cambiar rol después de crear negocio:', roleError);
+        // No lanzar error aquí, el negocio ya fue creado exitosamente
+      }
+
       // Emitir evento personalizado para notificar que se creó un nuevo negocio
       window.dispatchEvent(new CustomEvent('businessCreated', { 
         detail: { 
@@ -139,6 +200,10 @@ const BusinessDataModal: React.FC<BusinessDataModalProps> = ({
         } 
       }));
 
+      if (onShowToast) {
+        onShowToast(`✅ Negocio "${formData.business_name}" creado exitosamente`, 'success');
+      }
+      
       onSuccess();
       onClose();
       
@@ -149,7 +214,8 @@ const BusinessDataModal: React.FC<BusinessDataModalProps> = ({
         NIT: '',
         description: '',
         coordinates: '0,0',
-        accessibilityIds: []
+        accessibilityIds: [],
+        categoryIds: []
       });
       setStep(1);
     } catch (err) {
@@ -157,17 +223,21 @@ const BusinessDataModal: React.FC<BusinessDataModalProps> = ({
       
       if (err instanceof Error) {
         if (err.message.includes('Error de conexión')) {
-          errorMessage = '❌ No se puede conectar al servidor. Verifica que el backend esté funcionando.';
+          errorMessage = 'No se puede conectar al servidor';
         } else if (err.message.includes('Forbidden') || err.message.includes('403')) {
-          errorMessage = '⚠️ Sin permisos para crear negocio. Verifica que tengas rol de administrador.';
+          errorMessage = 'Sin permisos para crear negocio';
         } else if (err.message.includes('No estás autenticado')) {
-          errorMessage = '🔒 Sesión expirada. Por favor, inicia sesión nuevamente.';
+          errorMessage = 'Sesión expirada. Inicia sesión nuevamente';
         } else {
           errorMessage = err.message;
         }
       }
       
-      setError(errorMessage);
+      if (onShowToast) {
+        onShowToast(errorMessage, 'error');
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
@@ -186,6 +256,7 @@ const BusinessDataModal: React.FC<BusinessDataModalProps> = ({
       description: "Negocio creado por admin para pruebas",
       coordinates: "4.7110,-74.0721",
       accessibilityIds: [1, 2],
+      categoryIds: [1],
       user_id: userId
     };
 
@@ -250,43 +321,56 @@ const BusinessDataModal: React.FC<BusinessDataModalProps> = ({
               <div className="step-content">
                 <h4>📋 Información Básica del Negocio</h4>
                 
-                <div className="form-group">
-                  <label htmlFor="business_name">Nombre del Negocio *</label>
-                  <input
-                    type="text"
-                    id="business_name"
-                    name="business_name"
-                    value={formData.business_name}
-                    onChange={handleInputChange}
-                    required
-                    placeholder="Ej: Restaurante El Buen Sabor"
-                  />
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="business_name">Nombre del Negocio *</label>
+                    <input
+                      type="text"
+                      id="business_name"
+                      name="business_name"
+                      value={formData.business_name}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="Ej: Restaurante El Buen Sabor"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="NIT">NIT *</label>
+                    <input
+                      type="number"
+                      id="NIT"
+                      name="NIT"
+                      value={formData.NIT}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="Ej: 900123456"
+                    />
+                  </div>
                 </div>
 
                 <div className="form-group">
                   <label htmlFor="address">Dirección del Negocio *</label>
-                  <input
-                    type="text"
-                    id="address"
-                    name="address"
-                    value={formData.address}
-                    onChange={handleInputChange}
-                    required
-                    placeholder="Ej: Calle 123 #45-67, Barrio Centro"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="NIT">NIT *</label>
-                  <input
-                    type="number"
-                    id="NIT"
-                    name="NIT"
-                    value={formData.NIT}
-                    onChange={handleInputChange}
-                    required
-                    placeholder="Ej: 900123456"
-                  />
+                  <p className="field-hint">Escribe la dirección o selecciónala en el mapa</p>
+                  <div className="location-input-group">
+                    <input
+                      type="text"
+                      id="address"
+                      name="address"
+                      value={formData.address}
+                      onChange={handleInputChange}
+                      required
+                      placeholder="Ej: Calle 123 #45-67, Barrio Centro"
+                    />
+                    <button 
+                      type="button" 
+                      onClick={handleMapClick}
+                      className="btn-map-small"
+                      title="Seleccionar en mapa"
+                    >
+                      📍
+                    </button>
+                  </div>
                 </div>
 
                 <div className="form-group">
@@ -319,8 +403,38 @@ const BusinessDataModal: React.FC<BusinessDataModalProps> = ({
               </div>
             )}
 
-            {/* Paso 2: Accesibilidad */}
+            {/* Paso 2: Categorías y Localización */}
             {step === 2 && (
+              <div className="step-content">
+                <h4>🏷️ Categorías y Ubicación</h4>
+                
+                <div className="form-group">
+                  <label>Categorías del Negocio *</label>
+                  <p className="field-hint">Selecciona las categorías que mejor describan tu negocio</p>
+                  {loadingCategories ? (
+                    <div className="loading-inline">Cargando categorías...</div>
+                  ) : (
+                    <CategoryMultiSelect
+                      categories={categories}
+                      selectedCategoryIds={formData.categoryIds}
+                      onChange={handleCategoryChange}
+                    />
+                  )}
+                </div>
+
+                <div className="step-buttons">
+                  <button type="button" onClick={handlePrev} className="btn-prev">
+                    ← Atrás
+                  </button>
+                  <button type="button" onClick={handleNext} className="btn-next">
+                    Siguiente →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Paso 3: Accesibilidad */}
+            {step === 3 && (
               <div className="step-content">
                 <h4>♿ Características de Accesibilidad</h4>
                 <p className="accessibility-subtitle">
@@ -349,7 +463,7 @@ const BusinessDataModal: React.FC<BusinessDataModalProps> = ({
                   <button type="button" onClick={handlePrev} className="btn-prev">
                     ← Atrás
                   </button>
-                  <button type="submit" disabled={loading} className="btn-create">
+                  <button type="submit" disabled={loading || formData.categoryIds.length === 0} className="btn-create">
                     {loading ? (
                       <>
                         <div className="spinner-small"></div>
@@ -365,6 +479,16 @@ const BusinessDataModal: React.FC<BusinessDataModalProps> = ({
           </form>
         </div>
       </div>
+
+      {/* Map Modal Overlay */}
+      {showMapPicker && (
+        <LocationPicker 
+          initialLat={formData.coordinates ? parseFloat(formData.coordinates.split(',')[0]) : 0}
+          initialLng={formData.coordinates ? parseFloat(formData.coordinates.split(',')[1]) : 0}
+          onConfirm={handleLocationConfirm}
+          onCancel={() => setShowMapPicker(false)}
+        />
+      )}
     </div>
   );
 };
