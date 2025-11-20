@@ -71,6 +71,7 @@ interface LocalData {
   longitude?: number | null;
   business_accessibility?: BusinessAccessibilityItem[];
   business_categories?: { category_id: number; category_name: string }[];
+  images?: { id: number; url: string }[];
 }
 
 /* Fallback accesibilidad */
@@ -233,6 +234,7 @@ const LocalDetalle: React.FC = () => {
   const [editing, setEditing] = useState<any | null>(null);
   const [copied, setCopied] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   const { user } = useAuth();
   const token = localStorage.getItem("token");
@@ -408,6 +410,14 @@ const LocalDetalle: React.FC = () => {
       };
       localStorage.setItem(key, JSON.stringify(parsed));
     } catch {}
+  };
+
+  const handleOpenImage = (url: string) => {
+    setSelectedImage(url);
+  };
+
+  const handleCloseImage = () => {
+    setSelectedImage(null);
   };
 
   const applyNewAverageFromReviews = (reviewsArray: any[]) => {
@@ -682,6 +692,23 @@ const LocalDetalle: React.FC = () => {
                 <p>{data.description || "Sin descripción disponible"}</p>
               </div>
 
+              {Array.isArray(data.images) && data.images.length > 0 && (
+                <div className="card galeria-card">
+                  <h2>Galería</h2>
+                  <div className="galeria-grid">
+                    {data.images.map((img) => (
+                      <img
+                        key={img.id}
+                        src={img.url}
+                        alt={data.business_name}
+                        className="galeria-imagen"
+                        onClick={() => handleOpenImage(img.url)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Categorías */}
               {Array.isArray(data.business_categories) &&
                 data.business_categories.length > 0 && (
@@ -852,6 +879,23 @@ const LocalDetalle: React.FC = () => {
             )}
           </section>
         </>
+      )}
+      {selectedImage && (
+        <div className="local-image-modal-overlay" onClick={handleCloseImage}>
+          <div
+            className="local-image-modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img src={selectedImage} alt={data?.business_name || "Imagen"} />
+            <button
+              type="button"
+              className="local-image-modal-close"
+              onClick={handleCloseImage}
+            >
+              ×
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

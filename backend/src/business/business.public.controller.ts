@@ -88,6 +88,12 @@ export class BusinessPublicController {
       longitude: b.longitude,
       coordinates: b.coordinates,
       verified: b.verified || false,
+      images: Array.isArray(b.images)
+        ? b.images.map((img: any) => ({
+            id: img.id,
+            url: img.url,
+          }))
+        : [],
       business_accessibility: Array.isArray(b.business_accessibility)
         ? b.business_accessibility.map((ba: any) => ({
             accessibility_id: ba.accessibility?.accessibility_id,
@@ -116,7 +122,7 @@ export class BusinessPublicController {
     const businessAccessibilities =
       await this.businessAccessibilityRepository.find({
         where: { accessibility: { accessibility_id: accessibilityIdNum } },
-        relations: ['business', 'business.user', 'business.user.people'],
+        relations: ['business', 'business.user', 'business.user.people', 'business.images'],
       });
 
     // Mapear a formato público
@@ -138,6 +144,12 @@ export class BusinessPublicController {
         owner_name: b.user?.people
           ? `${b.user.people.firstName || ''} ${b.user.people.firstLastName || ''}`.trim()
           : null,
+        images: Array.isArray(b.images)
+          ? b.images.map((img: any) => ({
+              id: img.id,
+              url: img.url,
+            }))
+          : [],
       };
     });
   }
@@ -165,6 +177,12 @@ export class BusinessPublicController {
       owner_name: b.user?.people
         ? `${b.user.people.firstName || ''} ${b.user.people.firstLastName || ''}`.trim()
         : null,
+      images: Array.isArray(b.images)
+        ? b.images.map((img: any) => ({
+            id: img.id,
+            url: img.url,
+          }))
+        : [],
       business_accessibility: Array.isArray(b.business_accessibility)
         ? b.business_accessibility.map((ba: any) => ({
             id: ba.id ?? ba.business_accessibility_id,

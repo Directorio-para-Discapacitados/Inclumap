@@ -2,6 +2,7 @@ import { BusinessAccessibilityEntity } from 'src/business_accessibility/entity/b
 import { BusinessCategoryEntity } from 'src/business_category/entity/business_category.entity';
 import { ReviewEntity } from 'src/review/entity/review.entity';
 import { UserEntity } from 'src/user/entity/user.entity';
+import { BusinessImageEntity } from './business-image.entity';
 import {
   Column,
   Entity,
@@ -95,4 +96,9 @@ export class BusinessEntity {
     { cascade: true },
   )
   business_categories: BusinessCategoryEntity[];
+
+  @OneToMany(() => BusinessImageEntity, (image) => image.business, {
+    cascade: true,
+  })
+  images: BusinessImageEntity[];
 }
