@@ -819,9 +819,6 @@ const LocalDetalle: React.FC = () => {
             {myReview && (
               <div className="my-review-box">
                 <p className="my-review-text">Ya dejaste una reseña en este local.</p>
-                <button className="review-submit-btn" onClick={() => setEditing({ ...myReview })}>
-                  Editar mi reseña
-                </button>
               </div>
             )}
 
@@ -841,8 +838,18 @@ const LocalDetalle: React.FC = () => {
 
                       {userId === r.user.user_id && (
                         <div className="review-actions">
-                          <button onClick={() => setEditing({ ...r })}>Editar</button>
-                          <button onClick={() => handleDeleteReview(r.review_id)}>Eliminar</button>
+                          <button
+                            className="review-action-btn review-edit-btn"
+                            onClick={() => setEditing({ ...r })}
+                          >
+                            Editar mi reseña
+                          </button>
+                          <button
+                            className="review-action-btn review-delete-btn"
+                            onClick={() => handleDeleteReview(r.review_id)}
+                          >
+                            Eliminar
+                          </button>
                         </div>
                       )}
                     </div>
@@ -863,17 +870,20 @@ const LocalDetalle: React.FC = () => {
                   />
 
                   <textarea
+                    className="review-textarea"
                     value={editing.comment}
                     onChange={(e) => setEditing({ ...editing, comment: e.target.value })}
                   />
 
-                  <button className="review-submit-btn" onClick={handleSaveEdit}>
-                    Guardar cambios
-                  </button>
+                  <div className="review-modal-actions">
+                    <button className="review-submit-btn" onClick={handleSaveEdit}>
+                      Guardar cambios
+                    </button>
 
-                  <button className="review-cancel-btn" onClick={() => setEditing(null)}>
-                    Cancelar
-                  </button>
+                    <button className="review-cancel-btn" onClick={() => setEditing(null)}>
+                      Cancelar
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
