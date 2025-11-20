@@ -36,17 +36,16 @@
   max-width: 1400px;
   margin: 0 auto;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #f3f4f6;
   min-height: 100vh;
   animation: fadeInUp 0.6s ease-out;
 }
 
 .content-wrapper {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
+  background: white;
   border-radius: 24px;
   padding: 2.5rem;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
   animation: fadeInUp 0.8s ease-out 0.2s both;
 }
 
@@ -168,8 +167,8 @@
 }
 
 .gestion-table th {
-  background: linear-gradient(135deg, #f8f9ff 0%, #e6e9ff 100%);
-  color: #4a5568;
+  background: #667eea;
+  color: white;
   font-weight: 600;
   padding: 1.5rem 1.25rem;
   text-transform: uppercase;
@@ -552,4 +551,116 @@ html {
 .gestion-container .toast {
   top: 80px !important;
   right: 20px !important;
+}
+
+/* ============================================
+   MODO OSCURO
+   ============================================ */
+
+body.dark-mode .gestion-container {
+  background: #111827;
+}
+
+body.dark-mode .content-wrapper {
+  background: #1f2937;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .page-title {
+  background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+body.dark-mode .header-section {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .stat-label,
+body.dark-mode .table-cell,
+body.dark-mode .empty-state h3,
+body.dark-mode .error-message h3 {
+  color: #d1d5db;
+}
+
+body.dark-mode .stat-card {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+}
+
+body.dark-mode .stat-number {
+  color: white;
+}
+
+body.dark-mode .gestion-table th {
+  background: #374151;
+  color: #f3f4f6;
+}
+
+body.dark-mode .gestion-table th::after {
+  background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+}
+
+body.dark-mode .gestion-table {
+  background: #1f2937;
+}
+
+body.dark-mode .gestion-table td {
+  color: #e5e7eb;
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .table-header {
+  background: #374151;
+  color: #f3f4f6;
+}
+
+body.dark-mode .table-row {
+  background: #1f2937;
+  border-bottom-color: #374151;
+}
+
+body.dark-mode .table-row:hover {
+  background: #374151;
+}
+
+body.dark-mode .role-badge {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+}
+
+body.dark-mode .table-cell {
+  color: #e5e7eb;
+}
+
+body.dark-mode .empty-state {
+  background: #374151;
+}
+
+body.dark-mode .empty-state p {
+  color: #9ca3af;
+}
+
+body.dark-mode .empty-state small {
+  color: #6b7280;
+}
+
+body.dark-mode .warning-card {
+  background: linear-gradient(135deg, #78350f 0%, #92400e 100%);
+  border-color: rgba(251, 191, 36, 0.3);
+  color: #fcd34d;
+}
+
+body.dark-mode .loading-shimmer {
+  background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+  background-size: 1000px 100%;
+}
+
+body.dark-mode .error-message {
+  background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+}
+
+body.dark-mode .error-message h3 {
+  color: #fca5a5;
 }

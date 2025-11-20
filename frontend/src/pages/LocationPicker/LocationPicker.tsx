@@ -111,8 +111,13 @@ export default function LocationPicker({ initialLat, initialLng, onConfirm, onCa
   if (!isLoaded) return <div className="lp-loading-screen">Cargando Mapa...</div>;
 
   return (
-    <div className="location-picker-overlay">
-      <div className="location-picker-modal">
+    <div className="location-picker-overlay" onClick={(e) => {
+      // Si hacen clic directamente en el overlay (fondo oscuro), cerrar
+      if (e.target === e.currentTarget) {
+        onCancel();
+      }
+    }}>
+      <div className="location-picker-modal" onClick={(e) => e.stopPropagation()}>
         <div className="lp-header">
           <h3>📍 Selecciona la ubicación</h3>
           <button className="lp-close-btn" onClick={onCancel}>&times;</button>

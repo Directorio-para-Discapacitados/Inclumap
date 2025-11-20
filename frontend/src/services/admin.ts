@@ -121,6 +121,7 @@ export const getAllBusinesses = async () => {
         address: b.address,
         average_rating: b.average_rating,
         logo_url: b.logo_url,
+        business_categories: b.business_categories || [],
         user: b.user ? {
           id: b.user.id ?? b.user.user_id,
           email: b.user.email ?? b.user.user_email,
@@ -776,6 +777,7 @@ export const createBusinessAsAdmin = async (businessData: {
   description: string;
   coordinates: string;
   accessibilityIds: number[];
+  categoryIds: number[];
   user_id: number;
 }): Promise<string> => {
   try {
@@ -784,6 +786,11 @@ export const createBusinessAsAdmin = async (businessData: {
     // Verificar conectividad primero
     if (!navigator.onLine) {
       throw new Error('No hay conexión a internet. Verifica tu conexión y vuelve a intentar.');
+    }
+    
+    // Validar que categoryIds no esté vacío
+    if (!businessData.categoryIds || businessData.categoryIds.length === 0) {
+      throw new Error('Debe seleccionar al menos una categoría para el negocio.');
     }
     
     const response = await fetch(`${API_URL}/business`, {

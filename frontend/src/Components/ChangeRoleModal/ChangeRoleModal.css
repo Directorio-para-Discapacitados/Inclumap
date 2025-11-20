@@ -3,10 +3,71 @@
   border-radius: 20px;
   width: 100%;
   max-width: 700px;
-  max-height: 90vh;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
   animation: modalSlideIn 0.3s ease-out;
+}
+
+/* Modo oscuro */
+body.dark-mode .change-role-modal {
+  background: #1f2937;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .user-info {
+  background: #374151;
+}
+
+body.dark-mode .user-details h3,
+body.dark-mode .roles-section h4,
+body.dark-mode .role-content h5 {
+  color: #f3f4f6;
+}
+
+body.dark-mode .current-role,
+body.dark-mode .role-content p,
+body.dark-mode .loading-state p {
+  color: #d1d5db;
+}
+
+body.dark-mode .role-card {
+  background: #374151;
+  border-color: #4b5563;
+}
+
+body.dark-mode .role-option input[type="radio"]:checked + .role-card {
+  background: rgba(102, 126, 234, 0.2);
+  border-color: #667eea;
+}
+
+body.dark-mode .role-icon {
+  background: #4b5563;
+}
+
+body.dark-mode .modal-footer {
+  border-top-color: #4b5563;
+}
+
+body.dark-mode .btn-cancel {
+  background: #374151;
+  color: #d1d5db;
+  border-color: #4b5563;
+}
+
+body.dark-mode .btn-cancel:hover {
+  background: #4b5563;
+  border-color: #6b7280;
+}
+
+/* Modal Body - Scrollable content area */
+.change-role-modal .modal-body {
+  padding: 0 1.5rem 1.5rem 1.5rem;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .user-info {

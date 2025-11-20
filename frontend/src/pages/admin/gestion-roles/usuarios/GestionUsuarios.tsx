@@ -8,6 +8,7 @@ import ChangeRoleModal from '../../../../Components/ChangeRoleModal/ChangeRoleMo
 import BusinessDataModal from '../../../../Components/BusinessDataModal/BusinessDataModal';
 import AssignBusinessModal from '../../../../Components/AssignBusinessModal/AssignBusinessModal';
 import ConfirmationModal from '../../../../Components/ConfirmationModal/ConfirmationModal';
+import CreateUserModal from '../../../../Components/CreateUserModal/CreateUserModal';
 import Toast from '../../../../Components/Toast/Toast';
 import './GestionUsuarios.css';
 
@@ -32,6 +33,7 @@ const GestionUsuarios: React.FC = () => {
   const [businessDataModalOpen, setBusinessDataModalOpen] = useState(false);
   const [assignBusinessModalOpen, setAssignBusinessModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [createUserModalOpen, setCreateUserModalOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [selectedUserName, setSelectedUserName] = useState('');
   const [selectedUserEmail, setSelectedUserEmail] = useState('');
@@ -146,6 +148,7 @@ const GestionUsuarios: React.FC = () => {
     setBusinessDataModalOpen(false);
     setAssignBusinessModalOpen(false);
     setDeleteModalOpen(false);
+    setCreateUserModalOpen(false);
     setSelectedUserId(null);
     setSelectedUserName('');
     setSelectedUserEmail('');
@@ -265,6 +268,16 @@ const GestionUsuarios: React.FC = () => {
               Regresar
             </button>
             <h1 className="page-title">Gestión de Usuarios</h1>
+          </div>
+          <div className="header-right">
+            <button
+              className="back-button"
+              onClick={() => setCreateUserModalOpen(true)}
+              style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}
+            >
+              <span>➕</span>
+              Crear Usuario
+            </button>
           </div>
         </div>
 
@@ -392,6 +405,7 @@ const GestionUsuarios: React.FC = () => {
           userName={selectedUserName}
           onClose={handleModalClose}
           onSuccess={handleModalSuccess}
+          onShowToast={showToast}
         />
 
         <AssignBusinessModal
@@ -425,6 +439,14 @@ const GestionUsuarios: React.FC = () => {
             type="danger"
           />
         )}
+
+        {/* Modal para crear nuevo usuario */}
+        <CreateUserModal
+          isOpen={createUserModalOpen}
+          onClose={handleModalClose}
+          onSuccess={handleModalSuccess}
+          onShowToast={showToast}
+        />
 
         {/* Toast de notificaciones */}
         {toast && (

@@ -2,7 +2,7 @@
 
 .confirmation-modal-overlay {
   position: fixed;
-  top: 0;
+  top: 60px;
   left: 0;
   right: 0;
   bottom: 0;
@@ -270,4 +270,74 @@
   .confirmation-modal-btn {
     width: 100%;
   }
+}
+
+/* Modo Oscuro - Mantener estilos del modo claro con mayor especificidad */
+body.dark-mode .confirmation-modal-overlay.confirmation-modal-overlay {
+  background: rgba(0, 0, 0, 0.6) !important;
+}
+
+body.dark-mode .confirmation-modal.confirmation-modal {
+  background: white !important;
+}
+
+body.dark-mode .confirmation-modal .confirmation-modal-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%) !important;
+  border-bottom-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+body.dark-mode .confirmation-modal .confirmation-modal-icon {
+  filter: none !important;
+}
+
+body.dark-mode .confirmation-modal .confirmation-modal-title {
+  color: #1e293b !important;
+}
+
+body.dark-mode .confirmation-modal .confirmation-modal-body {
+  color: #475569 !important;
+  background: white !important;
+}
+
+body.dark-mode .confirmation-modal .confirmation-modal-message {
+  color: #334155 !important;
+}
+
+body.dark-mode .confirmation-modal .confirmation-modal-details {
+  background: #f8fafc !important;
+  border-left-color: #f59e0b !important;
+}
+
+body.dark-mode .confirmation-modal .confirmation-modal-details-title {
+  color: #1e293b !important;
+}
+
+body.dark-mode .confirmation-modal .confirmation-modal-details-list li {
+  color: #475569 !important;
+}
+
+body.dark-mode .confirmation-modal .confirmation-modal-warning {
+  color: #92400e !important;
+}
+
+body.dark-mode .confirmation-modal .confirmation-modal-warning strong {
+  color: #92400e !important;
+}
+
+body.dark-mode .confirmation-modal .confirmation-modal-checkbox {
+  background: #fff7ed !important;
+  border-color: #fed7aa !important;
+}
+
+body.dark-mode .confirmation-modal .confirmation-modal-checkbox-label {
+  color: #1e293b !important;
+}
+
+body.dark-mode .confirmation-modal .confirmation-modal-footer {
+  background: white !important;
+  border-top-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+body.dark-mode .confirmation-modal .confirmation-modal-btn {
+  color: white !important;
 }

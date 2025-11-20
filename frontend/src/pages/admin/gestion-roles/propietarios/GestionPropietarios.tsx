@@ -9,9 +9,20 @@ import Toast from '../../../../Components/Toast/Toast';
 import '../usuarios/GestionUsuarios.css'; // Reutilizamos los mismos estilos
 
 // Interfaz para tipar los datos del propietario que vienen de la API
+interface Category {
+  category_id: number;
+  name: string;
+}
+
+interface BusinessCategory {
+  category_id: number;
+  category: Category;
+}
+
 interface BusinessData {
   id: number;
   name: string;
+  business_categories?: BusinessCategory[];
   user?: {
     id: number;
     email?: string;
@@ -329,6 +340,7 @@ const GestionPropietarios: React.FC = () => {
             <thead>
               <tr>
                 <th>Negocio</th>
+                <th>Categorías</th>
                 <th>Propietario</th>
                 <th>Roles</th>
                 <th>Acciones</th>
@@ -369,6 +381,34 @@ const GestionPropietarios: React.FC = () => {
                         </span>
                         <strong>{business.name || 'Sin nombre'}</strong>
                       </div>
+                    </td>
+                    <td>
+                      {business.business_categories && business.business_categories.length > 0 ? (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                          {business.business_categories.map((bc, idx) => (
+                            <span
+                              key={idx}
+                              style={{
+                                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                                color: 'white',
+                                padding: '4px 10px',
+                                borderRadius: '12px',
+                                fontSize: '0.75rem',
+                                fontWeight: '500',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}
+                            >
+                              🏷️ {bc.category.name}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span style={{ color: '#9ca3af', fontStyle: 'italic', fontSize: '0.85rem' }}>
+                          Sin categorías
+                        </span>
+                      )}
                     </td>
                     <td>
                       {email ? (
