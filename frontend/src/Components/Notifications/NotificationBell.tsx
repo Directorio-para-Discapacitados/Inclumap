@@ -70,22 +70,20 @@ const NotificationBell: React.FC = () => {
     }
   };
 
-  // En frontend/src/Components/Notifications/NotificationBell.tsx
+
 
   const handleNavigate = (notification: Notification) => {
     setIsOpen(false);
-    
-    // Marcar como leída automáticamente al hacer clic
-    if (!notification.is_read) {
-      handleMarkAsRead(notification.notification_id);
-    }
+    if (!notification.is_read) handleMarkAsRead(notification.notification_id);
 
     if (notification.type === 'SUGGESTION') {
-      // CORRECCIÓN: Usar '/local/' en lugar de '/business/'
       navigate(`/local/${notification.related_id}`);
-    } else if (notification.type === 'REVIEW_ALERT') {
-      // Redirigir a la página de reviews con filtro de incoherentes activado
+    } 
+    else if (notification.type === 'REVIEW_ALERT') {
       navigate(`/reviews?filter=incoherent`);
+    } 
+    else if (notification.type === 'REVIEW_ATTENTION') {
+      navigate(`/local/${notification.related_id}`);
     }
   };
 

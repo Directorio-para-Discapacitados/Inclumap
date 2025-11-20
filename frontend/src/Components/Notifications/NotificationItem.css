@@ -114,6 +114,36 @@
   height: 20px;
 }
 
+/* --- ESTILOS POR TIPO DE NOTIFICACIÓN --- */
+
+/* Estilo para Sugerencias (Estándar/Blanco) */
+.notification-item.type-suggestion {
+  background-color: var(--color-background);
+  border-left: 4px solid transparent;
+}
+
+/* Sugerencias NO leídas (Azulito suave) */
+.notification-item.type-suggestion.unread {
+  background-color: rgba(30, 136, 229, 0.08);
+  border-left: 4px solid #3b82f6;
+}
+
+/* Estilo para ALERTAS (Rojo suave) */
+.notification-item.type-alert {
+  background-color: #fff5f5; /* Rojo muy pálido */
+  border-left: 4px solid #ef4444; /* Línea roja */
+}
+
+/* Alertas NO leídas (Rojo un poco más fuerte) */
+.notification-item.type-alert.unread {
+  background-color: #fee2e2; 
+}
+
+/* Hover para alertas */
+.notification-item.type-alert:hover {
+  background-color: #fecaca;
+}
+
 /* Mostrar botón de eliminar en desktop al hacer hover */
 @media (hover: hover) and (pointer: fine) {
   .notification-item:hover .notification-delete-btn {

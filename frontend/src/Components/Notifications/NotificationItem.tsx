@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Notification } from '../../services/notificationService';
 import './NotificationItem.css';
 
@@ -37,6 +37,13 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
     return notification.type === 'SUGGESTION' ? '⭐' : '⚠️';
   };
 
+  // --- NUEVA FUNCIÓN: Determinar clase según tipo ---
+  const getTypeClass = (): string => {
+    if (notification.type === 'SUGGESTION') return 'type-suggestion';
+    // Aplica para REVIEW_ALERT y REVIEW_ATTENTION (ambas son alertas)
+    return 'type-alert'; 
+  };
+
   const handleClick = () => {
     if (!isDragging && translateX === 0) {
       if (!notification.is_read) {
@@ -56,25 +63,21 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
     if (!isDragging) return;
     setCurrentX(e.touches[0].clientX);
     const diff = e.touches[0].clientX - startX;
-    // Solo permitir deslizar a la derecha
     if (diff > 0) {
-      setTranslateX(Math.min(diff, 100)); // Máximo 100px
+      setTranslateX(Math.min(diff, 100)); 
     }
   };
 
   const handleTouchEnd = () => {
     setIsDragging(false);
-    // Si se deslizó más de 80px, eliminar
     if (translateX > 80) {
       onDelete(notification.notification_id);
     } else {
-      // Regresar a la posición original
       setTranslateX(0);
     }
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    // Solo activar en dispositivos táctiles
     if (window.matchMedia('(pointer: coarse)').matches) {
       setIsDragging(true);
       setStartX(e.clientX);
@@ -115,7 +118,8 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
       </div>
       <div
         ref={itemRef}
-        className={`notification-item ${notification.is_read ? 'read' : 'unread'}`}
+        // CAMBIO AQUÍ: Agregamos ${getTypeClass()}
+        className={`notification-item ${notification.is_read ? 'read' : 'unread'} ${getTypeClass()}`}
         onClick={handleClick}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
