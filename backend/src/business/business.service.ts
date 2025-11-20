@@ -16,6 +16,7 @@ import { UserEntity } from 'src/user/entity/user.entity';
 import { UserRolesEntity } from 'src/user_rol/entity/user_rol.entity';
 import { RolEntity } from 'src/roles/entity/rol.entity';
 import { BusinessCategoryEntity } from 'src/business_category/entity/business_category.entity';
+import { BusinessImageEntity } from './entity/business-image.entity';
 
 @Injectable()
 export class BusinessService {
@@ -30,6 +31,8 @@ export class BusinessService {
     private readonly _rolRepository: Repository<RolEntity>,
     @InjectRepository(BusinessCategoryEntity)
     private readonly _businessCategoryRepository: Repository<BusinessCategoryEntity>,
+    @InjectRepository(BusinessImageEntity)
+    private readonly businessImageRepository: Repository<BusinessImageEntity>,
     private readonly cloudinaryService: CloudinaryService,
     private readonly mapsService: MapsService,
   ) {}
@@ -109,6 +112,7 @@ export class BusinessService {
           'business_accessibility.accessibility',
           'business_categories',
           'business_categories.category',
+          'images',
         ],
       });
 
@@ -157,6 +161,12 @@ export class BusinessService {
           logo_url: negocio.logo_url,
           verification_image_url: negocio.verification_image_url,
           verified: negocio.verified || false,
+          images: Array.isArray(negocio.images)
+            ? negocio.images.map((img: any) => ({
+                id: img.id,
+                url: img.url,
+              }))
+            : [],
           user: userWithRoles,
           business_accessibility: Array.isArray(negocio.business_accessibility)
             ? negocio.business_accessibility.map((ba: any) => ({
@@ -174,7 +184,6 @@ export class BusinessService {
                 },
               }))
             : [],
-          
         };
       });
     } catch (error) {
@@ -198,6 +207,7 @@ export class BusinessService {
           'business_accessibility.accessibility',
           'business_categories',
           'business_categories.category',
+          'images',
         ],
       });
 
@@ -217,6 +227,12 @@ export class BusinessService {
         logo_url: negocio.logo_url,
         verified: negocio.verified,
         average_rating: negocio.average_rating,
+        images: Array.isArray(negocio.images)
+          ? negocio.images.map((img: any) => ({
+              id: img.id,
+              url: img.url,
+            }))
+          : [],
         business_accessibility: Array.isArray(negocio.business_accessibility)
           ? negocio.business_accessibility.map((ba: any) => ({
               accessibility_id: ba.accessibility?.accessibility_id,
@@ -338,7 +354,7 @@ export class BusinessService {
   async eliminarNegocio(business_id: number): Promise<string> {
     const negocio = await this._businessRepository.findOne({
       where: { business_id },
-      relations: ['user', 'business_accessibility', 'business_categories'],
+      relations: ['user', 'business_accessibility', 'business_categories', 'images'],
     });
 
     if (!negocio) {
@@ -352,6 +368,21 @@ export class BusinessService {
         negocio.business_accessibility.length > 0
       ) {
         // No necesitamos eliminarlas manualmente, el remove del negocio lo hará por cascade
+      }
+
+      if (negocio.images && negocio.images.length > 0) {
+        for (const image of negocio.images as any[]) {
+          const publicId =
+            image.public_id ||
+            this.cloudinaryService.extractPublicIdFromUrl(image.url);
+          if (publicId) {
+            try {
+              await this.cloudinaryService.deleteImage(publicId);
+            } catch (error) {
+              console.error('Error al eliminar imagen de Cloudinary:', error);
+            }
+          }
+        }
       }
 
       await this._businessRepository.remove(negocio);
@@ -707,6 +738,120 @@ export class BusinessService {
     }
   }
 
+  async uploadBusinessImages(
+    businessId: number,
+    files: Express.Multer.File[],
+    user: UserEntity,
+  ): Promise<{ message: string; images: { id: number; url: string }[] }> {
+    if (!files || files.length === 0) {
+      throw new BadRequestException('No se proporcionaron imágenes');
+    }
+
+    const negocio = await this._businessRepository.findOne({
+      where: { business_id: businessId },
+      relations: ['user'],
+    });
+
+    if (!negocio) {
+      throw new NotFoundException('Negocio no encontrado');
+    }
+
+    const isAdmin =
+      user.userroles && user.userroles.some((ur) => ur.rol?.rol_id === 1);
+    const isOwner = negocio.user && negocio.user.user_id === user.user_id;
+
+    if (!isAdmin && !isOwner) {
+      throw new ForbiddenException(
+        'No tienes permisos para actualizar este negocio',
+      );
+    }
+
+    const maxSize = 5 * 1024 * 1024;
+    const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
+
+    for (const file of files) {
+      if (!allowedMimeTypes.includes(file.mimetype)) {
+        throw new BadRequestException('Tipo de imagen no permitido');
+      }
+      if (file.size > maxSize) {
+        throw new BadRequestException(
+          'El tamaño de la imagen excede el máximo permitido (5MB)',
+        );
+      }
+    }
+
+    const savedImages: BusinessImageEntity[] = [];
+
+    for (const file of files) {
+      const uploadResult = await this.cloudinaryService.uploadImage(
+        file.buffer,
+        'inclumap/business-images',
+      );
+
+      const image = this.businessImageRepository.create({
+        url: uploadResult.secure_url,
+        public_id: uploadResult.public_id ?? null,
+        business: negocio,
+      });
+
+      const saved = await this.businessImageRepository.save(image);
+      savedImages.push(saved);
+    }
+
+    return {
+      message: 'Imágenes subidas correctamente',
+      images: savedImages.map((img) => ({ id: img.id, url: img.url })),
+    };
+  }
+
+  async deleteBusinessImage(
+    businessId: number,
+    imageId: number,
+    user: UserEntity,
+  ): Promise<{ message: string }> {
+    const image = await this.businessImageRepository.findOne({
+      where: { id: imageId, business: { business_id: businessId } },
+      relations: [
+        'business',
+        'business.user',
+        'business.user.userroles',
+        'business.user.userroles.rol',
+      ],
+    });
+
+    if (!image) {
+      throw new NotFoundException('Imagen no encontrada');
+    }
+
+    const businessUser = image.business?.user;
+
+    const isAdmin =
+      user.userroles && user.userroles.some((ur) => ur.rol?.rol_id === 1);
+    const isOwner = businessUser && businessUser.user_id === user.user_id;
+
+    if (!isAdmin && !isOwner) {
+      throw new ForbiddenException(
+        'No tienes permisos para eliminar esta imagen',
+      );
+    }
+
+    const publicId =
+      image.public_id ||
+      this.cloudinaryService.extractPublicIdFromUrl(image.url);
+
+    if (publicId) {
+      try {
+        await this.cloudinaryService.deleteImage(publicId);
+      } catch (error) {
+        console.error('Error al eliminar imagen de Cloudinary:', error);
+      }
+    }
+
+    await this.businessImageRepository.remove(image);
+
+    return { message: 'Imagen eliminada correctamente' };
+  }
+
   /**
    * Re-geocodificar todos los negocios que no tienen coordenadas
    * Útil para migrar negocios existentes
@@ -849,6 +994,7 @@ export class BusinessService {
         .leftJoinAndSelect('user.userroles', 'userroles')
         .leftJoinAndSelect('userroles.rol', 'rol')
         .leftJoinAndSelect('business.business_accessibility', 'accessibility')
+        .leftJoinAndSelect('business.images', 'images')
         .where('business.user_id = :userId', { userId })
         .getOne();
 

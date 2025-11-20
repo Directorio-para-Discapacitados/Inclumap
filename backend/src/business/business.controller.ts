@@ -13,6 +13,7 @@ import {
   Put,
   Query,
   UploadedFile,
+  UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -26,7 +27,7 @@ import { Roles } from 'src/auth/decorators/roles.decorator';
 import { User } from 'src/auth/decorators/user.decorator';
 import { ApiTags } from '@nestjs/swagger';
 import { UserEntity } from 'src/user/entity/user.entity';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('business')
 @Controller('business')
@@ -118,6 +119,36 @@ export class BusinessController {
   ) {
     // Ya no necesitas el if (!file) porque ParseFilePipe lo maneja
     return this._businessService.updateBusinessLogo(user, file.buffer);
+  }
+
+  @Post(':id/images')
+  @Roles(1, 3)
+  @UseInterceptors(FilesInterceptor('images', 5))
+  async uploadBusinessImages(
+    @Param('id') id: string,
+    @UploadedFiles() files: Express.Multer.File[],
+    @User() user: UserEntity,
+  ) {
+    const businessId = parseInt(id, 10);
+    if (isNaN(businessId)) {
+      throw new BadRequestException('ID de negocio inválido');
+    }
+    return this._businessService.uploadBusinessImages(businessId, files, user);
+  }
+
+  @Delete(':id/images/:imageId')
+  @Roles(1, 3)
+  async deleteBusinessImage(
+    @Param('id') id: string,
+    @Param('imageId') imageId: string,
+    @User() user: UserEntity,
+  ) {
+    const businessId = parseInt(id, 10);
+    const imgId = parseInt(imageId, 10);
+    if (isNaN(businessId) || isNaN(imgId)) {
+      throw new BadRequestException('ID de negocio o imagen inválido');
+    }
+    return this._businessService.deleteBusinessImage(businessId, imgId, user);
   }
 
   @Patch(':id/remove-owner')
