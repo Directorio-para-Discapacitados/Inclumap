@@ -2,7 +2,7 @@ import { api } from '../config/api';
 
 export interface Notification {
   notification_id: number;
-  type: 'REVIEW_ALERT' | 'SUGGESTION';
+  type: 'REVIEW_ALERT' | 'SUGGESTION' | 'REVIEW_ATTENTION'; 
   message: string;
   related_id: number;
   is_read: boolean;

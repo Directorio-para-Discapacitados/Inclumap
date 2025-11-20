@@ -35,6 +35,7 @@ export class ReviewService {
   ): Promise<ReviewEntity> {
     const { business_id, rating, comment } = createReviewDto;
 
+    // 1. Validar que el negocio existe
     const business = await this.businessRepository.findOne({
       where: { business_id },
     });
@@ -44,6 +45,7 @@ export class ReviewService {
       );
     }
 
+    // 2. Validar que no haya reseña previa
     const existingReview = await this.reviewRepository.findOne({
       where: {
         business: { business_id: business.business_id },
@@ -55,7 +57,7 @@ export class ReviewService {
       throw new ConflictException('Ya has enviado una reseña para este local.');
     }
 
-    // Analizar sentimiento y coherencia
+    // 3. Analizar sentimiento y coherencia
     const sentimentAnalysis = this.sentimentService.analyzeReview(
       rating,
       comment,
@@ -73,21 +75,18 @@ export class ReviewService {
 
     const savedReview = await this.reviewRepository.save(newReview);
 
-    // Si requiere revisión manual, notificar a todos los admins
-    if (sentimentAnalysis.suggested_action === 'Revisar manualmente') {
-      await this.notificationService.notifyAllAdmins(
-        `Reseña incoherente detectada: ${sentimentAnalysis.coherence_check} - "${comment?.substring(0, 50)}..."`,
-        savedReview.review_id,
-      );
+    // 4. LÓGICA CORREGIDA: Flujo Usuario -> Admin
+    // En lugar de avisar al admin directamente, llamamos al manejador inteligente.
+    // Si es la primera vez, creará la alerta para el USUARIO (REVIEW_ATTENTION).
+    if (sentimentAnalysis.coherence_check.startsWith('Incoherente')) {
+      await this.notificationService.handleIncoherentReview(savedReview);
     }
 
-    // Recalculamos el promedio
+    // 5. Recalcular promedio
     const newAverage = await this.updateBusinessAverageRating(business_id);
 
-    // Usamos nuestra función privada para construir la respuesta
+    // 6. Construir respuesta limpia
     const cleanResponse = await this.findReviewClean(savedReview.review_id);
-
-    // Asignamos el promedio actualizado a la respuesta
     cleanResponse.business.average_rating = newAverage;
 
     return cleanResponse;
@@ -144,6 +143,13 @@ export class ReviewService {
 
     const updatedReview = this.reviewRepository.merge(review, updateReviewDto);
     await this.reviewRepository.save(updatedReview);
+
+    // CORRECCIÓN AQUÍ: Pasar AMBOS IDs (reseña y negocio)
+    // Esto asegura que se borren tanto las alertas de usuario como las de admin
+    await this.notificationService.resolveReviewNotifications(
+      review.review_id,
+      review.business.business_id,
+    );
 
     const newAverage = await this.updateBusinessAverageRating(
       review.business.business_id,
@@ -373,13 +379,10 @@ export class ReviewService {
     };
   }
 
-  /**
-   * Reanálisis de todas las reseñas existentes
-   * Útil para reseñas creadas antes de implementar el análisis de sentimientos
-   */
+
   async reanalyzeAllReviews() {
     const reviews = await this.reviewRepository.find({
-      relations: ['business'],
+      relations: ['business', 'user'], 
     });
 
     let analyzed = 0;
@@ -401,19 +404,18 @@ export class ReviewService {
         await this.reviewRepository.save(review);
         analyzed++;
 
-        // Si es incoherente, notificar a admins
+        // Si es incoherente, activar flujo inteligente
         if (sentimentAnalysis.coherence_check.startsWith('Incoherente')) {
           incoherent++;
-          await this.notificationService.notifyAllAdmins(
-            `Reseña incoherente detectada (ID: ${review.review_id}): ${sentimentAnalysis.coherence_check} - "${review.comment?.substring(0, 50)}..."`,
-            review.review_id,
-          );
+          
+          // CAMBIO: Usamos el manejador inteligente en vez de notificar admin directamente
+          await this.notificationService.handleIncoherentReview(review);
         }
       }
     }
 
     return {
-      message: 'Reanálisis completado',
+      message: 'Reanálisis completado con flujo escalonado (Usuario -> Admin)',
       total_reviews: reviews.length,
       analyzed: analyzed,
       incoherent_found: incoherent,
