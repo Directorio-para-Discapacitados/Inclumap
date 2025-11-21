@@ -542,8 +542,6 @@ export default function OwnerBusinessProfile() {
       if (editData.logo) {
         requestBody.verified = verificationStatus;
       }
-
-      console.log('📤 Sending update request:', requestBody);
       
       const response = await fetch(
         `${API_URL}/business/${businessData?.business_id}`,
@@ -564,7 +562,6 @@ export default function OwnerBusinessProfile() {
       }
 
       const updatedData = await response.json();
-      console.log('✅ Updated data received:', updatedData);
       
       setBusinessData(updatedData);
       

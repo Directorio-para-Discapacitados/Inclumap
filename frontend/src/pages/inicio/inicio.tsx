@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import "./inicio.css";
 import { API_URL } from "../../config/api";
 import { getAllCategories, Category } from "../../services/categoryService";
+import { useAuth } from "../../context/AuthContext";
+import OwnerDashboard from "../../Components/OwnerDashboard/OwnerDashboard";
 
 /* --- IMPORTACIONES PARA EL MAPA --- */
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
@@ -27,6 +29,7 @@ interface Accessibility {
 export default function Inicio() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth() || {};
   const cardsRef = useRef<HTMLDivElement | null>(null);
   const communityRef = useRef<HTMLElement | null>(null);
 
@@ -180,15 +183,12 @@ export default function Inicio() {
         }
         if (catId) {
           params.append('categoryId', catId.toString());
-          console.log('🔍 Frontend: Buscando con categoryId:', catId);
         }
         
         const queryString = params.toString();
         if (queryString) {
           url += `?${queryString}`;
         }
-        
-        console.log('📡 Frontend: Haciendo petición a:', url);
         
         // Usar endpoint público de búsqueda para máxima fluidez
         const resp = await fetch(url, {
@@ -199,7 +199,6 @@ export default function Inicio() {
           throw new Error("No se pudo obtener locales públicos");
         }
         const data = await resp.json();
-        console.log('📊 Frontend: Datos recibidos:', data.length, 'negocios');
         
         if (signal.aborted) return;
         setFiltered(data || []);
@@ -234,7 +233,6 @@ export default function Inicio() {
   useEffect(() => {
     const handler = (e: CustomEvent) => {
       const categoryId = e.detail?.categoryId;
-      console.log('🎯 Evento recibido - categoryId:', categoryId);
       setSelectedCategory(categoryId);
     };
     window.addEventListener('inclumap:category-changed', handler as EventListener);
@@ -311,6 +309,11 @@ export default function Inicio() {
   // incluso si 'filtered' está vacío (0 resultados).
   // Solo mostramos 'allBusinesses' si el usuario NO está buscando nada.
   const mapPoints = (query || selectedCategory || selectedAccessibility) ? filtered : allBusinesses;
+
+  // Si el usuario es propietario, mostrar dashboard
+  if (user?.roleDescription === "Propietario") {
+    return <OwnerDashboard />;
+  }
 
   return (
     <div className="inicio-root">

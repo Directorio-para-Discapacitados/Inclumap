@@ -21,6 +21,7 @@ import { BusinessService } from './business.service';
 import { BusinessEntity } from './entity/business.entity';
 import { CreateBusinessDto } from './dto/create-business.dto';
 import { UpdateBusinessDto } from './dto/update-business.dto';
+import { BusinessStatisticsDto, RecordViewDto } from './dto/business-statistics.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
@@ -48,6 +49,26 @@ export class BusinessController {
   @Roles(1, 2, 3)
   async obtenerNegocios(): Promise<BusinessEntity[]> {
     return await this._businessService.obtenerNegocios();
+  }
+
+  // ⚠️ Este endpoint DEBE ir ANTES de @Get(':id') para que funcione correctamente
+  @Get('owner-business')
+  @Roles(3) // Solo propietarios pueden acceder a su negocio
+  async getOwnerBusiness(@User() user: UserEntity): Promise<BusinessEntity> {
+    try {
+      console.log('👤 Usuario autenticado:', user);
+      console.log('🔑 User ID:', user?.user_id);
+      console.log('🎭 Roles del usuario:', (user as any)?.rolIds);
+      
+      if (!user || !user.user_id) {
+        throw new BadRequestException('Usuario no autenticado correctamente');
+      }
+      
+      return await this._businessService.getOwnerBusiness(user.user_id);
+    } catch (error) {
+      console.error('❌ Error en getOwnerBusiness:', error);
+      throw error;
+    }
   }
 
   @Get(':id')
@@ -266,13 +287,6 @@ export class BusinessController {
     }
   }
 
-  @Get('owner-business')
-  @UseGuards(JwtAuthGuard)
-  @Roles(2, 3) // Usuarios normales y propietarios pueden acceder a su negocio
-  async getOwnerBusiness(@User() user: UserEntity): Promise<BusinessEntity> {
-    return await this._businessService.getOwnerBusiness(user.user_id);
-  }
-
   @Patch(':id')
   @Roles(1, 3) // Admin y propietarios pueden actualizar
   async updateBusinessProfile(
@@ -281,5 +295,27 @@ export class BusinessController {
     @User() user: UserEntity,
   ): Promise<BusinessEntity> {
     return await this._businessService.updateOwnerBusiness(id, updateDto, user);
+  }
+
+  @Post(':id/view')
+  @Roles(1, 2, 3) // Todos pueden registrar vistas
+  async recordBusinessView(
+    @Param('id') id: number,
+    @Body() recordViewDto: Partial<RecordViewDto>,
+  ): Promise<{ message: string }> {
+    await this._businessService.recordView({
+      business_id: id,
+      ...recordViewDto,
+    });
+    return { message: 'Vista registrada' };
+  }
+
+  @Get(':id/statistics')
+  @Roles(1, 3) // Solo admin y propietarios pueden ver estadísticas
+  async getBusinessStatistics(
+    @Param('id') id: number,
+    @User() user: UserEntity,
+  ): Promise<BusinessStatisticsDto> {
+    return await this._businessService.getBusinessStatistics(id);
   }
 }

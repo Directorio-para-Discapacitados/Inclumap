@@ -19,8 +19,11 @@ const NotificationBell: React.FC = () => {
       setLoading(true);
       const data = await getNotifications();
       setNotifications(data);
-    } catch (error) {
-      console.error('Error al cargar notificaciones:', error);
+    } catch (error: any) {
+      // Solo mostrar error si no es un problema de autenticación (401)
+      if (error?.response?.status !== 401) {
+        console.error('Error al cargar notificaciones:', error?.response?.data || error.message);
+      }
     } finally {
       setLoading(false);
     }

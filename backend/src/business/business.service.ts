@@ -16,7 +16,10 @@ import { UserEntity } from 'src/user/entity/user.entity';
 import { UserRolesEntity } from 'src/user_rol/entity/user_rol.entity';
 import { RolEntity } from 'src/roles/entity/rol.entity';
 import { BusinessCategoryEntity } from 'src/business_category/entity/business_category.entity';
+import { BusinessAccessibilityEntity } from 'src/business_accessibility/entity/business_accessibility.entity';
 import { BusinessImageEntity } from './entity/business-image.entity';
+import { BusinessViewEntity } from './entity/business-view.entity';
+import { BusinessStatisticsDto, RecordViewDto } from './dto/business-statistics.dto';
 
 @Injectable()
 export class BusinessService {
@@ -31,8 +34,12 @@ export class BusinessService {
     private readonly _rolRepository: Repository<RolEntity>,
     @InjectRepository(BusinessCategoryEntity)
     private readonly _businessCategoryRepository: Repository<BusinessCategoryEntity>,
+    @InjectRepository(BusinessAccessibilityEntity)
+    private readonly _businessAccessibilityRepository: Repository<BusinessAccessibilityEntity>,
     @InjectRepository(BusinessImageEntity)
     private readonly businessImageRepository: Repository<BusinessImageEntity>,
+    @InjectRepository(BusinessViewEntity)
+    private readonly businessViewRepository: Repository<BusinessViewEntity>,
     private readonly cloudinaryService: CloudinaryService,
     private readonly mapsService: MapsService,
   ) {}
@@ -998,7 +1005,7 @@ export class BusinessService {
         .leftJoinAndSelect('business.images', 'images')
         .where('business.user_id = :userId', { userId })
         .getOne();
-
+      
       if (!business) {
         throw new NotFoundException('No tienes un negocio registrado');
       }
@@ -1008,8 +1015,9 @@ export class BusinessService {
       if (error instanceof NotFoundException) {
         throw error;
       }
+      
       throw new InternalServerErrorException(
-        'Error al obtener el negocio del propietario',
+        `Error al obtener el negocio: ${error.message || 'Error desconocido'}`,
       );
     }
   }
@@ -1021,13 +1029,6 @@ export class BusinessService {
     user: UserEntity,
   ): Promise<BusinessEntity> {
     try {
-      console.log(
-        '🔍 [updateOwnerBusiness] businessId:',
-        businessId,
-        'updateDto:',
-        updateDto,
-      );
-
       const business = await this._businessRepository.findOne({
         where: { business_id: businessId },
         relations: ['user', 'user.userroles', 'user.userroles.rol'],
@@ -1037,26 +1038,10 @@ export class BusinessService {
         throw new NotFoundException('Negocio no encontrado');
       }
 
-      console.log(
-        '📊 [updateOwnerBusiness] Business found:',
-        business.business_id,
-      );
-
       // Verificar que el usuario es el propietario o es admin
       const isAdmin =
         user.userroles && user.userroles.some((ur) => ur.rol?.rol_id === 1);
       const isOwner = business.user && business.user.user_id === user.user_id;
-
-      console.log(
-        '🔐 [updateOwnerBusiness] isAdmin:',
-        isAdmin,
-        'isOwner:',
-        isOwner,
-        'user.user_id:',
-        user.user_id,
-        'business.user.user_id:',
-        business.user?.user_id,
-      );
 
       if (!isAdmin && !isOwner) {
         throw new ForbiddenException(
@@ -1087,45 +1072,23 @@ export class BusinessService {
         updateDto.coordinates.trim().length > 0
       ) {
         business.coordinates = updateDto.coordinates;
-        // Extraer latitud y longitud de las coordenadas
         const coords = this.mapsService.parseCoordinatesFromStorage(
           updateDto.coordinates,
         );
         if (coords) {
           business.latitude = coords.lat;
           business.longitude = coords.lon;
-          console.log('📍 [updateOwnerBusiness] Updated coordinates:', {
-            coordinates: updateDto.coordinates,
-            lat: coords.lat,
-            lon: coords.lon,
-          });
         }
       }
       // NO actualizar logo con base64 - ignorar si viene en la solicitud
       if (updateDto.verified !== undefined && updateDto.verified !== null) {
-        console.log(
-          '✅ [updateOwnerBusiness] Setting verified to:',
-          updateDto.verified,
-        );
         business.verified = updateDto.verified;
       }
 
-      console.log('💾 [updateOwnerBusiness] Saving business:', {
-        verified: business.verified,
-        business_name: business.business_name,
-      });
-
       const updatedBusiness = await this._businessRepository.save(business);
-
-      console.log(
-        '✔️ [updateOwnerBusiness] Business saved successfully:',
-        updatedBusiness.business_id,
-      );
 
       // Actualizar categorías si se proporcionan
       if (updateDto.categoryIds !== undefined && Array.isArray(updateDto.categoryIds)) {
-        console.log('🏷️ [updateOwnerBusiness] Updating categories:', updateDto.categoryIds);
-        
         // Eliminar categorías existentes
         await this._businessCategoryRepository.delete({
           business: { business_id: businessId },
@@ -1140,7 +1103,25 @@ export class BusinessService {
             });
             await this._businessCategoryRepository.save(businessCategory);
           }
-          console.log('✅ [updateOwnerBusiness] Categories updated successfully');
+        }
+      }
+
+      // Actualizar accesibilidades si se proporcionan
+      if (updateDto.accessibilityIds !== undefined && Array.isArray(updateDto.accessibilityIds)) {
+        // Eliminar accesibilidades existentes
+        await this._businessAccessibilityRepository.delete({
+          business: { business_id: businessId },
+        });
+
+        // Agregar nuevas accesibilidades
+        if (updateDto.accessibilityIds.length > 0) {
+          for (const accessibilityId of updateDto.accessibilityIds) {
+            const businessAccessibility = this._businessAccessibilityRepository.create({
+              business: updatedBusiness,
+              accessibility: { accessibility_id: accessibilityId } as any,
+            });
+            await this._businessAccessibilityRepository.save(businessAccessibility);
+          }
         }
       }
 
@@ -1154,12 +1135,8 @@ export class BusinessService {
         throw new NotFoundException('Negocio no encontrado después de actualizar');
       }
 
-      console.log('🔄 [updateOwnerBusiness] Reloaded business with relations');
-
       return finalBusiness;
     } catch (error) {
-      console.error('❌ [updateOwnerBusiness] Error:', error.message);
-      console.error('❌ [updateOwnerBusiness] Full error:', error);
       if (
         error instanceof NotFoundException ||
         error instanceof ForbiddenException ||
@@ -1171,5 +1148,382 @@ export class BusinessService {
         'Error al actualizar el negocio: ' + error.message,
       );
     }
+  }
+
+  // Registrar vista de negocio
+  async recordView(recordViewDto: RecordViewDto): Promise<void> {
+    try {
+      const business = await this._businessRepository.findOne({
+        where: { business_id: recordViewDto.business_id },
+      });
+
+      if (!business) {
+        throw new NotFoundException('Negocio no encontrado');
+      }
+
+      const view = this.businessViewRepository.create({
+        business,
+        user_ip: recordViewDto.user_ip,
+        user_agent: recordViewDto.user_agent,
+        referrer: recordViewDto.referrer,
+      });
+
+      await this.businessViewRepository.save(view);
+    } catch (error) {
+      // No lanzar error para no afectar la experiencia del usuario
+      console.error('Error al registrar vista:', error);
+    }
+  }
+
+  // Obtener estadísticas del negocio
+  async getBusinessStatistics(
+    businessId: number,
+  ): Promise<BusinessStatisticsDto> {
+    const business = await this._businessRepository.findOne({
+      where: { business_id: businessId },
+      relations: [
+        'reviews',
+        'reviews.user',
+        'reviews.user.people',
+        'business_accessibility',
+        'business_accessibility.accessibility',
+        'images',
+      ],
+    });
+
+    if (!business) {
+      throw new NotFoundException('Negocio no encontrado');
+    }
+
+    // Calcular vistas usando hora de Colombia (UTC-5)
+    // Colombia está 5 horas DETRÁS de UTC, entonces Colombia = UTC - 5 horas
+    const COLOMBIA_OFFSET_HOURS = -5;
+    const now = new Date(); // Fecha en UTC del servidor
+    
+    // Obtener la hora actual de Colombia en milisegundos desde epoch
+    // Si el servidor está en UTC, restamos 5 horas
+    // Si el servidor está en otra zona, primero convertimos a UTC
+    const nowUTC = Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      now.getUTCHours(),
+      now.getUTCMinutes(),
+      now.getUTCSeconds()
+    );
+    const colombiaTimeMs = nowUTC + (COLOMBIA_OFFSET_HOURS * 60 * 60 * 1000);
+    const colombiaTime = new Date(colombiaTimeMs);
+    
+    const oneWeekAgo = new Date(colombiaTime.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const oneMonthAgo = new Date(colombiaTime.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const twoWeeksAgo = new Date(colombiaTime.getTime() - 14 * 24 * 60 * 60 * 1000);
+    const oneDayAgo = new Date(colombiaTime.getTime() - 24 * 60 * 60 * 1000);
+    const oneYearAgo = new Date(colombiaTime.getTime() - 365 * 24 * 60 * 60 * 1000);
+
+    const totalViews = await this.businessViewRepository.count({
+      where: { business: { business_id: businessId } },
+    });
+
+    const viewsLastWeek = await this.businessViewRepository.count({
+      where: {
+        business: { business_id: businessId },
+        viewed_at: new Date(oneWeekAgo.toISOString()) as any,
+      },
+    });
+
+    const viewsLastMonth = await this.businessViewRepository.count({
+      where: {
+        business: { business_id: businessId },
+        viewed_at: new Date(oneMonthAgo.toISOString()) as any,
+      },
+    });
+
+    const viewsPreviousWeek = await this.businessViewRepository.count({
+      where: {
+        business: { business_id: businessId },
+        viewed_at: new Date(twoWeeksAgo.toISOString()) as any,
+      },
+    });
+
+    const trend =
+      viewsPreviousWeek > 0
+        ? ((viewsLastWeek - viewsPreviousWeek) / viewsPreviousWeek) * 100
+        : 0;
+
+    // Obtener todas las vistas para agrupar por períodos
+    const allViews = await this.businessViewRepository.find({
+      where: { business: { business_id: businessId } },
+      order: { viewed_at: 'DESC' },
+    });
+
+    // Constante para conversiones de zona horaria
+    const COLOMBIA_OFFSET_MS = COLOMBIA_OFFSET_HOURS * 60 * 60 * 1000;
+
+    // Agrupar por día (24 horas del día actual en Colombia, de 00:00 a 23:59)
+    const dailyViews: Array<{ date: string; count: number }> = [];
+    const today = new Date(colombiaTime);
+    today.setUTCHours(0, 0, 0, 0);
+    
+    for (let hour = 0; hour < 24; hour++) {
+      const hourStart = new Date(today);
+      hourStart.setUTCHours(hour, 0, 0, 0);
+      
+      const hourEnd = new Date(today);
+      hourEnd.setUTCHours(hour, 59, 59, 999);
+      
+      // Las fechas en la BD están en UTC, comparar directamente
+      // porque hourStart y hourEnd ya están en el contexto de tiempo correcto
+      const count = allViews.filter(
+        (v) => {
+          const viewDate = new Date(v.viewed_at);
+          const viewDateColombia = new Date(viewDate.getTime() + COLOMBIA_OFFSET_MS);
+          const viewHour = viewDateColombia.getUTCHours();
+          const viewDay = viewDateColombia.getUTCDate();
+          const viewMonth = viewDateColombia.getUTCMonth();
+          const viewYear = viewDateColombia.getUTCFullYear();
+          
+          const todayDay = today.getUTCDate();
+          const todayMonth = today.getUTCMonth();
+          const todayYear = today.getUTCFullYear();
+          
+          return viewYear === todayYear && 
+                 viewMonth === todayMonth && 
+                 viewDay === todayDay && 
+                 viewHour === hour;
+        }
+      ).length;
+      
+      // Crear fecha con hora de Colombia explícita
+      const colombiaDate = new Date(today);
+      colombiaDate.setUTCHours(hour, 0, 0, 0);
+      
+      dailyViews.push({
+        // Enviar formato que represente la hora local de Colombia
+        date: `${colombiaDate.getUTCFullYear()}-${String(colombiaDate.getUTCMonth() + 1).padStart(2, '0')}-${String(colombiaDate.getUTCDate()).padStart(2, '0')}T${String(hour).padStart(2, '0')}:00:00-05:00`,
+        count,
+      });
+    }
+
+    // Agrupar por semana (últimos 7 días en hora de Colombia)
+    const weeklyViews: Array<{ date: string; count: number }> = [];
+    for (let i = 6; i >= 0; i--) {
+      const targetDate = new Date(colombiaTime);
+      targetDate.setDate(targetDate.getDate() - i);
+      targetDate.setHours(0, 0, 0, 0);
+      
+      const dayStart = new Date(targetDate);
+      const dayEnd = new Date(targetDate);
+      dayEnd.setHours(23, 59, 59, 999);
+      
+      // Convertir a UTC para comparar con las fechas en la base de datos
+      const dayStartUTC = new Date(dayStart.getTime() - COLOMBIA_OFFSET_MS);
+      const dayEndUTC = new Date(dayEnd.getTime() - COLOMBIA_OFFSET_MS);
+      
+      const count = allViews.filter(
+        (v) => {
+          const viewDate = new Date(v.viewed_at);
+          return viewDate >= dayStartUTC && viewDate <= dayEndUTC;
+        }
+      ).length;
+      
+      weeklyViews.push({
+        date: `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}-${String(targetDate.getDate()).padStart(2, '0')}T00:00:00-05:00`,
+        count,
+      });
+    }
+
+    // Agrupar por mes (últimas 4 semanas en hora de Colombia)
+    const monthlyViews: Array<{ date: string; count: number }> = [];
+    for (let i = 3; i >= 0; i--) {
+      const weekStart = new Date(colombiaTime.getTime() - (i + 1) * 7 * 24 * 60 * 60 * 1000);
+      const weekEnd = new Date(colombiaTime.getTime() - i * 7 * 24 * 60 * 60 * 1000);
+      
+      // Convertir a UTC para comparar
+      const weekStartUTC = new Date(weekStart.getTime() - COLOMBIA_OFFSET_MS);
+      const weekEndUTC = new Date(weekEnd.getTime() - COLOMBIA_OFFSET_MS);
+      
+      const count = allViews.filter(
+        (v) => {
+          const viewDate = new Date(v.viewed_at);
+          return viewDate >= weekStartUTC && viewDate < weekEndUTC;
+        }
+      ).length;
+      
+      monthlyViews.push({
+        date: `${weekStart.getFullYear()}-${String(weekStart.getMonth() + 1).padStart(2, '0')}-${String(weekStart.getDate()).padStart(2, '0')}T00:00:00-05:00`,
+        count,
+      });
+    }
+
+    // Agrupar por año (últimos 12 meses en hora de Colombia)
+    const yearlyViews: Array<{ date: string; count: number }> = [];
+    for (let i = 11; i >= 0; i--) {
+      const targetDate = new Date(colombiaTime);
+      targetDate.setMonth(targetDate.getMonth() - i);
+      
+      const monthStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), 1);
+      monthStart.setHours(0, 0, 0, 0);
+      
+      const monthEnd = new Date(targetDate.getFullYear(), targetDate.getMonth() + 1, 0);
+      monthEnd.setHours(23, 59, 59, 999);
+      
+      // Convertir a UTC para comparar
+      const monthStartUTC = new Date(monthStart.getTime() - COLOMBIA_OFFSET_MS);
+      const monthEndUTC = new Date(monthEnd.getTime() - COLOMBIA_OFFSET_MS);
+      
+      const count = allViews.filter(
+        (v) => {
+          const viewDate = new Date(v.viewed_at);
+          return viewDate >= monthStartUTC && viewDate <= monthEndUTC;
+        }
+      ).length;
+      
+      yearlyViews.push({
+        date: `${monthStart.getFullYear()}-${String(monthStart.getMonth() + 1).padStart(2, '0')}-01T00:00:00-05:00`,
+        count,
+      });
+    }
+
+    // Calcular distribución de ratings
+    const distribution = { five: 0, four: 0, three: 0, two: 0, one: 0 };
+    business.reviews.forEach((review) => {
+      if (review.rating === 5) distribution.five++;
+      else if (review.rating === 4) distribution.four++;
+      else if (review.rating === 3) distribution.three++;
+      else if (review.rating === 2) distribution.two++;
+      else if (review.rating === 1) distribution.one++;
+    });
+
+    // Calcular reseñas nuevas
+    const newReviewsThisWeek = business.reviews.filter(
+      (r) => new Date(r.created_at) >= oneWeekAgo,
+    ).length;
+    const newReviewsThisMonth = business.reviews.filter(
+      (r) => new Date(r.created_at) >= oneMonthAgo,
+    ).length;
+
+    // Calcular sentimiento
+    const sentiment = { positive: 0, neutral: 0, negative: 0 };
+    business.reviews.forEach((review) => {
+      const label = review.sentiment_label?.toLowerCase() || '';
+      if (label.includes('positiv')) sentiment.positive++;
+      else if (label.includes('negativ')) sentiment.negative++;
+      else sentiment.neutral++;
+    });
+
+    // Calcular accesibilidad
+    const allAccessibilities = [
+      'Rampa Acceso',
+      'Baño adaptado',
+      'Estacionamiento para discapacitados',
+      'Puertas Anchas',
+      'Circulación Interior',
+      'Ascensor Accesible',
+      'Pisos',
+      'Barras de Apoyo',
+      'Lavamanos Accesible',
+      'Mostrador/Caja Accesible',
+      'Señalización (SIA)',
+      'Señalización Táctil/Braille',
+    ];
+
+    // Verificar si business_accessibility existe y tiene datos
+    if (!business.business_accessibility || !Array.isArray(business.business_accessibility)) {
+      business.business_accessibility = [];
+    }
+
+    // Filtrar y mapear accesibilidades completadas
+    const completedAccessibilities = business.business_accessibility
+      .filter((ba) => ba && ba.accessibility && ba.accessibility.accessibility_name)
+      .map((ba) => ba.accessibility.accessibility_name);
+
+    const missing = allAccessibilities.filter(
+      (a) => !completedAccessibilities.includes(a),
+    );
+
+    const accessibilityScore =
+      completedAccessibilities.length > 0
+        ? (completedAccessibilities.length / allAccessibilities.length) * 100
+        : 0;
+
+    // Reseñas recientes
+    const recentReviews = business.reviews
+      .sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      )
+      .slice(0, 5)
+      .map((review) => ({
+        review_id: review.review_id,
+        rating: review.rating,
+        comment: review.comment,
+        sentiment_label: review.sentiment_label,
+        created_at: review.created_at,
+        user: {
+          firstName:
+            (review.user?.people as any)?.firstName ||
+            (review.user?.people as any)?.first_name ||
+            'Usuario',
+          firstLastName:
+            (review.user?.people as any)?.firstLastName ||
+            (review.user?.people as any)?.first_last_name ||
+            '',
+        },
+      }));
+
+    // Calcular fotos recientes
+    const recentPhotos = business.images.length;
+
+    const result = {
+      views: {
+        total: totalViews,
+        lastWeek: viewsLastWeek,
+        lastMonth: viewsLastMonth,
+        trend: Math.round(trend),
+        daily: dailyViews,
+        weekly: weeklyViews,
+        monthly: monthlyViews,
+        yearly: yearlyViews,
+      },
+      rating: {
+        current: Number(business.average_rating) || 0,
+        previous:
+          business.reviews.length > 1
+            ? Number(
+                business.reviews
+                  .slice(0, -1)
+                  .reduce((acc, r) => acc + r.rating, 0) /
+                  (business.reviews.length - 1),
+              )
+            : 0,
+        distribution,
+      },
+      reviews: {
+        total: business.reviews.length,
+        newThisWeek: newReviewsThisWeek,
+        newThisMonth: newReviewsThisMonth,
+        byStars: distribution,
+        sentiment,
+      },
+      accessibility: {
+        score: Math.round(accessibilityScore),
+        total: allAccessibilities.length,
+        completed: completedAccessibilities.length,
+        missing,
+        completedItems: completedAccessibilities,
+      },
+      photos: {
+        count: business.images.length,
+        hasLogo: !!business.logo_url,
+        recentCount: recentPhotos,
+      },
+      notifications: {
+        pending: 0, // Se puede integrar con NotificationService
+        urgent: 0,
+      },
+      recentReviews,
+    };
+
+    return result;
   }
 }
