@@ -1,9 +1,10 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query, Post, Body } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { BusinessService } from './business.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BusinessAccessibilityEntity } from '../business_accessibility/entity/business_accessibility.entity';
+import { RecordViewDto } from './dto/business-statistics.dto';
 
 @ApiTags('business-public')
 @Controller('business/public')
@@ -199,5 +200,23 @@ export class BusinessPublicController {
           }))
         : [],
     };
+  }
+
+  @Post(':id/view')
+  async recordBusinessView(
+    @Param('id') id: string,
+    @Body() recordViewDto: Partial<RecordViewDto>,
+  ): Promise<{ message: string }> {
+    const businessId = parseInt(id, 10);
+    if (isNaN(businessId)) {
+      return { message: 'ID inválido' };
+    }
+
+    await this.businessService.recordView({
+      business_id: businessId,
+      ...recordViewDto,
+    });
+    
+    return { message: 'Vista registrada' };
   }
 }

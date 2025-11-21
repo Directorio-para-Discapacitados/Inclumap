@@ -23,6 +23,10 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
+  
+  // No mostrar búsqueda si el usuario es propietario en la página de inicio
+  const showSearch = (location.pathname === "/" || location.pathname === "/negocios") 
+    && !(user?.roleDescription === "Propietario" && location.pathname === "/");
   const profileMenuRef = useRef<HTMLLIElement | null>(null);
   
   // Ocultar buscador si el usuario es admin

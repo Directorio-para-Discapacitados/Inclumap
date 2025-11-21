@@ -115,4 +115,20 @@ export class UserController {
 
     return await this._userService.deleteAvatar(id);
   }
+
+  @Get(':id/business')
+  @Roles(1, 3) // Solo admin y propietarios
+  async getUserBusiness(
+    @User() currentUser: any,
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<any> {
+    // Verificar que el usuario puede acceder a esta información
+    if (currentUser.role_id !== 1 && currentUser.user_id !== id) {
+      throw new ForbiddenException(
+        'No tienes permisos para acceder a esta información',
+      );
+    }
+
+    return await this._userService.getUserBusiness(id);
+  }
 }
