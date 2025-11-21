@@ -51,3 +51,16 @@ export const deleteReview = async (reviewId: number, token: string) => {
   });
   return res.data;
 };
+
+export const setOwnerReply = async (
+  reviewId: number,
+  owner_reply: string,
+  token: string,
+) => {
+  const res = await api.patch(
+    `/reviews/${reviewId}/owner-reply`,
+    { owner_reply },
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  return res.data;
+};

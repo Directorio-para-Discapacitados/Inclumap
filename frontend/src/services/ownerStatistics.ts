@@ -65,6 +65,7 @@ export interface BusinessStatistics {
       firstName: string;
       firstLastName: string;
     };
+    owner_reply?: string | null;
   }>;
 }
 

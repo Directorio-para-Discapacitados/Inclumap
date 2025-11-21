@@ -65,6 +65,7 @@ export class BusinessStatisticsDto {
     comment: string;
     sentiment_label: string;
     created_at: Date;
+    owner_reply?: string | null;
     user: {
       firstName: string;
       firstLastName: string;

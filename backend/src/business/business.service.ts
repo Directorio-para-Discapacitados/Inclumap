@@ -1459,6 +1459,7 @@ export class BusinessService {
         comment: review.comment,
         sentiment_label: review.sentiment_label,
         created_at: review.created_at,
+        owner_reply: review.owner_reply,
         user: {
           firstName:
             (review.user?.people as any)?.firstName ||

@@ -28,4 +28,8 @@ export class UpdateReviewDto {
   @IsOptional()
   @IsString()
   suggested_action?: string;
+
+  @IsOptional()
+  @IsString()
+  owner_reply?: string;
 }
