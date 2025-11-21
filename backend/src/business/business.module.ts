@@ -8,6 +8,7 @@ import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { MapsModule } from '../maps/maps.module';
 import { BusinessEntity } from './entity/business.entity';
 import { BusinessImageEntity } from './entity/business-image.entity';
+import { BusinessViewEntity } from './entity/business-view.entity';
 import { UserEntity } from '../user/entity/user.entity';
 import { UserRolesEntity } from '../user_rol/entity/user_rol.entity';
 import { RolEntity } from '../roles/entity/rol.entity';
@@ -19,6 +20,7 @@ import { BusinessCategoryEntity } from 'src/business_category/entity/business_ca
     TypeOrmModule.forFeature([
       BusinessEntity,
       BusinessImageEntity,
+      BusinessViewEntity,
       UserEntity,
       UserRolesEntity,
       RolEntity,

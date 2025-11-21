@@ -469,4 +469,31 @@ export class UserService {
       throw new InternalServerErrorException('Error al eliminar el avatar');
     }
   }
+
+  // Obtener el negocio del usuario (para propietarios)
+  async getUserBusiness(userId: number): Promise<any> {
+    try {
+      const user = await this._userRepository.findOne({
+        where: { user_id: userId },
+        relations: ['business'],
+      });
+
+      if (!user) {
+        throw new NotFoundException('Usuario no encontrado');
+      }
+
+      if (!user.business) {
+        throw new NotFoundException('Este usuario no tiene un negocio asignado');
+      }
+
+      return user.business;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(
+        'Error al obtener el negocio del usuario',
+      );
+    }
+  }
 }

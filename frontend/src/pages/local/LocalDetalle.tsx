@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { API_URL, api } from "../../config/api";
 import { useAuth } from "../../context/AuthContext";
+import { recordBusinessView } from "../../services/ownerStatistics";
 import "./LocalDetalle.css";
 
 import Swal from "sweetalert2";
@@ -235,6 +236,9 @@ const LocalDetalle: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  
+  // Ref para evitar registros duplicados de visitas
+  const viewRegisteredRef = useRef(false);
 
   const { user } = useAuth();
   const token = localStorage.getItem("token");
@@ -250,6 +254,14 @@ const LocalDetalle: React.FC = () => {
         const resp = await fetch(`${API_URL}/business/public/${id}`);
         const json = await resp.json();
         setData(json);
+
+        // Registrar vista del negocio SOLO UNA VEZ
+        if (json?.business_id && !viewRegisteredRef.current) {
+          viewRegisteredRef.current = true;
+          recordBusinessView(json.business_id).catch(() => {
+            // Error silencioso - no afecta la experiencia del usuario
+          });
+        }
       } finally {
         setLoading(false);
       }
