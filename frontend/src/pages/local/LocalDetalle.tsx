@@ -846,6 +846,13 @@ const LocalDetalle: React.FC = () => {
 
                     <p className="review-text">{r.comment}</p>
 
+                    {r.owner_reply && (
+                      <div className="owner-reply-public">
+                        <span className="owner-reply-public-label">Respuesta del propietario</span>
+                        <p className="owner-reply-public-text">{r.owner_reply}</p>
+                      </div>
+                    )}
+
                     <div className="review-meta">
                       <small>{new Date(r.created_at).toLocaleDateString()}</small>
 

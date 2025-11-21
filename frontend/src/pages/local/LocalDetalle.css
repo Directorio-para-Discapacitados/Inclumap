@@ -367,6 +367,28 @@
   margin-bottom: 8px;
 }
 
+.owner-reply-public {
+  margin-top: 6px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(34, 197, 94, 0.06);
+  border: 1px solid rgba(34, 197, 94, 0.25);
+}
+
+.owner-reply-public-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #16a34a;
+  margin-bottom: 4px;
+}
+
+.owner-reply-public-text {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
 /* Barra meta de cada reseña (fecha + acciones) */
 .review-meta {
   display: flex;

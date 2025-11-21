@@ -27,9 +27,6 @@ interface BusinessAccessibility {
   description?: string;
 }
 
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
-const libraries: ("places" | "geometry" | "drawing" | "visualization")[] = ["places"];
-
 interface BusinessData {
   business_id: number;
   business_name: string;
@@ -89,8 +86,8 @@ export default function OwnerBusinessProfile() {
 
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: GOOGLE_MAPS_API_KEY,
-    libraries: libraries,
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
+    libraries: ["places"],
     language: 'es',
   });
 
@@ -217,12 +214,12 @@ export default function OwnerBusinessProfile() {
     setMapInitialCoords({ lat, lng });
     if (address) {
       setEditData(prev => ({ ...prev, business_address: address }));
-      toast.success("📍 Dirección actualizada desde el mapa", {
+      toast.success(" Dirección actualizada desde el mapa", {
         position: "top-center",
         autoClose: 2000
       });
     } else {
-      toast.success("📍 Coordenadas exactas guardadas", {
+      toast.success(" Coordenadas exactas guardadas", {
         position: "top-center",
         autoClose: 2000
       });
@@ -239,7 +236,7 @@ export default function OwnerBusinessProfile() {
     // Si no, intentar detectar antes de abrir
     if (navigator.geolocation && isLoaded) {
       setIsDetectingLocation(true);
-      toast.info("🔍 Detectando tu ubicación actual...", {
+      toast.info(" Detectando tu ubicación actual...", {
         position: "top-center",
         autoClose: 2000
       });
@@ -250,7 +247,7 @@ export default function OwnerBusinessProfile() {
           setMapInitialCoords({ lat: latitude, lng: longitude });
           setIsDetectingLocation(false);
           setShowMap(true);
-          toast.success("✅ Ubicación detectada", {
+          toast.success(" Ubicación detectada", {
             position: "top-center",
             autoClose: 2000
           });
@@ -259,7 +256,7 @@ export default function OwnerBusinessProfile() {
           console.warn("Error al obtener ubicación:", error);
           setIsDetectingLocation(false);
           setShowMap(true);
-          toast.warning("⚠️ No se pudo detectar tu ubicación automáticamente. Selecciona manualmente en el mapa.", {
+          toast.warning(" No se pudo detectar tu ubicación automáticamente. Selecciona manualmente en el mapa.", {
             position: "top-center",
             autoClose: 3000
           });
@@ -308,15 +305,15 @@ export default function OwnerBusinessProfile() {
   const validateLogoWithGoogleVision = async (file: File) => {
     let loadingToastId: any = null;
     try {
-      loadingToastId = toast.loading("🔍 Validando imagen del logo con Google Vision...");
+      loadingToastId = toast.loading(" Validando imagen del logo con Google Vision...");
       
       const result = await localRecognitionService.recognizeLocal(file);
       
       toast.dismiss(loadingToastId);
       
       if (result.confidence >= 0.7) {
-        // ✅ APROBADA - Permite subir la imagen
-        toast.success(`✅ Logo validado (${Math.round(result.confidence * 100)}% confianza)`, { 
+        // APROBADA - Permite subir la imagen
+        toast.success(` Logo validado (${Math.round(result.confidence * 100)}% confianza)`, { 
           autoClose: 3000,
           position: "top-right"
         });
@@ -325,8 +322,8 @@ export default function OwnerBusinessProfile() {
           logo: file,
         }));
       } else {
-        // ❌ RECHAZADA - No permite subir
-        toast.error(`❌ Imagen rechazada (${Math.round(result.confidence * 100)}% confianza)`, { 
+        // RECHAZADA - No permite subir
+        toast.error(` Imagen rechazada (${Math.round(result.confidence * 100)}% confianza)`, { 
           autoClose: 3500,
           position: "top-right"
         });
@@ -339,7 +336,7 @@ export default function OwnerBusinessProfile() {
       }
     } catch (error: any) {
       if (loadingToastId) toast.dismiss(loadingToastId);
-      toast.error("❌ Error al validar. Intenta de nuevo.", { 
+      toast.error(" Error al validar. Intenta de nuevo.", { 
         autoClose: 3000,
         position: "top-right"
       });
@@ -477,12 +474,14 @@ export default function OwnerBusinessProfile() {
       if (editData.logo) {
         let loadingToastId: any = null;
         try {
-          loadingToastId = toast.loading("📸 Validando logo...");
+          loadingToastId = toast.loading(" Validando logo...");
           
           const validationResult = await localRecognitionService.recognizeLocal(editData.logo);
           
+          toast.dismiss(loadingToastId);
+          
           if (validationResult.confidence >= 0.7) {
-            // ✅ APROBADA - Proceder
+            // APROBADA - Proceder
             verificationStatus = true;
             // Subir el logo sin mostrar notificación
             try {
@@ -491,7 +490,7 @@ export default function OwnerBusinessProfile() {
             } catch (logoError) {
               console.error("Error al subir logo:", logoError);
               toast.dismiss(loadingToastId);
-              toast.warning("⚠️ Logo validado pero error al subir. Intenta de nuevo.", { 
+              toast.warning(" Logo validado pero error al subir. Intenta de nuevo.", { 
                 autoClose: 3000,
                 position: "top-right"
               });
@@ -499,9 +498,9 @@ export default function OwnerBusinessProfile() {
               return;
             }
           } else {
-            // ❌ RECHAZADA - No permitir guardar
+            // RECHAZADA - No permitir guardar
             toast.dismiss(loadingToastId);
-            toast.error(`❌ Guardado cancelado: La imagen no cumple requisitos (${Math.round(validationResult.confidence * 100)}% confianza). Sube una imagen de tu negocio.`, { 
+            toast.error(` Imagen rechazada (${Math.round(validationResult.confidence * 100)}% confianza). Sube una imagen de tu negocio.`, { 
               autoClose: 4000,
               position: "top-right"
             });
@@ -510,7 +509,7 @@ export default function OwnerBusinessProfile() {
           }
         } catch (error) {
           if (loadingToastId) toast.dismiss(loadingToastId);
-          toast.error("❌ Error al validar imagen - Guardado cancelado", { 
+          toast.error(" Error al validar imagen - Guardado cancelado", { 
             autoClose: 3500, 
             position: "top-right"
           });
@@ -556,7 +555,7 @@ export default function OwnerBusinessProfile() {
 
       if (!response.ok) {
         const errorData = await response.text();
-        console.error('❌ Error response:', errorData);
+        console.error(' Error response:', errorData);
         throw new Error("Error al actualizar el negocio");
       }
 
@@ -595,20 +594,20 @@ export default function OwnerBusinessProfile() {
       }
       
       if (verificationStatus) {
-        toast.success("✅ Negocio guardado y verificado", { 
+        toast.success(" Negocio guardado y verificado", { 
           autoClose: 3000,
           closeButton: false,
           position: "top-right"
         });
       } else {
-        toast.success("✅ Cambios guardados correctamente", { 
+        toast.success(" Cambios guardados correctamente", { 
           autoClose: 2500,
           closeButton: false,
           position: "top-right"
         });
       }
     } catch (error: any) {
-      toast.error(`❌ ${error.message || "Error al guardar"}`, { 
+      toast.error(` ${error.message || "Error al guardar"}`, { 
         autoClose: 3000,
         closeButton: false,
         position: "top-right"

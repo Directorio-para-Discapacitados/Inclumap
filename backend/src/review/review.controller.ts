@@ -49,6 +49,16 @@ export class ReviewController {
     return this.reviewService.update(review_id, updateReviewDto, user);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/owner-reply')
+  setOwnerReply(
+    @Param('id', ParseIntPipe) review_id: number,
+    @Body('owner_reply') owner_reply: string,
+    @User() user: UserEntity,
+  ) {
+    return this.reviewService.setOwnerReply(review_id, owner_reply, user);
+  }
+
   @Get()
   getAllReviews() {
     return this.reviewService.getAllReviews();

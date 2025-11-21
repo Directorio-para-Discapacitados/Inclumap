@@ -180,12 +180,43 @@ export class ReviewService {
         'review.sentiment_label',
         'review.coherence_check',
         'review.suggested_action',
+        'review.owner_reply',
+        'review.owner_reply',
         // Usuario (Solo ID)
         'user.user_id',
       ])
       .where('business.business_id = :business_id', { business_id })
       .orderBy('review.created_at', 'DESC')
       .getMany();
+  }
+
+  async setOwnerReply(
+    review_id: number,
+    ownerReply: string,
+    user: UserEntity,
+  ): Promise<ReviewEntity> {
+    const review = await this.reviewRepository.findOne({
+      where: { review_id },
+      relations: ['business', 'business.user'],
+    });
+
+    if (!review) {
+      throw new NotFoundException(`Reseña con ID ${review_id} no encontrada.`);
+    }
+
+    const businessOwner = review.business?.user;
+    const isOwner = businessOwner && businessOwner.user_id === user.user_id;
+
+    if (!isOwner) {
+      throw new ForbiddenException(
+        'Solo el propietario del negocio puede responder a esta reseña.',
+      );
+    }
+
+    review.owner_reply = ownerReply;
+    await this.reviewRepository.save(review);
+
+    return this.findReviewClean(review_id);
   }
 
   //Función privada para recalcular el promedio.
@@ -225,6 +256,7 @@ export class ReviewService {
         'review.sentiment_label',
         'review.coherence_check',
         'review.suggested_action',
+        'review.owner_reply',
         // Local (Business)
         'business.business_id',
         'business.business_name',
@@ -256,6 +288,7 @@ export class ReviewService {
         'review.sentiment_label',
         'review.coherence_check',
         'review.suggested_action',
+        'review.owner_reply',
         'business.business_id',
         'business.business_name',
         'business.average_rating',
@@ -276,6 +309,7 @@ export class ReviewService {
       sentiment_label: review.sentiment_label,
       coherence_check: review.coherence_check,
       suggested_action: review.suggested_action,
+      owner_reply: review.owner_reply,
       business: review.business,
       user: {
         user_id: review.user.user_id,

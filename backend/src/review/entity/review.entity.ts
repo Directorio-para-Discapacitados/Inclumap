@@ -44,6 +44,13 @@ export class ReviewEntity {
   })
   suggested_action: string;
 
+  @Column({
+    type: 'text',
+    nullable: true,
+    comment: 'Respuesta del propietario del negocio a la reseña',
+  })
+  owner_reply: string | null;
+
   @CreateDateColumn({ name: 'created_at' })
   created_at: Date;
 
