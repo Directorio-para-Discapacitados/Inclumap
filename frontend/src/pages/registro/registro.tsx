@@ -7,6 +7,7 @@ import { useJsApiLoader } from "@react-google-maps/api";
 import LocationPicker from "../LocationPicker/LocationPicker";
 import CategoryMultiSelect from "../../Components/CategoryMultiSelect/CategoryMultiSelect";
 import { getAllCategories, Category } from "../../services/categoryService";
+import { useAuth } from "../../context/AuthContext";
 
 const API_URL = "http://localhost:9080";
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
@@ -48,6 +49,7 @@ export default function Registro() {
 
   const [step, setStep] = useState(1);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   // Mapa modal
   const [showMap, setShowMap] = useState(false);
@@ -196,8 +198,35 @@ export default function Registro() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message);
 
-      toast.success("Registro exitoso", { autoClose: 3000 });
-      setTimeout(() => navigate("/login"), 2000);
+      // Mensaje personalizado según tipo de registro
+      const registeredUser = (data as any).user;
+      const displayName =
+        (isBusiness
+          ? registeredUser?.business?.business_name
+          : registeredUser?.people?.firstName) ||
+        (isBusiness ? formData.business_name : formData.firstName) ||
+        "tu cuenta";
+
+      if (isBusiness) {
+        toast.success(
+          `Negocio "${displayName}" registrado. Iniciando sesión como propietario...`,
+          { autoClose: 2500 }
+        );
+      } else {
+        toast.success(
+          `¡Bienvenido ${displayName}! Hemos creado tu cuenta e iniciado sesión.`,
+          { autoClose: 2500 }
+        );
+      }
+
+      const token = data.access_token || data.token;
+
+      if (token) {
+        await login(token);
+        navigate("/", { replace: true });
+      } else {
+        navigate("/login");
+      }
     } catch (err: any) {
       toast.error(err.message || "Error al registrar", { autoClose: 3000 });
     }

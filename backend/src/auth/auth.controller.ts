@@ -22,14 +22,14 @@ export class AuthController {
   @Post('register')
   async register(
     @Body() createFullUserDto: CreateFullUserDto,
-  ): Promise<{ message: string }> {
+  ): Promise<{ message: string; token: string; access_token: string; user: any }> {
     return this.authService.registerFullUser(createFullUserDto);
   }
 
   @Post('registerBusiness')
   async registerBusiness(
     @Body() createFullBusinessDto: CreateFullBusinessDto,
-  ): Promise<{ message: string; token: string }> {
+  ): Promise<{ message: string; token: string; access_token: string; user: any }> {
     return this.authService.registerFullBusiness(createFullBusinessDto);
   }
 
