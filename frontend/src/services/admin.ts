@@ -355,7 +355,6 @@ export const getUsersOnly = async (): Promise<AdminUser[]> => {
   const all = await getAllUsers();
   
   const filtered = all.filter((u) => {
-    const isUser = hasRoleId(u.roles, 2); // Tiene rol de usuario
     const isAdmin = hasRoleId(u.roles, 1); // Tiene rol de administrador
     const isOwner = hasRoleId(u.roles, 3); // Tiene rol de propietario (asumiendo que es id 3)
     
@@ -366,8 +365,9 @@ export const getUsersOnly = async (): Promise<AdminUser[]> => {
       role.name?.toLowerCase().includes('owner')
     );
     
-    // Incluir solo si es usuario Y NO es admin Y NO es propietario
-    return isUser && !isAdmin && !isOwner && !isOwnerByName;
+    // Incluir si NO es admin Y NO es propietario
+    // (no requiere tener rol 2 específicamente, solo que no sea admin ni owner)
+    return !isAdmin && !isOwner && !isOwnerByName;
   });
   
   return filtered;

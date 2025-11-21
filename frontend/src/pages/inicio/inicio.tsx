@@ -4,6 +4,7 @@ import "./inicio.css";
 import { API_URL } from "../../config/api";
 import { getAllCategories, Category } from "../../services/categoryService";
 import { useAuth } from "../../context/AuthContext";
+import AdminDashboard from "../../Components/AdminDashboard/AdminDashboard";
 import OwnerDashboard from "../../Components/OwnerDashboard/OwnerDashboard";
 
 /* --- IMPORTACIONES PARA EL MAPA --- */
@@ -29,24 +30,9 @@ interface Accessibility {
 export default function Inicio() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth() || {};
+  const { user } = useAuth();
   const cardsRef = useRef<HTMLDivElement | null>(null);
   const communityRef = useRef<HTMLElement | null>(null);
-
-  const iconMap: Record<string, string> = {
-    "Rampa Acceso": "fa-wheelchair",
-    "Baño adaptado": "fa-universal-access",
-    "Estacionamiento para discapacitados": "fa-parking",
-    "Puertas Anchas": "fa-door-open",
-    "Circulación Interior": "fa-arrows-alt",
-    "Ascensor Accesible": "fa-elevator",
-    "Pisos": "fa-grip-lines",
-    "Barras de Apoyo": "fa-hands-helping",
-    "Lavamanos Accesible": "fa-sink",
-    "Mostrador/Caja Accesible": "fa-cash-register",
-    "Señalización (SIA)": "fa-sign",
-    "Señalización Táctil/Braille": "fa-braille"
-  };
 
   const [cards, setCards] = useState<Accessibility[]>([]);
   const [query, setQuery] = useState("");
@@ -61,10 +47,6 @@ export default function Inicio() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [loadingCategories, setLoadingCategories] = useState(true);
-
-  const goToDetail = (id: number | string) => {
-    navigate(`/local/${id}`);
-  };
 
   // Cargar accesibilidades desde BD
   useEffect(() => {
@@ -282,6 +264,32 @@ export default function Inicio() {
 
     return () => clearInterval(interval);
   }, [location.search]);
+
+  // Si el usuario es administrador, mostrar el panel de administración
+  const isAdmin = user?.rolIds?.includes(1);
+  
+  if (isAdmin) {
+    return <AdminDashboard />;
+  }
+
+  const iconMap: Record<string, string> = {
+    "Rampa Acceso": "fa-wheelchair",
+    "Baño adaptado": "fa-universal-access",
+    "Estacionamiento para discapacitados": "fa-parking",
+    "Puertas Anchas": "fa-door-open",
+    "Circulación Interior": "fa-arrows-alt",
+    "Ascensor Accesible": "fa-elevator",
+    "Pisos": "fa-grip-lines",
+    "Barras de Apoyo": "fa-hands-helping",
+    "Lavamanos Accesible": "fa-sink",
+    "Mostrador/Caja Accesible": "fa-cash-register",
+    "Señalización (SIA)": "fa-sign",
+    "Señalización Táctil/Braille": "fa-braille"
+  };
+
+  const goToDetail = (id: number | string) => {
+    navigate(`/local/${id}`);
+  };
 
   const handleClearSearch = () => {
     setQuery("");
