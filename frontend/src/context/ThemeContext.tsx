@@ -23,9 +23,19 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   });
 
   useEffect(() => {
-    // Aplicar la clase al html y body para mayor compatibilidad
+    // Aplicar la clase y el atributo data-theme al html y body para mayor compatibilidad
     document.documentElement.classList.toggle('dark-mode', darkMode);
     document.body.classList.toggle('dark-mode', darkMode);
+    
+    // Aplicar atributo data-theme para componentes que lo usan
+    if (darkMode) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.body.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      document.body.removeAttribute('data-theme');
+    }
+    
     try {
       localStorage.setItem('darkMode', darkMode.toString());
     } catch {}

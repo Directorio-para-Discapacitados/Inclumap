@@ -21,10 +21,12 @@ export default function Navbar() {
   const [missingItems, setMissingItems] = useState<string[]>([]);
   
   const location = useLocation();
-  const showSearch = location.pathname === "/" || location.pathname === "/negocios";
-
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
+  
+  // No mostrar búsqueda si el usuario es propietario en la página de inicio
+  const showSearch = (location.pathname === "/" || location.pathname === "/negocios") 
+    && !(user?.roleDescription === "Propietario" && location.pathname === "/");
   const profileMenuRef = useRef<HTMLLIElement | null>(null);
 
   // 1. Cargar categorías
