@@ -4,9 +4,12 @@ import { BusinessStatistics } from "../../services/ownerStatistics";
 
 interface MetricsGridProps {
   statistics: BusinessStatistics;
+  businessImages?: { id: number; url: string }[];
+  businessName?: string | null;
+  onImageClick?: (url: string) => void;
 }
 
-export default function MetricsGrid({ statistics }: MetricsGridProps) {
+export default function MetricsGrid({ statistics, businessImages = [], businessName, onImageClick }: MetricsGridProps) {
   const [animatedViews, setAnimatedViews] = useState(0);
   const [animatedRating, setAnimatedRating] = useState(0);
   const [animatedReviews, setAnimatedReviews] = useState(0);
