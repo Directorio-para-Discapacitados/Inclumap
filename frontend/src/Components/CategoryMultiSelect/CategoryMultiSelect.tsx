@@ -1,5 +1,4 @@
 import React from "react";
-import { HelpCircle } from "lucide-react";
 import { Category } from "../../services/categoryService";
 import "./CategoryMultiSelect.css";
 
@@ -49,12 +48,12 @@ const CategoryMultiSelect: React.FC<CategoryMultiSelectProps> = ({
               key={category.category_id}
               className={`category-chip ${isSelected ? "selected" : ""} ${disabled ? "disabled" : ""}`}
               onClick={() => handleToggle(category.category_id)}
+              title={category.description}
             >
-              <span className="category-name">{category.name}</span>
-              <div className="tooltip-wrapper">
-                <HelpCircle className="help-icon" size={18} />
-                <span className="tooltip-text">{category.description}</span>
+              <div className="category-check">
+                {isSelected && <i className="fas fa-check"></i>}
               </div>
+              <span className="category-name">{category.name}</span>
             </div>
           );
         })}

@@ -467,6 +467,22 @@
   font-size: 13px;
   color: var(--color-text-muted);
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+
+.profile-menu-role .verified-icon {
+  color: #10b981;
+  font-size: 14px;
+  margin-left: 4px;
+  filter: drop-shadow(0 0 3px rgba(16, 185, 129, 0.5));
+}
+
+body.dark-mode .profile-menu-role .verified-icon {
+  color: #10b981;
+  filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.6));
 }
 
 /* Botón de administrar cuenta */

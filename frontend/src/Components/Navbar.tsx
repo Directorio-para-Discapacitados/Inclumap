@@ -204,7 +204,12 @@ export default function Navbar() {
                         <Avatar src={user?.avatar} alt="Perfil" size="large" />
                         <div className="profile-menu-user-info">
                             <h3>{user?.displayName}</h3>
-                            <p>{user?.roleDescription}</p>
+                            <p className="profile-menu-role">
+                              {user?.roleDescription}
+                              {user?.roleDescription === "Propietario" && user?.verified && (
+                                <i className="fas fa-check-circle verified-icon" title="Verificado"></i>
+                              )}
+                            </p>
                         </div>
                         </div>
                         <button onClick={() => { setIsMenuOpen(false); navigate("/perfil"); }} className="profile-menu-manage-btn">Administrar cuenta</button>
