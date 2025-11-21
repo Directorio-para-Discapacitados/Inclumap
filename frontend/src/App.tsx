@@ -13,6 +13,10 @@ import AjustesPage from "./pages/ajustes/Ajustes";
 import AdminLoginPage from './pages/adminLogin/AdminLogin';
 import GestionUsuarios from "./pages/admin/gestion-roles/usuarios/GestionUsuarios";
 import GestionPropietarios from "./pages/admin/gestion-roles/propietarios/GestionPropietarios";
+import GestionNegocios from "./pages/admin/gestion-negocios/GestionNegocios";
+import GestionCategorias from "./pages/admin/gestion-categorias/GestionCategorias";
+import GestionAccesibilidad from "./pages/admin/gestion-accesibilidad/GestionAccesibilidad";
+import Reportes from "./pages/admin/reportes/Reportes";
 import CrearNegocio from "./pages/crearNegocio/CrearNegocio";
 import LocalDetalle from "./pages/local/LocalDetalle";
 import { ToastContainer } from 'react-toastify';
@@ -391,6 +395,10 @@ function AppContent() {
             />
             <Route path="/admin/gestion-usuarios" element={<GestionUsuarios />} />
             <Route path="/admin/gestion-propietarios" element={<GestionPropietarios />} />
+            <Route path="/admin/gestion-negocios" element={<GestionNegocios />} />
+            <Route path="/admin/gestion-categorias" element={<GestionCategorias />} />
+            <Route path="/admin/gestion-accesibilidad" element={<GestionAccesibilidad />} />
+            <Route path="/admin/reportes" element={<Reportes />} />
             {/* --- FIN DE LA CORRECCIÓN --- */}
 
             {/* Nueva ruta para crear negocio */}

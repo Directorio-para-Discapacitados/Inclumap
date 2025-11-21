@@ -21,11 +21,13 @@ export default function Navbar() {
   const [missingItems, setMissingItems] = useState<string[]>([]);
   
   const location = useLocation();
-  const showSearch = location.pathname === "/" || location.pathname === "/negocios";
-
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
   const profileMenuRef = useRef<HTMLLIElement | null>(null);
+  
+  // Ocultar buscador si el usuario es admin
+  const isAdmin = user?.rolIds?.includes(1);
+  const showSearch = !isAdmin && (location.pathname === "/" || location.pathname === "/negocios");
 
   // 1. Cargar categorías
   useEffect(() => {

@@ -1,0 +1,75 @@
+/* Management Card Styles */
+
+.management-card {
+  background-color: var(--color-surface);
+  border-radius: 0;
+  padding: 1rem 1.5rem;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: background-color 0.2s ease;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  position: relative;
+  overflow: hidden;
+}
+
+.management-card:last-child {
+  border-bottom: none;
+}
+
+.management-card:hover {
+  background-color: var(--color-hover-bg);
+  border-color: var(--color-border);
+}
+
+.management-card .card-icon-wrapper {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+}
+
+.management-card .card-icon {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+}
+
+.management-card .card-content {
+  flex: 1;
+}
+
+.management-card .card-content h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.management-card .card-content p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.management-card .card-arrow {
+  font-size: 1rem;
+  color: var(--color-text-muted);
+  opacity: 1;
+  transform: none;
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.management-card:hover .card-arrow {
+  color: var(--color-primary);
+}

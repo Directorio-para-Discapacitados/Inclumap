@@ -262,7 +262,7 @@ const GestionUsuarios: React.FC = () => {
           <div className="header-left">
             <button
               className="back-button"
-              onClick={() => navigate('/ajustes')}
+              onClick={() => navigate('/')}
             >
               <span>←</span>
               Regresar

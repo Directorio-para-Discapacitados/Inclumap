@@ -275,10 +275,10 @@ const GestionPropietarios: React.FC = () => {
           <div className="header-left">
             <button
               className="back-button"
-              onClick={() => navigate('/ajustes')}
+              onClick={() => navigate('/')}
             >
               <span>←</span>
-              Regresar
+              Regresar al Panel
             </button>
             <h1 className="page-title">Gestión de Propietarios</h1>
           </div>
