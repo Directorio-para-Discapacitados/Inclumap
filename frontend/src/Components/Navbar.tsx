@@ -23,15 +23,12 @@ export default function Navbar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
-  
-  // No mostrar búsqueda si el usuario es propietario en la página de inicio
-  const showSearch = (location.pathname === "/" || location.pathname === "/negocios") 
-    && !(user?.roleDescription === "Propietario" && location.pathname === "/");
   const profileMenuRef = useRef<HTMLLIElement | null>(null);
   
-  // Ocultar buscador si el usuario es admin
+  // Ocultar buscador si el usuario es admin o si es propietario en la página de inicio
   const isAdmin = user?.rolIds?.includes(1);
-  const showSearch = !isAdmin && (location.pathname === "/" || location.pathname === "/negocios");
+  const isOwnerOnHomePage = user?.roleDescription === "Propietario" && location.pathname === "/";
+  const showSearch = !isAdmin && !isOwnerOnHomePage && (location.pathname === "/" || location.pathname === "/negocios");
 
   // 1. Cargar categorías
   useEffect(() => {
