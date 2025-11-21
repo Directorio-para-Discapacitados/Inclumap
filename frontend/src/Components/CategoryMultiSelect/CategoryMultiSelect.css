@@ -26,44 +26,63 @@
   border-left: 3px solid #e74c3c;
 }
 
-/* Grid de 3 columnas (igual que accesibilidad) */
+/* Grid de categorías */
 .category-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.8rem;
-  margin-top: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
   margin-bottom: 1.5rem;
   width: 100%;
 }
 
-/* Cada botón de categoría (estilo igual a accesibilidad-boton) */
+/* Cada botón de categoría (igual al estilo de accesibilidad) */
 .category-chip {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  background-color: var(--color-surface);
+  gap: 10px;
+  padding: 12px 16px;
+  background: #ffffff;
+  border: 2px solid #e5e7eb;
   border-radius: 10px;
-  padding: 0.75rem 0.85rem;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  border: 2px solid transparent;
-  box-shadow: 0 2px 6px var(--color-shadow);
-  min-height: 50px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--color-text);
+  transition: all 0.3s ease;
+  font-size: 14px;
+  text-align: left;
   user-select: none;
 }
 
+body.dark-mode .category-chip {
+  background: rgba(30, 30, 30, 0.8);
+  border: 2px solid rgba(74, 144, 226, 0.25);
+  color: #e5e7eb;
+}
+
 .category-chip:hover:not(.disabled) {
-  background-color: var(--color-card-hover);
-  border-color: var(--color-primary);
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #4a90e2;
+}
+
+body.dark-mode .category-chip:hover:not(.disabled) {
+  box-shadow: 0 4px 16px rgba(74, 144, 226, 0.4);
+  border-color: rgba(74, 144, 226, 0.7);
+  background: rgba(40, 40, 40, 0.9);
 }
 
 .category-chip.selected {
-  border-color: var(--color-primary);
-  background-color: var(--color-card-hover);
+  background: linear-gradient(135deg, rgba(74, 144, 226, 0.1), rgba(90, 159, 240, 0.15));
+  border-color: #4a90e2;
+  color: #4a90e2;
+  font-weight: 600;
+}
+
+body.dark-mode .category-chip.selected {
+  background: linear-gradient(135deg, rgba(74, 144, 226, 0.25), rgba(90, 159, 240, 0.2));
+  border-color: rgba(74, 144, 226, 0.9);
+  color: #6ba3f5;
+  box-shadow: 0 4px 16px rgba(74, 144, 226, 0.4), inset 0 1px 3px rgba(74, 144, 226, 0.2);
 }
 
 .category-chip.disabled {
@@ -71,51 +90,51 @@
   cursor: not-allowed;
 }
 
-.category-name {
-  flex: 1;
-  margin-right: 0.5rem;
-}
-
-/* Tooltip wrapper */
-.tooltip-wrapper {
-  position: relative;
+/* Checkbox circular (igual a accesibilidad) */
+.category-check {
   display: flex;
   align-items: center;
-}
-
-.help-icon {
-  color: var(--color-text-muted);
-  cursor: help;
-  transition: color 0.2s ease;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #f9fafb;
+  border: 2px solid #d1d5db;
+  font-size: 12px;
+  color: white;
+  transition: all 0.3s ease;
   flex-shrink: 0;
 }
 
-.help-icon:hover {
-  color: var(--color-primary);
+body.dark-mode .category-check {
+  background: rgba(20, 20, 20, 0.6);
+  border: 2px solid rgba(74, 144, 226, 0.4);
 }
 
-/* Tooltip text */
-.tooltip-text {
-  visibility: hidden;
-  opacity: 0;
-  width: 200px;
-  background-color: var(--color-primary);
-  color: #ffffff;
-  text-align: center;
-  border-radius: 8px;
-  padding: 6px;
-  position: absolute;
-  z-index: 10;
-  bottom: 125%;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 12px;
-  transition: opacity 0.3s ease;
+.category-chip.selected .category-check {
+  background: #4a90e2;
+  border-color: #4a90e2;
 }
 
-.tooltip-wrapper:hover .tooltip-text {
-  visibility: visible;
-  opacity: 1;
+body.dark-mode .category-chip.selected .category-check {
+  background: #5a9ff0;
+  border-color: #5a9ff0;
+  box-shadow: 0 0 15px rgba(74, 144, 226, 0.7);
+}
+
+.category-name {
+  flex: 1;
+  color: var(--color-text);
+  transition: color 0.3s ease;
+}
+
+body.dark-mode .category-name {
+  color: #e5e7eb;
+}
+
+body.dark-mode .category-chip.selected .category-name {
+  color: #7db4f7;
+  font-weight: 600;
 }
 
 .category-hint {
@@ -124,6 +143,10 @@
   margin-top: 8px;
   font-style: italic;
   text-align: center;
+}
+
+body.dark-mode .category-hint {
+  color: #9ca3af;
 }
 
 /* Responsive */

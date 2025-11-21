@@ -255,8 +255,9 @@ const LocalDetalle: React.FC = () => {
         const json = await resp.json();
         setData(json);
 
-        // Registrar vista del negocio SOLO UNA VEZ
-        if (json?.business_id && !viewRegisteredRef.current) {
+        // Registrar vista del negocio SOLO UNA VEZ y SOLO si el usuario NO es propietario (rol 3)
+        const isNotOwner = !user?.rolIds?.includes(3);
+        if (json?.business_id && !viewRegisteredRef.current && isNotOwner) {
           viewRegisteredRef.current = true;
           recordBusinessView(json.business_id).catch(() => {
             // Error silencioso - no afecta la experiencia del usuario
@@ -267,7 +268,7 @@ const LocalDetalle: React.FC = () => {
       }
     };
     load();
-  }, [id]);
+  }, [id, user?.rolIds]);
 
   /* Cargar accesibilidad */
   useEffect(() => {

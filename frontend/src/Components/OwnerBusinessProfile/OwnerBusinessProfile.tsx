@@ -695,10 +695,7 @@ export default function OwnerBusinessProfile() {
           <div className="profile-view">
             <div className="logo-section">
               {businessData.logo_url ? (
-                <div
-                  className="logo-container"
-                  style={{ width: 200, height: 200 }}
-                >
+                <div className="logo-container">
                   <img src={businessData.logo_url} alt={businessData.business_name} className="business-logo" />
                   {businessData.verified && (
                     <div className="logo-verification-badge">
