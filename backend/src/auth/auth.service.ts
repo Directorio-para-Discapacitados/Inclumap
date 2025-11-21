@@ -84,7 +84,7 @@ export class AuthService {
 
   async registerFullUser(
     userData: CreateFullUserDto,
-  ): Promise<{ message: string; token: string }> {
+  ): Promise<{ message: string; token: string; access_token: string; user: UserEntity }> {
     try {
       const existingUser: UserEntity | null = await this.userRepository.findOne(
         {
@@ -155,6 +155,11 @@ export class AuthService {
       // Generar el token JWT
       const token = this.jwtService.sign(payload);
 
+      const userWithRelations = await this.userRepository.findOne({
+        where: { user_id: newUser.user_id },
+        relations: ['people', 'business', 'userroles', 'userroles.rol'],
+      });
+
       // Crear notificación de bienvenida con sugerencia inicial
       try {
         const topBusiness = await this.businessRepository
@@ -183,7 +188,12 @@ export class AuthService {
         );
       }
 
-      return { message: 'Usuario registrados exitosamente', token };
+      return {
+        message: 'Usuario registrados exitosamente',
+        token,
+        access_token: token,
+        user: userWithRelations!,
+      };
     } catch (error) {
       // Manejo de errores seguro
       if (error instanceof HttpException) {
@@ -204,7 +214,7 @@ export class AuthService {
 
   async registerFullBusiness(
     businessData: CreateFullBusinessDto,
-  ): Promise<{ message: string; token: string }> {
+  ): Promise<{ message: string; token: string; access_token: string; user: UserEntity }> {
     try {
       // 1. Validaciones previas
       const existingUser: UserEntity | null = await this.userRepository.findOne(
@@ -372,9 +382,16 @@ export class AuthService {
 
       const token = this.jwtService.sign(payload);
 
+      const userWithRelations = await this.userRepository.findOne({
+        where: { user_id: newUser.user_id },
+        relations: ['people', 'business', 'userroles', 'userroles.rol'],
+      });
+
       return {
         message: 'Negocio registrado exitosamente',
         token,
+        access_token: token,
+        user: userWithRelations!,
       };
     } catch (error) {
       console.error('❌ Error fatal en registro de negocio:', error);
