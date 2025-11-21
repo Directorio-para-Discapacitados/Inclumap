@@ -66,7 +66,6 @@ export default function OwnerBusinessProfile() {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [showAllGallery, setShowAllGallery] = useState(false);
   const [editData, setEditData] = useState<EditState>({
     business_name: "",
     business_address: "",
@@ -696,7 +695,10 @@ export default function OwnerBusinessProfile() {
           <div className="profile-view">
             <div className="logo-section">
               {businessData.logo_url ? (
-                <div className="logo-container">
+                <div
+                  className="logo-container"
+                  style={{ width: 200, height: 200 }}
+                >
                   <img src={businessData.logo_url} alt={businessData.business_name} className="business-logo" />
                   {businessData.verified && (
                     <div className="logo-verification-badge">
@@ -708,38 +710,6 @@ export default function OwnerBusinessProfile() {
                 <div className="no-logo">
                   <i className="fas fa-image"></i>
                   <p>Sin logo</p>
-                </div>
-              )}
-
-              {Array.isArray(businessData.images) && businessData.images.length > 0 && (
-                <div
-                  className={`business-gallery-wrapper-read ${
-                    showAllGallery ? "expanded" : ""
-                  }`}
-                >
-                  <div className="business-gallery">
-                    {(showAllGallery
-                      ? businessData.images
-                      : businessData.images.slice(0, 2)
-                    ).map((img) => (
-                      <img
-                        key={img.id}
-                        src={img.url}
-                        alt={businessData.business_name}
-                        className="business-gallery-image"
-                        onClick={() => handleOpenImage(img.url)}
-                      />
-                    ))}
-                  </div>
-                  {businessData.images.length > 2 && (
-                    <button
-                      type="button"
-                      className="gallery-more-btn"
-                      onClick={() => setShowAllGallery((prev) => !prev)}
-                    >
-                      {showAllGallery ? "Ver menos" : "Ver más"}
-                    </button>
-                  )}
                 </div>
               )}
             </div>

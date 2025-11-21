@@ -19,6 +19,9 @@ export default function OwnerDashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [businessName, setBusinessName] = useState<string | null>(null);
+  const [businessImages, setBusinessImages] = useState<{ id: number; url: string }[]>([]);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchBusinessAndStatistics = async () => {
@@ -27,7 +30,7 @@ export default function OwnerDashboard() {
       try {
         setLoading(true);
         
-        // Obtener el negocio del propietario
+        // Obtener el negocio del propietario (asociación usuario-negocio)
         const response = await api.get(`/user/${user.user_id}/business`);
         const business = response.data;
 
@@ -38,6 +41,33 @@ export default function OwnerDashboard() {
         }
 
         setBusinessId(business.business_id);
+
+        // Intentar obtener imágenes directamente del negocio; si no vienen, consultar detalle del negocio
+        let images: { id: number; url: string }[] = Array.isArray(business.images)
+          ? business.images
+          : [];
+
+        let name: string | null = business.business_name || user.displayName || null;
+
+        if ((!images || images.length === 0) && business.business_id) {
+          try {
+            const businessDetailResp = await api.get(`/business/${business.business_id}`);
+            const businessDetail = businessDetailResp.data;
+
+            if (Array.isArray(businessDetail.images)) {
+              images = businessDetail.images;
+            }
+
+            if (businessDetail.business_name) {
+              name = businessDetail.business_name;
+            }
+          } catch (detailError) {
+            console.error("Error al cargar detalles del negocio para imágenes:", detailError);
+          }
+        }
+
+        setBusinessName(name);
+        setBusinessImages(images || []);
 
         // Obtener estadísticas
         const stats = await getBusinessStatistics(business.business_id);
@@ -53,6 +83,14 @@ export default function OwnerDashboard() {
 
     fetchBusinessAndStatistics();
   }, [user?.user_id]);
+
+  const handleOpenImage = (url: string) => {
+    setSelectedImage(url);
+  };
+
+  const handleCloseImage = () => {
+    setSelectedImage(null);
+  };
 
   const handleRefresh = async () => {
     if (!businessId || refreshing) return;
@@ -119,7 +157,12 @@ export default function OwnerDashboard() {
         </div>
       </div>
 
-      <MetricsGrid statistics={statistics} />
+      <MetricsGrid 
+        statistics={statistics} 
+        businessImages={businessImages}
+        businessName={businessName}
+        onImageClick={handleOpenImage}
+      />
 
       <div className="dashboard-grid">
         <div className="dashboard-column-main">
@@ -127,6 +170,23 @@ export default function OwnerDashboard() {
           <VisitsChart views={statistics.views} />
           <SentimentAnalysis sentiment={statistics.reviews.sentiment} />
           <RecentReviews reviews={statistics.recentReviews} businessId={businessId} />
+
+          {businessImages.length > 0 && (
+            <div className="dashboard-card owner-photos-card">
+              <h3 className="card-title">Galería de tu local</h3>
+              <div className="owner-photos-grid">
+                {businessImages.map((img) => (
+                  <div key={img.id} className="owner-photo-item">
+                    <img
+                      src={img.url}
+                      alt={businessName || "Foto del local"}
+                      onClick={() => handleOpenImage(img.url)}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="dashboard-column-sidebar">
@@ -134,6 +194,21 @@ export default function OwnerDashboard() {
           <QuickActions businessId={businessId} />
         </div>
       </div>
+
+      {selectedImage && (
+        <div className="image-modal-overlay" onClick={handleCloseImage}>
+          <div className="image-modal-content" onClick={(e) => e.stopPropagation()}>
+            <img src={selectedImage} alt={businessName || "Foto del local"} />
+            <button
+              type="button"
+              className="image-modal-close"
+              onClick={handleCloseImage}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
