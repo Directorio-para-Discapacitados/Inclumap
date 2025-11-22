@@ -245,10 +245,13 @@ export default function Navbar() {
                 </li>
                 </>
             )}
+            
+            {/* Botón de voz siempre visible */}
+            <li><SpeechToggle /></li>
+            
             {isAuthenticated && (
                 <>
                 <li><NotificationBell /></li>
-                <li><SpeechToggle /></li>
                 <li className="profile-container" ref={profileMenuRef}>
                     <div 
                       onClick={handleProfileClick} 
