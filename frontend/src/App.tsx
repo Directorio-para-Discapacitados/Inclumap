@@ -8,6 +8,7 @@ import Perfil from "./pages/perfil/perfil";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { SpeechProvider } from "./context/SpeechContext";
 import { GlobalSpeechListener } from "./Components/GlobalSpeechListener";
+import VoiceCommander from "./Components/VoiceCommander";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import ChatWidget from "./Components/ChatWidget"; 
 import ForgotPasswordPage from "./pages/reseteoPassword/ForgotPasswordPage";
@@ -77,6 +78,7 @@ function AppContent() {
     <>
       <Navbar />
       <GlobalSpeechListener />
+      <VoiceCommander />
       <main style={{ paddingTop: '70px' }}>
         <Routes>
           
