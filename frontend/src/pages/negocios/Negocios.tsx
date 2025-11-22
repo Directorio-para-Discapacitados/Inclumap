@@ -2,9 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Negocios.css";
 import { API_URL } from "../../config/api";
+import { useSpeakable } from "../../hooks/useSpeakable";
 
 export default function Negocios() {
   const navigate = useNavigate();
+  const { onMouseEnter, onFocus } = useSpeakable();
   const [businesses, setBusinesses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +44,13 @@ export default function Negocios() {
     <div className="negocios-page">
       <div className="negocios-header">
         <div className="header-title-row">
-          <button className="btn-back" onClick={() => navigate('/')}>
+          <button 
+            className="btn-back" 
+            onClick={() => navigate('/')}
+            {...onMouseEnter}
+            {...onFocus}
+            aria-label="Volver al inicio"
+          >
             <i className="fas fa-arrow-left"></i>
             <span>Volver</span>
           </button>
@@ -63,6 +71,10 @@ export default function Negocios() {
               <article
                 key={business.business_id}
                 className="negocio-card"
+                {...onMouseEnter}
+                {...onFocus}
+                aria-label={`Negocio ${business.business_name}, ${business.address || 'Sin dirección'}, Calificación ${business.average_rating ? Number(business.average_rating).toFixed(1) : '0'} estrellas`}
+                tabIndex={0}
               >
                 <div className="negocio-image-container">
                   <img 
@@ -139,6 +151,9 @@ export default function Negocios() {
                   <button
                     className="btn-ver-detalles-negocio"
                     onClick={() => goToDetail(business.business_id)}
+                    {...onMouseEnter}
+                    {...onFocus}
+                    aria-label={`Ver detalles de ${business.business_name}`}
                   >
                     <span>Ver Detalles</span>
                     <i className="fas fa-arrow-right"></i>
