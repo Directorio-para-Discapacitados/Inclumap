@@ -1,0 +1,109 @@
+.speech-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: transparent;
+  border: 2px solid var(--border-color, #ddd);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-color, #333);
+  position: relative;
+}
+
+.speech-toggle:hover {
+  background: var(--hover-bg, rgba(0, 0, 0, 0.05));
+  border-color: var(--primary-color, #4a90e2);
+  transform: translateY(-2px);
+}
+
+.speech-toggle:focus {
+  outline: 3px solid var(--focus-color, #4a90e2);
+  outline-offset: 2px;
+}
+
+.speech-toggle:active {
+  transform: translateY(0);
+}
+
+/* Estado activo */
+.speech-toggle.active {
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+  border-color: #357abd;
+  color: white;
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+}
+
+.speech-toggle.active:hover {
+  background: linear-gradient(135deg, #357abd 0%, #2868a8 100%);
+  box-shadow: 0 6px 16px rgba(74, 144, 226, 0.4);
+}
+
+/* Icono */
+.speech-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.speech-toggle.active .speech-icon {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* Label */
+.speech-toggle-label {
+  white-space: nowrap;
+}
+
+/* Responsive - ocultar label en pantallas pequeñas */
+@media (max-width: 768px) {
+  .speech-toggle-label {
+    display: none;
+  }
+
+  .speech-toggle {
+    padding: 8px;
+    min-width: 40px;
+    justify-content: center;
+  }
+}
+
+/* Modo oscuro */
+[data-theme="dark"] .speech-toggle {
+  border-color: #555;
+  color: #e0e0e0;
+}
+
+[data-theme="dark"] .speech-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #4a90e2;
+}
+
+[data-theme="dark"] .speech-toggle.active {
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+  color: white;
+}
+
+/* Accesibilidad - alta visibilidad para usuarios con baja visión */
+@media (prefers-contrast: high) {
+  .speech-toggle {
+    border-width: 3px;
+  }
+
+  .speech-toggle:focus {
+    outline-width: 4px;
+  }
+}

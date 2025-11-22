@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getAllBusinesses } from '../../../services/admin';
 import { eliminarNegocioCompleto } from '../../../services/owner.service';
 import Toast from '../../../Components/Toast/Toast';
+import { useSpeakable } from '../../../hooks/useSpeakable';
 import './GestionNegocios.css';
 
 interface Business {
@@ -32,6 +33,7 @@ const GestionNegocios: React.FC = () => {
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [deleteOwner, setDeleteOwner] = useState(false);
   const navigate = useNavigate();
+  const { onMouseEnter, onFocus } = useSpeakable();
 
   useEffect(() => {
     fetchBusinesses();
@@ -127,7 +129,13 @@ const GestionNegocios: React.FC = () => {
       <div className="content-wrapper">
         <div className="header-section">
           <div className="header-left">
-            <button className="back-button" onClick={() => navigate('/')}>
+            <button 
+              className="back-button" 
+              onClick={() => navigate('/')}
+              aria-label="Regresar al inicio"
+              onMouseEnter={onMouseEnter}
+              onFocus={onFocus}
+            >
               <span>←</span>
               Regresar
             </button>

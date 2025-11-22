@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { loginUser, loginWithGoogle } from "../../config/auth";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { useAuth } from "../../context/AuthContext";
+import { useSpeakable } from "../../hooks/useSpeakable";
 import { Eye, EyeOff } from "lucide-react";
 import "./login.css";
 
@@ -19,6 +20,7 @@ export default function Login() {
   const [mostrarPassword, setMostrarPassword] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { onMouseEnter, onFocus } = useSpeakable();
   const isValid = email && password;
 
   useEffect(() => {
@@ -212,6 +214,9 @@ export default function Login() {
                   }
                 }}
                 required
+                aria-label="Correo electrónico para iniciar sesión"
+                onMouseEnter={onMouseEnter}
+                onFocus={onFocus}
               />
               <datalist id="saved-emails">
                 {savedAccounts.map((a) => (
@@ -226,11 +231,17 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  aria-label="Contraseña"
+                  onMouseEnter={onMouseEnter}
+                  onFocus={onFocus}
                 />
                 <button
                   type="button"
                   onClick={() => setMostrarPassword(!mostrarPassword)}
                   className="password-toggle"
+                  aria-label={mostrarPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  onMouseEnter={onMouseEnter}
+                  onFocus={onFocus}
                 >
                   {mostrarPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
@@ -238,15 +249,36 @@ export default function Login() {
 
               <div className="login-row">
                 <label className="remember-me">
-                  <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} />
+                  <input 
+                    type="checkbox" 
+                    checked={rememberMe} 
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    aria-label={rememberMe ? "Recordarme activado" : "Recordarme desactivado"}
+                    onMouseEnter={onMouseEnter}
+                    onFocus={onFocus}
+                  />
                   Recordarme
                 </label>
-                <Link className="link subtle" to="/forgot-password">¿Olvidaste tu contraseña?</Link>
+                <Link 
+                  className="link subtle" 
+                  to="/forgot-password"
+                  aria-label="¿Olvidaste tu contraseña? Recuperar"
+                  onMouseEnter={onMouseEnter}
+                  onFocus={onFocus}
+                >
+                  ¿Olvidaste tu contraseña?
+                </Link>
               </div>
 
               {error && <p className="error-text" role="alert">{error}</p>}
 
-              <button type="submit" disabled={!isValid || loading}>
+              <button 
+                type="submit" 
+                disabled={!isValid || loading}
+                aria-label={loading ? "Ingresando..." : "Iniciar sesión"}
+                onMouseEnter={onMouseEnter}
+                onFocus={onFocus}
+              >
                 {loading ? "Ingresando..." : "Iniciar sesión"}
               </button>
             </form>
@@ -271,7 +303,14 @@ export default function Login() {
             </div>
 
             <div className="links" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <a href="/registro">¿No tienes cuenta? Regístrate</a>
+              <a 
+                href="/registro"
+                aria-label="¿No tienes cuenta? Regístrate aquí"
+                onMouseEnter={onMouseEnter}
+                onFocus={onFocus}
+              >
+                ¿No tienes cuenta? Regístrate
+              </a>
             </div>
 
           </div>

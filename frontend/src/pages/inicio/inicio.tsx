@@ -4,6 +4,7 @@ import "./inicio.css";
 import { API_URL } from "../../config/api";
 import { getAllCategories, Category } from "../../services/categoryService";
 import { useAuth } from "../../context/AuthContext";
+import { useSpeakable } from "../../hooks/useSpeakable";
 import AdminDashboard from "../../Components/AdminDashboard/AdminDashboard";
 import OwnerDashboard from "../../Components/OwnerDashboard/OwnerDashboard";
 
@@ -33,6 +34,7 @@ export default function Inicio() {
   const { user } = useAuth();
   const cardsRef = useRef<HTMLDivElement | null>(null);
   const communityRef = useRef<HTMLElement | null>(null);
+  const { onMouseEnter, onFocus } = useSpeakable();
 
   const [cards, setCards] = useState<Accessibility[]>([]);
   const [query, setQuery] = useState("");
@@ -463,6 +465,10 @@ export default function Inicio() {
                       <article
                         key={business.business_id}
                         className="business-card-static"
+                        aria-label={`${business.business_name}. ${business.address || ''}. Calificación: ${typeof business.average_rating !== 'undefined' ? Number(business.average_rating).toFixed(1) : 'Sin calificación'}`}
+                        onMouseEnter={onMouseEnter}
+                        onFocus={onFocus}
+                        tabIndex={0}
                       >
                         <div className="business-image-wrapper">
                           <img 
@@ -507,6 +513,9 @@ export default function Inicio() {
                           <button
                             className="btn-details-static"
                             onClick={() => goToDetail(business.business_id)}
+                            aria-label={`Ver detalles de ${business.business_name}`}
+                            onMouseEnter={onMouseEnter}
+                            onFocus={onFocus}
                           >
                             Ver Detalles
                           </button>
@@ -515,7 +524,15 @@ export default function Inicio() {
                     ))}
                     
                     {allBusinesses.length > 5 && (
-                      <article className="business-card-ver-mas" onClick={() => navigate('/negocios')}>
+                      <article 
+                        className="business-card-ver-mas" 
+                        onClick={() => navigate('/negocios')}
+                        aria-label={`Ver más negocios. ${allBusinesses.length - 5} negocios más disponibles`}
+                        onMouseEnter={onMouseEnter}
+                        onFocus={onFocus}
+                        tabIndex={0}
+                        role="button"
+                      >
                         <div className="ver-mas-card-content">
                           <div className="ver-mas-icon-circle">
                             <i className="fas fa-arrow-right"></i>
@@ -602,9 +619,12 @@ export default function Inicio() {
               key={c.accessibility_id}
               className="accessibility-btn"
               onClick={() => handleAccessibilityClick(c.accessibility_id)}
+              aria-label={`Filtrar por ${c.accessibility_name}. ${c.description || 'Haz clic para ver locales con esta accesibilidad'}`}
+              onMouseEnter={onMouseEnter}
+              onFocus={onFocus}
             >
               <div className="card">
-                <div className="card-icon">
+                <div className="card-icon" aria-hidden="true">
                   <i className={`fas ${iconMap[c.accessibility_name] || 'fa-check-circle'}`} />
                 </div>
                 <h3 className="card-title">{c.accessibility_name}</h3>
@@ -630,6 +650,9 @@ export default function Inicio() {
             <button 
               className="btn btn-primary"
               onClick={() => navigate("/reviews")}
+              aria-label="Ver reseñas confiables de la comunidad"
+              onMouseEnter={onMouseEnter}
+              onFocus={onFocus}
             >
               VER RESEÑAS CONFIABLES
             </button>

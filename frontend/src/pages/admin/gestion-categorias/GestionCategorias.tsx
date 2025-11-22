@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllCategories, Category, createCategory, updateCategory, deleteCategory } from '../../../services/categoryService';
 import Toast from '../../../Components/Toast/Toast';
+import { useSpeakable } from '../../../hooks/useSpeakable';
 import './GestionCategorias.css';
 
 const GestionCategorias: React.FC = () => {
@@ -15,6 +16,7 @@ const GestionCategorias: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [formData, setFormData] = useState({ name: '', description: '' });
   const navigate = useNavigate();
+  const { onMouseEnter, onFocus } = useSpeakable();
 
   useEffect(() => {
     fetchCategories();
@@ -133,7 +135,13 @@ const GestionCategorias: React.FC = () => {
       <div className="content-wrapper">
         <div className="header-section">
           <div className="header-left">
-            <button className="back-button" onClick={() => navigate('/')}>
+            <button 
+              className="back-button" 
+              onClick={() => navigate('/')}
+              aria-label="Regresar al inicio"
+              onMouseEnter={onMouseEnter}
+              onFocus={onFocus}
+            >
               <span>←</span>
               Regresar
             </button>
@@ -143,6 +151,9 @@ const GestionCategorias: React.FC = () => {
             <button
               className="add-button"
               onClick={() => handleOpenModal()}
+              aria-label="Crear nueva categoría"
+              onMouseEnter={onMouseEnter}
+              onFocus={onFocus}
             >
               <span>➕</span>
               Nueva Categoría
