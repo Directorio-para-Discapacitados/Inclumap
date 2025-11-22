@@ -6,6 +6,8 @@ import Login from "./pages/login/login";
 import Registro from "./pages/registro/registro";
 import Perfil from "./pages/perfil/perfil";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { SpeechProvider } from "./context/SpeechContext";
+import { GlobalSpeechListener } from "./Components/GlobalSpeechListener";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import ChatWidget from "./Components/ChatWidget"; 
 import ForgotPasswordPage from "./pages/reseteoPassword/ForgotPasswordPage";
@@ -74,6 +76,7 @@ function AppContent() {
   return (
     <>
       <Navbar />
+      <GlobalSpeechListener />
       <main style={{ paddingTop: '70px' }}>
         <Routes>
           
@@ -440,9 +443,11 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
+      <SpeechProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </SpeechProvider>
     </AuthProvider>
   );
 }

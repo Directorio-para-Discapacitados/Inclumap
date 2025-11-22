@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import "./ChatWidget.css";
 import { sendChatMessage, ChatResponse, BusinessLocation, ChatCoordinates } from "../services/chat";
 import { useAuth } from "../context/AuthContext";
+import { useSpeakable } from "../hooks/useSpeakable";
 
 type Message = { 
   role: "user" | "bot"; 
@@ -13,6 +14,7 @@ type Message = {
 export default function ChatWidget() {
   const { user } = useAuth();
   const prevUserIdRef = useRef<number | undefined>(undefined);
+  const { onMouseEnter, onFocus } = useSpeakable();
   
   const [open, setOpen] = useState<boolean>(() => {
     try { return JSON.parse(localStorage.getItem("chatWidgetOpen") || "false"); } catch { return false; }
@@ -174,7 +176,13 @@ export default function ChatWidget() {
 
   return (
     <>
-      <button className="chat-fab" aria-label="Abrir chat" onClick={() => setOpen((v) => !v)}>
+      <button 
+        className="chat-fab" 
+        aria-label="Abrir chat" 
+        onClick={() => setOpen((v) => !v)}
+        onMouseEnter={onMouseEnter}
+        onFocus={onFocus}
+      >
         <i className="fas fa-comments" />
       </button>
 
@@ -187,7 +195,13 @@ export default function ChatWidget() {
                 <i className="fas fa-map-marker-alt" /> Ubicación activa
               </span>
             )}
-            <button onClick={() => setOpen(false)} aria-label="Cerrar" style={{ background: "transparent", color: "#fff", border: 0, cursor: "pointer" }}>
+            <button 
+              onClick={() => setOpen(false)} 
+              aria-label="Cerrar chat" 
+              style={{ background: "transparent", color: "#fff", border: 0, cursor: "pointer" }}
+              onMouseEnter={onMouseEnter}
+              onFocus={onFocus}
+            >
               <i className="fas fa-times" />
             </button>
           </div>

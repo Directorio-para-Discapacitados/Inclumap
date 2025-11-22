@@ -8,6 +8,7 @@ import LocationPicker from "../LocationPicker/LocationPicker";
 import CategoryMultiSelect from "../../Components/CategoryMultiSelect/CategoryMultiSelect";
 import { getAllCategories, Category } from "../../services/categoryService";
 import { useAuth } from "../../context/AuthContext";
+import { useSpeakable } from "../../hooks/useSpeakable";
 
 const API_URL = "http://localhost:9080";
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
@@ -37,6 +38,7 @@ const accesibilidades = [
 export default function Registro() {
   const [isBusiness, setIsBusiness] = useState(false);
   const [mostrarPassword, setMostrarPassword] = useState(false);
+  const { onMouseEnter, onFocus } = useSpeakable();
 
   const [coordinates, setCoordinates] = useState(
     `${FALLBACK_LOCATION.lat},${FALLBACK_LOCATION.lng}`
@@ -258,6 +260,9 @@ export default function Registro() {
               setIsBusiness(false);
               setStep(1);
             }}
+            aria-label="Registrarse como persona"
+            onMouseEnter={onMouseEnter}
+            onFocus={onFocus}
           >
             Persona
           </button>
@@ -268,6 +273,9 @@ export default function Registro() {
               setIsBusiness(true);
               setStep(1);
             }}
+            aria-label="Registrarse como negocio"
+            onMouseEnter={onMouseEnter}
+            onFocus={onFocus}
           >
             Negocio
           </button>
@@ -283,6 +291,9 @@ export default function Registro() {
               value={formData.user_email}
               onChange={handleChange}
               required
+              aria-label="Correo electrónico"
+              onMouseEnter={onMouseEnter}
+              onFocus={onFocus}
             />
 
             <div className="password-container">
@@ -293,11 +304,17 @@ export default function Registro() {
                 value={formData.user_password}
                 onChange={handleChange}
                 required
+                aria-label="Contraseña. Debe tener 8 caracteres, una mayúscula y un número"
+                onMouseEnter={onMouseEnter}
+                onFocus={onFocus}
               />
               <button
                 type="button"
                 onClick={() => setMostrarPassword(!mostrarPassword)}
                 className="password-toggle"
+                aria-label={mostrarPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                onMouseEnter={onMouseEnter}
+                onFocus={onFocus}
               >
                 {mostrarPassword ? <EyeOff /> : <Eye />}
               </button>
@@ -310,6 +327,9 @@ export default function Registro() {
               value={formData.firstName}
               onChange={handleChange}
               required
+              aria-label="Nombre"
+              onMouseEnter={onMouseEnter}
+              onFocus={onFocus}
             />
             <input
               name="firstLastName"
@@ -318,9 +338,19 @@ export default function Registro() {
               value={formData.firstLastName}
               onChange={handleChange}
               required
+              aria-label="Apellido"
+              onMouseEnter={onMouseEnter}
+              onFocus={onFocus}
             />
 
-            <button type="button" className="registro-btn" onClick={() => setStep(2)}>
+            <button 
+              type="button" 
+              className="registro-btn" 
+              onClick={() => setStep(2)}
+              aria-label="Ir al siguiente paso"
+              onMouseEnter={onMouseEnter}
+              onFocus={onFocus}
+            >
               Siguiente
             </button>
           </div>
