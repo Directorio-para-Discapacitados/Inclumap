@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Edit, Image, MessageCircle, BarChart } from "lucide-react";
+import { Edit, Image, MessageCircle, BarChart, Building2 } from "lucide-react";
 
 interface QuickActionsProps {
   businessId: number;
@@ -37,6 +37,13 @@ export default function QuickActions({ businessId }: QuickActionsProps) {
       description: "Página completa del negocio",
       onClick: () => navigate(`/local/${businessId}`),
       color: "action-orange",
+    },
+    {
+      icon: <Building2 size={20} />,
+      label: "Ver Otros Negocios",
+      description: "Explora la plataforma",
+      onClick: () => navigate("/explorar-negocios"),
+      color: "action-teal",
     },
   ];
 

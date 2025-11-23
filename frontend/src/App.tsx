@@ -31,6 +31,7 @@ import SessionModal from "./Components/SessionModal/SessionModal";
 import { setSessionModalCallback } from "./config/api";
 import Accesibilidad from "./pages/accesibilidad/Accesibilidad";
 import Negocios from "./pages/negocios/Negocios";
+import BrowseBusinesses from "./pages/explore-businesses/BrowseBusinesses";
 
 function AppContent() {
   const location = useLocation();
@@ -410,6 +411,12 @@ function AppContent() {
             <Route
               path="/crear-negocio"
               element={<CrearNegocio />}
+            />
+
+            {/* Ruta para explorar negocios */}
+            <Route
+              path="/explorar-negocios"
+              element={<BrowseBusinesses />}
             />
 
           </Route>

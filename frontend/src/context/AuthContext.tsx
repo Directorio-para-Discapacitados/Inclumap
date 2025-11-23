@@ -10,6 +10,7 @@ interface User {
   avatar?: string;
   logo_url?: string | null;
   verified?: boolean;
+  business_id?: number;
 }
 
 interface AuthContextType {
@@ -76,6 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       avatar: decoded.avatar,
       logo_url: decoded.logo_url || null,
       verified: decoded.verified || false,
+      business_id: decoded.business_id || decoded.businessId,
     });
     setIsAuthenticated(true);
     return true;
@@ -113,6 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         avatar: data.avatar,
         logo_url: data.logo_url || null,
         verified: data.verified || false,
+        business_id: data.business_id || data.businessId,
       });
       setIsAuthenticated(true);
       return true;
