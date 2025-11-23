@@ -11,6 +11,8 @@ const SpeechToggle: React.FC = () => {
       : 'Activar asistente de voz'
   });
 
+  console.log('SpeechToggle renderizado:', { isSpeechEnabled });
+
   return (
     <button
       className={`speech-toggle ${isSpeechEnabled ? 'active' : ''}`}
@@ -19,7 +21,7 @@ const SpeechToggle: React.FC = () => {
       onFocus={onFocus}
       aria-label={isSpeechEnabled ? 'Desactivar asistente de voz' : 'Activar asistente de voz'}
       aria-pressed={isSpeechEnabled}
-      title={isSpeechEnabled ? 'Desactivar asistente de voz' : 'Activar asistente de voz'}
+      title={isSpeechEnabled ? 'Asistente de voz activado' : 'Activar asistente de voz'}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -49,9 +51,6 @@ const SpeechToggle: React.FC = () => {
           </>
         )}
       </svg>
-      <span className="speech-toggle-label">
-        {isSpeechEnabled ? 'Voz activada' : 'Voz desactivada'}
-      </span>
     </button>
   );
 };

@@ -179,6 +179,7 @@ export default function ChatWidget() {
       <button 
         className="chat-fab" 
         aria-label="Abrir chat" 
+        title="Chat de asistencia"
         onClick={() => setOpen((v) => !v)}
         onMouseEnter={onMouseEnter}
         onFocus={onFocus}
