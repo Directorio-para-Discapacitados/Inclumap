@@ -1159,6 +1159,16 @@
   color: var(--color-rating);
 }
 
+.action-teal .action-icon {
+  background-color: rgba(20, 184, 166, 0.1);
+  color: #14b8a6;
+}
+
+body.dark-mode .action-teal .action-icon {
+  background-color: rgba(20, 184, 166, 0.2);
+  color: #5eead4;
+}
+
 .action-content {
   flex: 1;
 }

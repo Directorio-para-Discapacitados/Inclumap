@@ -1110,6 +1110,7 @@ export class AuthService {
     avatar: string | null;
     logo_url?: string | null;
     verified?: boolean;
+    business_id?: number | null;
   }> {
     try {
       const user: UserEntity | null = await this.userRepository.findOne({
@@ -1156,6 +1157,7 @@ export class AuthService {
         avatar: user.people?.avatar || null,
         logo_url,
         verified,
+        business_id: user.business?.business_id || null,
       };
     } catch (error) {
       if (error instanceof HttpException) {

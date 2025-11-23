@@ -15,6 +15,32 @@ export class BusinessPublicController {
     private readonly businessAccessibilityRepository: Repository<BusinessAccessibilityEntity>,
   ) {}
 
+  @Get('all')
+  async getAllPublic(): Promise<any[]> {
+    const all = await this.businessService.obtenerNegocios();
+    const list = Array.isArray(all) ? all : [];
+
+    const mapPublic = (b: any) => ({
+      business_id: b.business_id,
+      business_name: b.business_name,
+      address: b.address,
+      description: b.description,
+      average_rating: b.average_rating,
+      logo_url: b.logo_url || 'https://res.cloudinary.com/demo/image/upload/sample.jpg',
+      latitude: b.latitude,
+      longitude: b.longitude,
+      verified: b.verified || false,
+      business_categories: Array.isArray(b.business_categories)
+        ? b.business_categories.map((bc: any) => ({
+            category_id: bc.category?.category_id,
+            category_name: bc.category?.name,
+          }))
+        : [],
+    });
+
+    return list.map(mapPublic);
+  }
+
   @Get('search')
   async searchPublic(
     @Query('q') q?: string,
