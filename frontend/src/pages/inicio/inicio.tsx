@@ -553,7 +553,7 @@ export default function Inicio() {
       </section>
       
       {/* 3. Explora por Categoría y Filtra tus Necesidades */}
-      <main className="cards-section">
+      <main className="cards-section" id="seccion-accesibilidades">
         <h2>Explora por Categoría y Filtra tus Necesidades</h2>
         <p className="sub-title">Filtra por distancia, tipo de servicio o directamente por elementos de accesibilidad específicos.</p>
 
@@ -614,24 +614,43 @@ export default function Inicio() {
           {!loadingAccessibilities && cards.length === 0 && (
             <div className="no-results">No se encontraron accesibilidades</div>
           )}
-          {!loadingAccessibilities && cards.map((c) => (
+          {!loadingAccessibilities && cards.slice(0, 7).map((c) => (
             <button
               key={c.accessibility_id}
-              className="accessibility-btn"
+              className="inicio-accessibility-btn"
               onClick={() => handleAccessibilityClick(c.accessibility_id)}
               aria-label={`Filtrar por ${c.accessibility_name}. ${c.description || 'Haz clic para ver locales con esta accesibilidad'}`}
               onMouseEnter={onMouseEnter}
               onFocus={onFocus}
             >
-              <div className="card">
-                <div className="card-icon" aria-hidden="true">
+              <div className="inicio-accessibility-card">
+                <div className="inicio-accessibility-card-icon" aria-hidden="true">
                   <i className={`fas ${iconMap[c.accessibility_name] || 'fa-check-circle'}`} />
                 </div>
-                <h3 className="card-title">{c.accessibility_name}</h3>
-                <p className="card-desc">{c.description || 'Haz clic para ver locales con esta accesibilidad'}</p>
+                <h3 className="inicio-accessibility-card-title">{c.accessibility_name}</h3>
+                <p className="inicio-accessibility-card-desc">{c.description || 'Haz clic para ver locales con esta accesibilidad'}</p>
               </div>
             </button>
           ))}
+          
+          {/* Botón Ver Más si hay más de 7 accesibilidades */}
+          {!loadingAccessibilities && cards.length > 7 && (
+            <button
+              className="inicio-accessibility-btn ver-mas-accesibilidades-btn"
+              onClick={() => navigate('/accesibilidades')}
+              aria-label={`Ver más accesibilidades. ${cards.length - 7} accesibilidades más disponibles`}
+              onMouseEnter={onMouseEnter}
+              onFocus={onFocus}
+            >
+              <div className="inicio-accessibility-card ver-mas-accesibilidades-card">
+                <div className="ver-mas-accesibilidades-icon">
+                  <i className="fas fa-arrow-right" />
+                </div>
+                <h3 className="inicio-accessibility-card-title">Ver Más</h3>
+                <p className="inicio-accessibility-card-desc">{cards.length - 7} accesibilidades más disponibles</p>
+              </div>
+            </button>
+          )}
         </div>
       </main>
 
