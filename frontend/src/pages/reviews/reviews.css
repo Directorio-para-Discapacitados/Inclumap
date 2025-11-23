@@ -64,6 +64,36 @@ html.dark-mode {
   transform: translateY(-1px);
 }
 
+/* Botón volver para la vista de reseñas del propietario */
+.ownerBackBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 1rem;
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-card-bg);
+  color: var(--color-text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 18px var(--color-shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.ownerBackBtn:hover {
+  background: var(--color-surface);
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px var(--color-shadow-hover);
+}
+
+.ownerBackBtn:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 12px var(--color-shadow);
+}
+
 .revTitle {
   font-size: 2.2rem;
   font-weight: 800;

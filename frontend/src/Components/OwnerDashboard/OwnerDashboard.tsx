@@ -169,7 +169,11 @@ export default function OwnerDashboard() {
           <RatingDistribution distribution={statistics.rating.distribution} />
           <VisitsChart views={statistics.views} />
           <SentimentAnalysis sentiment={statistics.reviews.sentiment} />
-          <RecentReviews reviews={statistics.recentReviews} businessId={businessId} />
+          <RecentReviews
+            reviews={statistics.recentReviews}
+            businessId={businessId}
+            limit={2}
+          />
 
           {businessImages.length > 0 && (
             <div className="dashboard-card owner-photos-card">

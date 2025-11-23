@@ -18,13 +18,17 @@ interface RecentReviewsProps {
     };
   }>;
   businessId: number;
+  limit?: number;
+  showViewAllButton?: boolean;
 }
 
-export default function RecentReviews({ reviews, businessId }: RecentReviewsProps) {
+export default function RecentReviews({ reviews, businessId, limit, showViewAllButton = true }: RecentReviewsProps) {
   const navigate = useNavigate();
   const [replyDrafts, setReplyDrafts] = useState<Record<number, string>>({});
   const [savingReplies, setSavingReplies] = useState<number[]>([]);
   const [editingReplyId, setEditingReplyId] = useState<number | null>(null);
+
+  const displayedReviews = (limit && limit > 0 ? reviews.slice(0, limit) : reviews) || [];
 
   useEffect(() => {
     const drafts: Record<number, string> = {};
@@ -124,7 +128,7 @@ export default function RecentReviews({ reviews, businessId }: RecentReviewsProp
     const d = new Date(date);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - d.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays === 0) return "Hoy";
     if (diffDays === 1) return "Ayer";
@@ -136,22 +140,24 @@ export default function RecentReviews({ reviews, businessId }: RecentReviewsProp
     <div className="dashboard-card recent-reviews">
       <div className="card-header">
         <h3 className="card-title">💬 Reseñas Recientes</h3>
-        <button
-          className="view-all-btn"
-          onClick={() => navigate(`/local/${businessId}`)}
-        >
-          Ver todas →
-        </button>
+        {showViewAllButton && reviews.length > 0 && (
+          <button
+            className="view-all-btn"
+            onClick={() => navigate("/owner/reviews")}
+          >
+            Ver todas →
+          </button>
+        )}
       </div>
 
-      {reviews.length === 0 ? (
+      {displayedReviews.length === 0 ? (
         <div className="empty-state">
           <p>No hay reseñas aún</p>
           <small>Las reseñas de tus clientes aparecerán aquí</small>
         </div>
       ) : (
         <div className="reviews-list">
-          {reviews.map((review) => (
+          {displayedReviews.map((review) => (
             <div key={review.review_id} className="review-item">
               <div className="review-header">
                 <div className="review-user">
