@@ -1,0 +1,354 @@
+/* TodasAccesibilidades.css - Página completa de accesibilidades */
+/* Estilos únicos con prefijo "todas-accesibilidades-" para evitar conflictos */
+
+.todas-accesibilidades-root {
+  min-height: calc(100vh - 200px);
+  padding: 2rem 1rem;
+  background-color: var(--color-background);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.todas-accesibilidades-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Header con botón atrás y título */
+.todas-accesibilidades-header {
+  position: relative;
+  margin-bottom: 3rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--color-border, rgba(0, 0, 0, 0.1));
+}
+
+.todas-accesibilidades-btn-back {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--color-primary, #123252);
+  color: #ffffff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.todas-accesibilidades-btn-back:hover {
+  background: var(--color-primary-hover, #1a4b7c);
+  transform: translateY(-50%) translateX(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.todas-accesibilidades-btn-back:active {
+  transform: translateY(-50%) translateX(-1px);
+}
+
+.todas-accesibilidades-title {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--color-primary, #123252);
+  margin: 0;
+  letter-spacing: -0.02em;
+  transition: color 0.3s ease;
+}
+
+/* Grid de accesibilidades */
+.todas-accesibilidades-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.todas-accesibilidades-card-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.todas-accesibilidades-card {
+  background: var(--color-card-bg, #ffffff);
+  padding: 2rem 1.5rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px var(--color-shadow, rgba(0, 0, 0, 0.08));
+  text-align: center;
+  transition: all 320ms cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid var(--color-border, rgba(0, 0, 0, 0.1));
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.todas-accesibilidades-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-primary, #123252) 0%, var(--color-primary-hover, #1a4b7c) 100%);
+  transform: scaleX(0);
+  transition: transform 320ms ease;
+}
+
+.todas-accesibilidades-card-btn:hover .todas-accesibilidades-card,
+.todas-accesibilidades-card-btn:focus .todas-accesibilidades-card {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 50px var(--color-shadow-hover, rgba(0, 0, 0, 0.15));
+  background: var(--color-card-hover, #f8f9fa);
+  border-color: var(--color-primary, #123252);
+}
+
+.todas-accesibilidades-card-btn:hover .todas-accesibilidades-card::before,
+.todas-accesibilidades-card-btn:focus .todas-accesibilidades-card::before {
+  transform: scaleX(1);
+}
+
+.todas-accesibilidades-card-icon {
+  width: 110px;
+  height: 110px;
+  border-radius: 22px;
+  margin: 0 auto 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface, #f8f9fa);
+  color: var(--color-primary, #123252);
+  font-size: 3rem;
+  transition: all 320ms ease;
+  box-shadow: 0 8px 25px var(--color-shadow, rgba(0, 0, 0, 0.08));
+  position: relative;
+}
+
+.todas-accesibilidades-card-icon i {
+  transition: transform 320ms ease;
+}
+
+.todas-accesibilidades-card-btn:hover .todas-accesibilidades-card-icon,
+.todas-accesibilidades-card-btn:focus .todas-accesibilidades-card-icon {
+  background: var(--color-primary, #123252);
+  color: #ffffff;
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 12px 35px var(--color-shadow-hover, rgba(0, 0, 0, 0.15));
+}
+
+.todas-accesibilidades-card-btn:hover .todas-accesibilidades-card-icon i,
+.todas-accesibilidades-card-btn:focus .todas-accesibilidades-card-icon i {
+  transform: scale(1.15);
+}
+
+.todas-accesibilidades-card-title {
+  margin: 0 0 0.75rem;
+  color: var(--color-primary, #123252);
+  font-weight: 800;
+  font-size: 1.25rem;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  transition: color 0.3s ease;
+}
+
+.todas-accesibilidades-card-desc {
+  margin: 0;
+  color: var(--color-text-muted, #6c757d);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  transition: color 0.3s ease;
+}
+
+/* Estados de carga y error */
+.todas-accesibilidades-loading,
+.todas-accesibilidades-error,
+.todas-accesibilidades-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  font-size: 1.1rem;
+  color: var(--color-text-muted, #6c757d);
+  transition: color 0.3s ease;
+}
+
+.todas-accesibilidades-error {
+  color: #dc3545;
+}
+
+/* Responsive Design */
+
+/* Tablets grandes y pantallas medianas (1024px - 768px) */
+@media (max-width: 1024px) {
+  .todas-accesibilidades-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+  }
+
+  .todas-accesibilidades-title {
+    font-size: 2rem;
+  }
+
+  .todas-accesibilidades-btn-back {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Tablets (768px - 600px) */
+@media (max-width: 768px) {
+  .todas-accesibilidades-root {
+    padding: 1.5rem 0.75rem;
+  }
+
+  .todas-accesibilidades-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+  }
+
+  /* En tablets, el botón va arriba y el título abajo */
+  .todas-accesibilidades-btn-back {
+    position: relative;
+    transform: none;
+    margin-bottom: 1rem;
+    width: fit-content;
+  }
+
+  .todas-accesibilidades-btn-back:hover {
+    transform: translateX(-3px);
+  }
+
+  .todas-accesibilidades-title {
+    font-size: 1.75rem;
+    text-align: center;
+    width: 100%;
+  }
+
+  .todas-accesibilidades-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .todas-accesibilidades-card {
+    padding: 1.5rem 1rem;
+  }
+
+  .todas-accesibilidades-card-icon {
+    width: 90px;
+    height: 90px;
+    font-size: 2.5rem;
+  }
+
+  .todas-accesibilidades-card-title {
+    font-size: 1.1rem;
+  }
+
+  .todas-accesibilidades-card-desc {
+    font-size: 0.9rem;
+  }
+}
+
+/* Móviles grandes (600px - 480px) */
+@media (max-width: 600px) {
+  .todas-accesibilidades-root {
+    padding: 1rem 0.5rem;
+  }
+
+  .todas-accesibilidades-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .todas-accesibilidades-title {
+    font-size: 1.5rem;
+  }
+
+  .todas-accesibilidades-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .todas-accesibilidades-card {
+    padding: 1.5rem 1rem;
+  }
+
+  .todas-accesibilidades-card-icon {
+    width: 80px;
+    height: 80px;
+    font-size: 2.25rem;
+  }
+}
+
+/* Móviles pequeños (< 480px) */
+@media (max-width: 480px) {
+  .todas-accesibilidades-btn-back {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .todas-accesibilidades-title {
+    font-size: 1.35rem;
+  }
+
+  .todas-accesibilidades-card {
+    padding: 1.25rem 0.75rem;
+  }
+
+  .todas-accesibilidades-card-icon {
+    width: 70px;
+    height: 70px;
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .todas-accesibilidades-card-title {
+    font-size: 1rem;
+  }
+
+  .todas-accesibilidades-card-desc {
+    font-size: 0.85rem;
+  }
+}
+
+/* Soporte para tema oscuro */
+@media (prefers-color-scheme: dark) {
+  .todas-accesibilidades-root {
+    background-color: var(--color-background, #1a1a1a);
+  }
+
+  .todas-accesibilidades-title {
+    color: var(--color-primary, #4a9eff);
+  }
+
+  .todas-accesibilidades-card {
+    background: var(--color-card-bg, #2d2d2d);
+    border-color: var(--color-border, rgba(255, 255, 255, 0.1));
+  }
+
+  .todas-accesibilidades-card-btn:hover .todas-accesibilidades-card,
+  .todas-accesibilidades-card-btn:focus .todas-accesibilidades-card {
+    background: var(--color-card-hover, #3a3a3a);
+  }
+
+  .todas-accesibilidades-card-icon {
+    background: var(--color-surface, #3a3a3a);
+    color: var(--color-primary, #4a9eff);
+  }
+
+  .todas-accesibilidades-card-title {
+    color: var(--color-primary, #4a9eff);
+  }
+
+  .todas-accesibilidades-card-desc {
+    color: var(--color-text-muted, #b0b0b0);
+  }
+}

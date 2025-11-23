@@ -32,6 +32,7 @@ import OwnerBusinessReviewsPage from "./pages/reviews/OwnerBusinessReviewsPage";
 import SessionModal from "./Components/SessionModal/SessionModal";
 import { setSessionModalCallback } from "./config/api";
 import Accesibilidad from "./pages/accesibilidad/Accesibilidad";
+import TodasAccesibilidades from "./pages/accesibilidad/TodasAccesibilidades";
 import Negocios from "./pages/negocios/Negocios";
 import BrowseBusinesses from "./pages/explore-businesses/BrowseBusinesses";
 
@@ -88,6 +89,7 @@ function AppContent() {
           
           <Route path="/" element={<Inicio />} />
           <Route path="/accesibilidad/:id" element={<Accesibilidad />} />
+          <Route path="/accesibilidades" element={<TodasAccesibilidades />} />
           <Route path="/negocios" element={<Negocios />} />
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Registro />} />

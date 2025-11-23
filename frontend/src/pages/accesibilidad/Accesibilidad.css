@@ -31,6 +31,7 @@
   margin: 0 auto;
   position: relative;
   z-index: 2;
+  padding: 0 1rem;
 }
 
 .header-title-row {
@@ -39,6 +40,7 @@
   gap: 1rem;
   margin-bottom: 1rem;
   justify-content: flex-start;
+  position: relative;
 }
 
 .back-button {
@@ -55,6 +57,9 @@
   align-items: center;
   gap: 0.5rem;
   flex-shrink: 0;
+  position: absolute;
+  left: 0;
+  top: 0;
 }
 
 .back-button:hover {
@@ -67,6 +72,7 @@
   animation: fadeUp 0.6s ease-out;
   margin: 0 auto;
   width: 100%;
+  padding-top: 3.5rem; /* Espacio para el bot\u00f3n atr\u00e1s */
 }
 
 .accesibilidad-icon-large {
@@ -343,3 +349,24 @@
     font-size: 2.5rem;
   }
 }
+
+/* Responsive para botón atrás en móviles */
+@media (max-width: 768px) {
+  .back-button {
+    position: relative;
+    left: auto;
+    top: auto;
+    margin-bottom: 1rem;
+  }
+
+  .accesibilidad-info {
+    padding-top: 0;
+  }
+  
+  .accesibilidad-header-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+

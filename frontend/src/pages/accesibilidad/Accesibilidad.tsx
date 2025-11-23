@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import "./Accesibilidad.css";
 import { API_URL } from "../../config/api";
 
@@ -43,11 +43,15 @@ const iconMap: Record<string, string> = {
 export default function Accesibilidad() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   
   const [accessibility, setAccessibility] = useState<Accessibility | null>(null);
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Detectar de dónde viene el usuario
+  const fromAllAccessibilities = location.state?.from === 'todas-accesibilidades';
 
   useEffect(() => {
     const fetchData = async () => {
@@ -104,6 +108,23 @@ export default function Accesibilidad() {
     navigate(`/local/${businessId}`);
   };
 
+  const handleBack = () => {
+    if (fromAllAccessibilities) {
+      navigate('/accesibilidades');
+    } else {
+      navigate('/');
+      // Hacer scroll a la sección de accesibilidades
+      setTimeout(() => {
+        const section = document.getElementById('seccion-accesibilidades');
+        if (section) {
+          const offset = 100;
+          const top = section.getBoundingClientRect().top + window.scrollY - offset;
+          window.scrollTo({ top, behavior: 'smooth' });
+        }
+      }, 100);
+    }
+  };
+
   if (loading) {
     return (
       <div className="accesibilidad-page">
@@ -132,8 +153,8 @@ export default function Accesibilidad() {
       {/* Header con información de la accesibilidad */}
       <section className="accesibilidad-header">
         <div className="accesibilidad-header-content">
-          <button className="back-button" onClick={() => navigate('/')}>
-            <i className="fas fa-arrow-left"></i> Volver
+          <button className="back-button" onClick={handleBack}>
+            <i className="fas fa-arrow-left"></i> Atrás
           </button>
           
           <div className="accesibilidad-info">
