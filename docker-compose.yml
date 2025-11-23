@@ -1,0 +1,55 @@
+services:
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_DATABASE:-inclumap}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - inclumap-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "9080:9080"
+    env_file:
+      - ./backend/.env
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      # DB_USER, DB_PASSWORD, DB_DATABASE will be taken from .env if present, or defaults below
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_DATABASE: ${DB_DATABASE:-inclumap}
+    depends_on:
+      - db
+    networks:
+      - inclumap-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - inclumap-network
+
+volumes:
+  postgres_data:
+
+
+networks:
+  inclumap-network:
+    driver: bridge
