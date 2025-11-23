@@ -240,7 +240,7 @@ const LocalDetalle: React.FC = () => {
   // Ref para evitar registros duplicados de visitas
   const viewRegisteredRef = useRef(false);
 
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const token = localStorage.getItem("token");
   const userId = user?.user_id;
 
@@ -449,7 +449,12 @@ const LocalDetalle: React.FC = () => {
   };
 
   const handleToggleFavorite = () => {
-    if (!data || !userId) return;
+    if (!data) return;
+
+    if (!isAuthenticated || !userId) {
+      navigate("/login");
+      return;
+    }
 
     const key = `saved_places_${userId}`;
     try {
