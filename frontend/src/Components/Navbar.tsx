@@ -246,9 +246,6 @@ export default function Navbar() {
                 </>
             )}
             
-            {/* Botón de voz siempre visible */}
-            <li><SpeechToggle /></li>
-            
             {isAuthenticated && (
                 <>
                 <li><NotificationBell /></li>

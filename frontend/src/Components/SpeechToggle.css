@@ -1,51 +1,54 @@
 .speech-toggle {
+  position: fixed;
+  bottom: 94px;
+  right: 20px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: none;
+  background: #6c757d !important;
+  color: #ffffff !important;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: transparent;
-  border: 2px solid var(--border-color, #ddd);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-color, #333);
-  position: relative;
+  justify-content: center;
+  font-size: 24px;
+  z-index: 1000;
+  pointer-events: auto;
 }
 
 .speech-toggle:hover {
-  background: var(--hover-bg, rgba(0, 0, 0, 0.05));
-  border-color: var(--primary-color, #4a90e2);
-  transform: translateY(-2px);
+  background: #5a6268 !important;
+  transform: scale(1.05);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
 }
 
 .speech-toggle:focus {
-  outline: 3px solid var(--focus-color, #4a90e2);
+  outline: 3px solid #4a90e2;
   outline-offset: 2px;
 }
 
 .speech-toggle:active {
-  transform: translateY(0);
+  transform: scale(0.95);
 }
 
-/* Estado activo */
+/* Estado activo - azul */
 .speech-toggle.active {
-  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
-  border-color: #357abd;
-  color: white;
-  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+  background: #1e88e5 !important;
+  box-shadow: 0 10px 25px rgba(30, 136, 229, 0.5);
 }
 
 .speech-toggle.active:hover {
-  background: linear-gradient(135deg, #357abd 0%, #2868a8 100%);
-  box-shadow: 0 6px 16px rgba(74, 144, 226, 0.4);
+  background: #1565c0 !important;
+  box-shadow: 0 12px 30px rgba(30, 136, 229, 0.6);
 }
 
 /* Icono */
 .speech-icon {
-  width: 20px;
-  height: 20px;
+  width: 28px;
+  height: 28px;
   flex-shrink: 0;
   transition: transform 0.3s ease;
 }
@@ -63,44 +66,72 @@
   }
 }
 
-/* Label */
-.speech-toggle-label {
+/* Tooltip para el botón de audio */
+.speech-toggle::before {
+  content: attr(title);
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-right: 12px;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
   white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 10002;
+}
+
+.speech-toggle:hover::before {
+  opacity: 1;
 }
 
 /* Responsive - ocultar label en pantallas pequeñas */
 @media (max-width: 768px) {
-  .speech-toggle-label {
+  .speech-toggle {
+    width: 56px;
+    height: 56px;
+    font-size: 20px;
+    bottom: 85px;
+    right: 15px;
+  }
+
+  .speech-toggle::before {
     display: none;
   }
 
-  .speech-toggle {
-    padding: 8px;
-    min-width: 40px;
-    justify-content: center;
+  .speech-icon {
+    width: 20px;
+    height: 20px;
   }
 }
 
 /* Modo oscuro */
 [data-theme="dark"] .speech-toggle {
-  border-color: #555;
-  color: #e0e0e0;
+  background: #6c757d !important;
+  color: #ffffff !important;
 }
 
 [data-theme="dark"] .speech-toggle:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: #4a90e2;
+  background: #5a6268 !important;
 }
 
 [data-theme="dark"] .speech-toggle.active {
-  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
-  color: white;
+  background: #1e88e5 !important;
+}
+
+[data-theme="dark"] .speech-toggle.active:hover {
+  background: #1565c0 !important;
 }
 
 /* Accesibilidad - alta visibilidad para usuarios con baja visión */
 @media (prefers-contrast: high) {
   .speech-toggle {
-    border-width: 3px;
+    outline: 2px solid currentColor;
   }
 
   .speech-toggle:focus {

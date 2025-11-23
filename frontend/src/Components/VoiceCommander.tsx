@@ -44,6 +44,8 @@ export const VoiceCommander: React.FC = () => {
   const isProcessingRef = useRef(false);
   const shouldRestartRef = useRef(false);
 
+  console.log('VoiceCommander renderizado:', { isEnabled, isListening });
+
   // Comandos de voz y sus rutas correspondientes
   const voiceCommands: { [key: string]: string } = {
     // Navegación principal
@@ -330,7 +332,7 @@ export const VoiceCommander: React.FC = () => {
         className={`voice-toggle-btn ${isListening ? "listening" : ""} ${!isEnabled ? "disabled" : ""}`}
         onClick={toggleVoiceCommands}
         aria-label={isEnabled ? "Desactivar comandos de voz" : "Activar comandos de voz"}
-        title={isEnabled ? "Click para desactivar comandos de voz" : "Click para activar comandos de voz"}
+        title={isEnabled ? "Comandos de voz activados" : "Activar comandos de voz"}
       >
         {isEnabled ? (
           <i className="fas fa-microphone"></i>
