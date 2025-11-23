@@ -28,7 +28,7 @@ export default function QuickActions({ businessId }: QuickActionsProps) {
       icon: <MessageCircle size={20} />,
       label: "Ver Reseñas",
       description: "Revisa los comentarios",
-      onClick: () => navigate(`/local/${businessId}`),
+      onClick: () => navigate("/owner/reviews"),
       color: "action-green",
     },
     {

@@ -28,6 +28,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import Footer from "./Components/Footer";
 import LocalRecognitionPage from './pages/LocalRecognition/LocalRecognition';
 import ReviewsPage from "./pages/reviews/ReviewsPage";
+import OwnerBusinessReviewsPage from "./pages/reviews/OwnerBusinessReviewsPage";
 import SessionModal from "./Components/SessionModal/SessionModal";
 import { setSessionModalCallback } from "./config/api";
 import Accesibilidad from "./pages/accesibilidad/Accesibilidad";
@@ -99,6 +100,8 @@ function AppContent() {
 
           <Route element={<ProtectedRoute />}>
             <Route path="/perfil" element={<Perfil />} />
+            <Route path="/owner/reviews" element={<OwnerBusinessReviewsPage />} />
+            
             <Route path="/reconocimiento" element={<LocalRecognitionPage />} />
             
             <Route
