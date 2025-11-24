@@ -34,6 +34,8 @@ export default function Inicio() {
   const { user } = useAuth();
   const cardsRef = useRef<HTMLDivElement | null>(null);
   const communityRef = useRef<HTMLElement | null>(null);
+  const businessesSectionRef = useRef<HTMLElement | null>(null);
+  const accesibilidadesSectionRef = useRef<HTMLElement | null>(null);
   const { onMouseEnter, onFocus } = useSpeakable();
 
   const [cards, setCards] = useState<Accessibility[]>([]);
@@ -121,9 +123,34 @@ export default function Inicio() {
     fetchAllBusinesses();
   }, []);
 
+  // Manejar scroll automático cuando se vuelve de otras páginas
+  useEffect(() => {
+    const scrollTo = location.state?.scrollTo;
+    
+    if (scrollTo === 'businesses-section' && businessesSectionRef.current) {
+      setTimeout(() => {
+        businessesSectionRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      }, 100);
+      // Limpiar el estado después de hacer scroll
+      window.history.replaceState({}, document.title);
+    } else if (scrollTo === 'seccion-accesibilidades' && accesibilidadesSectionRef.current) {
+      setTimeout(() => {
+        accesibilidadesSectionRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      }, 100);
+      // Limpiar el estado después de hacer scroll
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
   // Manejar clic en accesibilidad - navegar a página dedicada
   const handleAccessibilityClick = (accessibilityId: number | string) => {
-    navigate(`/accesibilidad/${accessibilityId}`);
+    navigate(`/accesibilidad/${accessibilityId}`, { state: { from: 'inicio-accesibilidades' } });
   };
 
   // Limpiar filtro de accesibilidad
@@ -290,7 +317,7 @@ export default function Inicio() {
   };
 
   const goToDetail = (id: number | string) => {
-    navigate(`/local/${id}`);
+    navigate(`/local/${id}`, { state: { from: 'inicio-businesses' } });
   };
 
   const handleClearSearch = () => {
@@ -344,7 +371,7 @@ export default function Inicio() {
               <button 
                 className="btn btn-primary"
                 onClick={() => { 
-                    navigate("/negocios"); 
+                    navigate("/negocios", { state: { from: 'hero' } }); 
                 }}
               >
                 ENCONTRAR LUGARES ACCESIBLES
@@ -361,7 +388,7 @@ export default function Inicio() {
       </section>
 
       {/* 2. Negocios Registrados */}
-      <section className="registered-businesses-section">
+      <section className="registered-businesses-section" ref={businessesSectionRef}>
         <div className="section-header">
           <h2>Negocios Registrados</h2>
           <p className="sub-title">Descubre los establecimientos verificados que forman parte de nuestra red inclusiva</p>
@@ -391,6 +418,10 @@ export default function Inicio() {
                   <article
                     key={b.business_id || b.id}
                     className="business-card-static"
+                    onClick={() => goToDetail(b.business_id || b.id)}
+                    style={{ cursor: 'pointer' }}
+                    role="button"
+                    tabIndex={0}
                   >
                     <div className="business-image-wrapper">
                       <img
@@ -465,6 +496,9 @@ export default function Inicio() {
                       <article
                         key={business.business_id}
                         className="business-card-static"
+                        onClick={() => goToDetail(business.business_id)}
+                        style={{ cursor: 'pointer' }}
+                        role="button"
                         aria-label={`${business.business_name}. ${business.address || ''}. Calificación: ${typeof business.average_rating !== 'undefined' ? Number(business.average_rating).toFixed(1) : 'Sin calificación'}`}
                         onMouseEnter={onMouseEnter}
                         onFocus={onFocus}
@@ -526,7 +560,7 @@ export default function Inicio() {
                     {allBusinesses.length > 5 && (
                       <article 
                         className="business-card-ver-mas" 
-                        onClick={() => navigate('/negocios')}
+                        onClick={() => navigate('/negocios', { state: { from: 'businesses-section' } })}
                         aria-label={`Ver más negocios. ${allBusinesses.length - 5} negocios más disponibles`}
                         onMouseEnter={onMouseEnter}
                         onFocus={onFocus}
@@ -553,7 +587,7 @@ export default function Inicio() {
       </section>
       
       {/* 3. Explora por Categoría y Filtra tus Necesidades */}
-      <main className="cards-section" id="seccion-accesibilidades">
+      <main className="cards-section" id="seccion-accesibilidades" ref={accesibilidadesSectionRef}>
         <h2>Explora por Categoría y Filtra tus Necesidades</h2>
         <p className="sub-title">Filtra por distancia, tipo de servicio o directamente por elementos de accesibilidad específicos.</p>
 

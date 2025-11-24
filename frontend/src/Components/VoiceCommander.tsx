@@ -44,8 +44,6 @@ export const VoiceCommander: React.FC = () => {
   const isProcessingRef = useRef(false);
   const shouldRestartRef = useRef(false);
 
-  console.log('VoiceCommander renderizado:', { isEnabled, isListening });
-
   // Comandos de voz y sus rutas correspondientes
   const voiceCommands: { [key: string]: string } = {
     // Navegación principal
@@ -157,7 +155,6 @@ export const VoiceCommander: React.FC = () => {
       const result = event.results[event.resultIndex];
       const transcript = result[0].transcript.toLowerCase().trim();
       
-      console.log("🎤 Comando de voz detectado:", transcript);
       setLastCommand(transcript);
       setFeedback(`🎤 Escuché: "${transcript}"`);
       
@@ -170,9 +167,8 @@ export const VoiceCommander: React.FC = () => {
         if (shouldRestartRef.current && recognitionRef.current) {
           try {
             recognitionRef.current.start();
-            console.log("🔄 Reiniciando escucha automática...");
           } catch (e) {
-            console.log("Ya está escuchando");
+            // Ya está escuchando
           }
         }
       }, 1500);
@@ -180,13 +176,11 @@ export const VoiceCommander: React.FC = () => {
 
     // Cuando el reconocimiento se inicia
     recognition.onstart = () => {
-      console.log("🎤 Reconocimiento de voz iniciado");
       setIsListening(true);
     };
 
     // Cuando el reconocimiento se detiene
     recognition.onend = () => {
-      console.log("🎤 Reconocimiento de voz detenido");
       setIsListening(false);
     };
 
@@ -202,15 +196,11 @@ export const VoiceCommander: React.FC = () => {
           setFeedback("💡 En Brave: Haz clic en el león → Desactiva 'Shields' para localhost");
         }, 3000);
       } else if (event.error === "no-speech") {
-        console.log("ℹ️ No se detectó voz, continuando...");
         // No hacer nada, es normal
       } else if (event.error === "aborted") {
-        console.log("ℹ️ Reconocimiento abortado");
         // No mostrar error, solo reiniciar si está habilitado
       } else if (event.error === "network") {
         setFeedback("⚠️ Error de red. Verifica tu conexión.");
-      } else {
-        console.warn(`⚠️ Error: ${event.error}`);
       }
     };
 
@@ -225,8 +215,6 @@ export const VoiceCommander: React.FC = () => {
 
   // Procesar comandos de voz
   const processVoiceCommand = (command: string) => {
-    console.log("📝 Procesando comando:", command);
-    
     // Comandos especiales con parámetros dinámicos
     
     // Ver detalles de negocio específico: "ver detalles de KFC" o "ver negocio McDonald's"
@@ -274,13 +262,11 @@ export const VoiceCommander: React.FC = () => {
       if (command.includes(voiceCommand)) {
         matchedRoute = route;
         matchedCommand = voiceCommand;
-        console.log("✅ Coincidencia encontrada:", voiceCommand, "->", route);
         break;
       }
     }
 
     if (matchedRoute) {
-      console.log("🚀 Navegando a:", matchedRoute);
       setFeedback(`✅ Navegando a: ${matchedCommand}`);
       
       setTimeout(() => {
@@ -306,7 +292,6 @@ export const VoiceCommander: React.FC = () => {
           setIsEnabled(true);
           setFeedback("🎤 Comandos de voz ACTIVADOS. Di: inicio, negocios, perfil, login, registro, crear negocio, guardados, ajustes, reseñas, buscar [categoría]");
           setTimeout(() => setFeedback(""), 6000);
-          console.log("✅ Modo comandos de voz ACTIVADO");
         }
       } catch (error: any) {
         console.error("Error al iniciar:", error);
@@ -321,7 +306,6 @@ export const VoiceCommander: React.FC = () => {
       setIsEnabled(false);
       setFeedback("🔇 Comandos de voz desactivados");
       setTimeout(() => setFeedback(""), 2000);
-      console.log("❌ Modo comandos de voz DESACTIVADO");
     }
   };
 

@@ -58,47 +58,17 @@ export default function BrowseBusinesses() {
       setLoading(true);
       const response = await api.get("/business/public/all");
       
-      console.log('=== DEBUG FILTRO DE NEGOCIOS ===');
-      console.log('Usuario actual completo:', JSON.stringify(user, null, 2));
-      console.log('business_id del usuario:', user?.business_id, '(tipo:', typeof user?.business_id, ')');
-      console.log('Total negocios recibidos del backend:', response.data.length);
-      
       // Filtrar el negocio del propietario actual si existe
       let allBusinesses = response.data;
       
-      // Mostrar todos los negocios recibidos
-      console.log('📋 TODOS los negocios recibidos:');
-      allBusinesses.forEach((b: Business, idx: number) => {
-        console.log(`  ${idx + 1}. ID: ${b.business_id} (tipo: ${typeof b.business_id}) - ${b.business_name}`);
-      });
-      
       if (user?.business_id) {
         const userBusinessId = Number(user.business_id);
-        console.log('\n🔍 Iniciando filtro...');
-        console.log('   Buscando excluir negocio con ID:', userBusinessId);
         
-        const originalCount = allBusinesses.length;
         allBusinesses = allBusinesses.filter((b: Business) => {
           const businessId = Number(b.business_id);
-          const shouldKeep = businessId !== userBusinessId;
-          
-          if (!shouldKeep) {
-            console.log('   ❌ EXCLUIDO:', b.business_name, `(ID: ${b.business_id})`);
-          }
-          
-          return shouldKeep;
+          return businessId !== userBusinessId;
         });
-        
-        console.log(`\n✅ Filtro completado:`);
-        console.log(`   - Negocios originales: ${originalCount}`);
-        console.log(`   - Negocios después del filtro: ${allBusinesses.length}`);
-        console.log(`   - Negocios removidos: ${originalCount - allBusinesses.length}`);
-      } else {
-        console.log('\n⚠️ NO hay business_id en el usuario');
-        console.log('   Razón: Usuario no es propietario o aún no se ha cargado');
-        console.log('   Mostrando TODOS los negocios');
       }
-      console.log('=================================\n');
       
       setBusinesses(allBusinesses);
       setFilteredBusinesses(allBusinesses);

@@ -1,15 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import "./Negocios.css";
 import { API_URL } from "../../config/api";
 import { useSpeakable } from "../../hooks/useSpeakable";
 
 export default function Negocios() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { onMouseEnter, onFocus } = useSpeakable();
   const [businesses, setBusinesses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Obtener información de dónde vino el usuario
+  const fromSection = location.state?.from || 'hero';
 
   useEffect(() => {
     const fetchAllBusinesses = async () => {
@@ -37,7 +41,17 @@ export default function Negocios() {
   }, []);
 
   const goToDetail = (id: number | string) => {
-    navigate(`/local/${id}`);
+    navigate(`/local/${id}`, { state: { from: 'negocios-page' } });
+  };
+
+  const handleBack = () => {
+    if (fromSection === 'businesses-section') {
+      // Si vino de la sección de negocios, volver allí
+      navigate('/', { state: { scrollTo: 'businesses-section' } });
+    } else {
+      // Si vino del hero o cualquier otro lugar, volver al inicio
+      navigate('/');
+    }
   };
 
   return (
@@ -46,10 +60,10 @@ export default function Negocios() {
         <div className="header-title-row">
           <button 
             className="btn-back" 
-            onClick={() => navigate('/')}
+            onClick={handleBack}
             {...onMouseEnter}
             {...onFocus}
-            aria-label="Volver al inicio"
+            aria-label={fromSection === 'businesses-section' ? 'Volver a la sección de negocios' : 'Volver al inicio'}
           >
             <i className="fas fa-arrow-left"></i>
             <span>Volver</span>
@@ -71,10 +85,13 @@ export default function Negocios() {
               <article
                 key={business.business_id}
                 className="negocio-card"
+                onClick={() => goToDetail(business.business_id)}
                 {...onMouseEnter}
                 {...onFocus}
                 aria-label={`Negocio ${business.business_name}, ${business.address || 'Sin dirección'}, Calificación ${business.average_rating ? Number(business.average_rating).toFixed(1) : '0'} estrellas`}
                 tabIndex={0}
+                role="button"
+                style={{ cursor: 'pointer' }}
               >
                 <div className="negocio-image-container">
                   <img 
@@ -122,20 +139,20 @@ export default function Negocios() {
                       </div>
                     )}
 
-                    {business.business_accessibility && business.business_accessibility.length > 0 && (
+                    {business.business_accessibility && Array.isArray(business.business_accessibility) && business.business_accessibility.length > 0 && (
                       <div className="negocio-accessibility-section">
                         <p className="accessibility-title">
                           <i className="fas fa-universal-access"></i>
                           <span>Accesibilidades ({business.business_accessibility.length})</span>
                         </p>
                         <div className="negocio-accessibility-list">
-                          {business.business_accessibility.slice(0, 3).map((acc: any) => (
+                          {business.business_accessibility.slice(0, 3).map((acc: any, index: number) => (
                             <span 
-                              key={acc.accessibility_id} 
+                              key={acc.accessibility_id || index} 
                               className="accessibility-badge"
-                              title={acc.description}
+                              title={acc.description || acc.accessibility_name}
                             >
-                              {acc.accessibility_name}
+                              {acc.accessibility_name || 'Sin nombre'}
                             </span>
                           ))}
                           {business.business_accessibility.length > 3 && (

@@ -11,8 +11,6 @@ const SpeechToggle: React.FC = () => {
       : 'Activar asistente de voz'
   });
 
-  console.log('SpeechToggle renderizado:', { isSpeechEnabled });
-
   return (
     <button
       className={`speech-toggle ${isSpeechEnabled ? 'active' : ''}`}
