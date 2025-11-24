@@ -11,7 +11,8 @@ import { GlobalSpeechListener } from "./Components/GlobalSpeechListener";
 import VoiceCommander from "./Components/VoiceCommander";
 import SpeechToggle from "./Components/SpeechToggle";
 import ProtectedRoute from "./Components/ProtectedRoute";
-import ChatWidget from "./Components/ChatWidget"; 
+import ChatWidget from "./Components/ChatWidget";
+import AccessibilitySidebar from "./Components/AccessibilitySidebar/AccessibilitySidebar"; 
 import ForgotPasswordPage from "./pages/reseteoPassword/ForgotPasswordPage";
 import AjustesPage from "./pages/ajustes/Ajustes";
 import AdminLoginPage from './pages/adminLogin/AdminLogin';
@@ -84,6 +85,7 @@ function AppContent() {
       <GlobalSpeechListener />
       <VoiceCommander />
       <SpeechToggle />
+      <AccessibilitySidebar />
       <main style={{ paddingTop: '70px' }}>
         <Routes>
           
