@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { API_URL, api } from "../../config/api";
 import { useAuth } from "../../context/AuthContext";
 import { recordBusinessView } from "../../services/ownerStatistics";
@@ -224,6 +224,7 @@ const RatingStarsSelector: React.FC<RatingStarsSelectorProps> = ({
 const LocalDetalle: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
 
   /* Estados */
   const [data, setData] = useState<LocalData | null>(null);
@@ -243,6 +244,25 @@ const LocalDetalle: React.FC = () => {
   const { user, isAuthenticated } = useAuth();
   const token = localStorage.getItem("token");
   const userId = user?.user_id;
+
+  /* Función de navegación inteligente */
+  const handleBack = () => {
+    const from = location.state?.from;
+    
+    if (from === 'negocios-page') {
+      // Si vino de la página de todos los negocios, volver allá
+      navigate('/negocios');
+    } else if (from === 'inicio-businesses') {
+      // Si vino de la sección de negocios en inicio, volver allí
+      navigate('/', { state: { scrollTo: 'businesses-section' } });
+    } else if (from === 'inicio-hero') {
+      // Si vino del hero de inicio, volver al inicio
+      navigate('/');
+    } else {
+      // Default: usar el historial del navegador
+      navigate(-1);
+    }
+  };
 
   /* Cargar info del local */
   useEffect(() => {
@@ -632,7 +652,7 @@ const LocalDetalle: React.FC = () => {
       {data && (
         <>
           {/* BOTÓN VOLVER EN SUPERIOR IZQUIERDA */}
-          <button className="volver-btn" onClick={() => navigate(-1)}>
+          <button className="volver-btn" onClick={handleBack}>
             Volver
           </button>
 

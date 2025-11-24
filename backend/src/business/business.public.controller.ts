@@ -122,11 +122,13 @@ export class BusinessPublicController {
           }))
         : [],
       business_accessibility: Array.isArray(b.business_accessibility)
-        ? b.business_accessibility.map((ba: any) => ({
-            accessibility_id: ba.accessibility?.accessibility_id,
-            accessibility_name: ba.accessibility?.accessibility_name,
-            description: ba.accessibility?.description,
-          }))
+        ? b.business_accessibility
+            .filter((ba: any) => ba.accessibility && ba.accessibility.accessibility_id)
+            .map((ba: any) => ({
+              accessibility_id: ba.accessibility.accessibility_id,
+              accessibility_name: ba.accessibility.accessibility_name,
+              description: ba.accessibility.description,
+            }))
         : [],
       business_categories: Array.isArray(b.business_categories)
         ? b.business_categories.map((bc: any) => ({

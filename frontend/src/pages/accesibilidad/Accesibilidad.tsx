@@ -51,7 +51,9 @@ export default function Accesibilidad() {
   const [error, setError] = useState<string | null>(null);
   
   // Detectar de dónde viene el usuario
-  const fromAllAccessibilities = location.state?.from === 'todas-accesibilidades';
+  const from = location.state?.from;
+  const fromAllAccessibilities = from === 'todas-accesibilidades';
+  const fromInicio = from === 'inicio-accesibilidades';
 
   useEffect(() => {
     const fetchData = async () => {
@@ -110,18 +112,14 @@ export default function Accesibilidad() {
 
   const handleBack = () => {
     if (fromAllAccessibilities) {
+      // Si vino de la página de todas las accesibilidades
       navigate('/accesibilidades');
+    } else if (fromInicio) {
+      // Si vino de la página de inicio, regresar a la sección de accesibilidades
+      navigate('/', { state: { scrollTo: 'seccion-accesibilidades' } });
     } else {
-      navigate('/');
-      // Hacer scroll a la sección de accesibilidades
-      setTimeout(() => {
-        const section = document.getElementById('seccion-accesibilidades');
-        if (section) {
-          const offset = 100;
-          const top = section.getBoundingClientRect().top + window.scrollY - offset;
-          window.scrollTo({ top, behavior: 'smooth' });
-        }
-      }, 100);
+      // Default: usar el historial del navegador
+      navigate(-1);
     }
   };
 
