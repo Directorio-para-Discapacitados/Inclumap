@@ -20,6 +20,7 @@ export default function OwnerDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [businessName, setBusinessName] = useState<string | null>(null);
+  const [businessLogo, setBusinessLogo] = useState<string | null>(null);
   const [businessImages, setBusinessImages] = useState<{ id: number; url: string }[]>([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
@@ -48,8 +49,9 @@ export default function OwnerDashboard() {
           : [];
 
         let name: string | null = business.business_name || user.displayName || null;
+        let logo: string | null = business.logo_url || null;
 
-        if ((!images || images.length === 0) && business.business_id) {
+        if ((!images || images.length === 0 || !logo) && business.business_id) {
           try {
             const businessDetailResp = await api.get(`/business/${business.business_id}`);
             const businessDetail = businessDetailResp.data;
@@ -61,12 +63,17 @@ export default function OwnerDashboard() {
             if (businessDetail.business_name) {
               name = businessDetail.business_name;
             }
+
+            if (businessDetail.logo_url) {
+              logo = businessDetail.logo_url;
+            }
           } catch (detailError) {
             console.error("Error al cargar detalles del negocio para imágenes:", detailError);
           }
         }
 
         setBusinessName(name);
+        setBusinessLogo(logo);
         setBusinessImages(images || []);
 
         // Obtener estadísticas
@@ -172,7 +179,9 @@ export default function OwnerDashboard() {
           <RecentReviews
             reviews={statistics.recentReviews}
             businessId={businessId}
+            businessLogo={businessLogo}
             limit={2}
+            onReplyUpdated={handleRefresh}
           />
 
           {businessImages.length > 0 && (

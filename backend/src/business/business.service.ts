@@ -1469,6 +1469,10 @@ export class BusinessService {
             (review.user?.people as any)?.firstLastName ||
             (review.user?.people as any)?.first_last_name ||
             '',
+          avatar:
+            (review.user?.people as any)?.avatar ||
+            review.user?.avatar_url ||
+            null,
         },
       }));
 

@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Edit, Image, MessageCircle, BarChart, Building2 } from "lucide-react";
+import "./QuickActions.css";
 
 interface QuickActionsProps {
   businessId: number;
