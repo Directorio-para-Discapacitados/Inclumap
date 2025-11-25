@@ -1,5 +1,6 @@
 import React from "react";
 import { Smile, Meh, Frown } from "lucide-react";
+import "./SentimentAnalysis.css";
 
 interface SentimentAnalysisProps {
   sentiment: {

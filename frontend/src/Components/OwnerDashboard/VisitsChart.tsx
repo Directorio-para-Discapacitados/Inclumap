@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { TrendingUp, Calendar } from "lucide-react";
+import "./VisitsChart.css";
 
 interface VisitsChartProps {
   views: {

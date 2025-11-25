@@ -1,8 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { Star, StarHalf } from "lucide-react";
+import React, { useEffect, useState, useMemo } from "react";
+import { Star, StarHalf, Filter, ArrowUpDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { setOwnerReply } from "../../pages/reviews/reviewService";
+import { api } from "../../config/api";
+import "./RecentReviews.css";
+
+type FilterType = 'all' | 'unanswered' | 'good' | 'bad';
+type SortOrder = 'newest' | 'oldest' | 'highest' | 'lowest';
 
 interface RecentReviewsProps {
   reviews: Array<{
@@ -15,31 +20,177 @@ interface RecentReviewsProps {
     user: {
       firstName: string;
       firstLastName: string;
+      avatar?: string | null;
     };
   }>;
   businessId: number;
+  businessLogo?: string | null;
   limit?: number;
   showViewAllButton?: boolean;
+  onReplyUpdated?: () => void;
 }
 
-export default function RecentReviews({ reviews, businessId, limit, showViewAllButton = true }: RecentReviewsProps) {
+export default function RecentReviews({ reviews, businessId, businessLogo, limit, showViewAllButton = true, onReplyUpdated }: RecentReviewsProps) {
   const navigate = useNavigate();
   const [replyDrafts, setReplyDrafts] = useState<Record<number, string>>({});
   const [savingReplies, setSavingReplies] = useState<number[]>([]);
   const [editingReplyId, setEditingReplyId] = useState<number | null>(null);
+  const [likesData, setLikesData] = useState<Record<number, { count: number; liked: boolean }>>({});
+  const [filterType, setFilterType] = useState<FilterType>('all');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('newest');
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  const displayedReviews = (limit && limit > 0 ? reviews.slice(0, limit) : reviews) || [];
+  // Filtrar y ordenar reseñas
+  const filteredAndSortedReviews = useMemo(() => {
+    let filtered = [...(reviews || [])];
 
+    // Aplicar filtro
+    switch (filterType) {
+      case 'unanswered':
+        filtered = filtered.filter(r => !r.owner_reply || r.owner_reply.trim() === '');
+        break;
+      case 'good':
+        filtered = filtered.filter(r => r.rating >= 4);
+        break;
+      case 'bad':
+        filtered = filtered.filter(r => r.rating <= 2);
+        break;
+      default:
+        break;
+    }
+
+    // Aplicar ordenamiento
+    switch (sortOrder) {
+      case 'newest':
+        filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        break;
+      case 'oldest':
+        filtered.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+        break;
+      case 'highest':
+        filtered.sort((a, b) => b.rating - a.rating);
+        break;
+      case 'lowest':
+        filtered.sort((a, b) => a.rating - b.rating);
+        break;
+    }
+
+    return filtered;
+  }, [reviews, filterType, sortOrder]);
+
+  const displayedReviews = (limit && limit > 0 ? filteredAndSortedReviews.slice(0, limit) : filteredAndSortedReviews) || [];
+
+  // Initialize drafts only once when reviews first load
   useEffect(() => {
-    const drafts: Record<number, string> = {};
-    (reviews || []).forEach((r) => {
-      drafts[r.review_id] = r.owner_reply || "";
+    if (!reviews || reviews.length === 0) return;
+    
+    // Solo inicializar si no hay edición o guardado en progreso
+    if (editingReplyId === null && savingReplies.length === 0) {
+      const drafts: Record<number, string> = {};
+      reviews.forEach((r) => {
+        // Solo agregar si no existe ya en replyDrafts
+        if (!(r.review_id in replyDrafts)) {
+          drafts[r.review_id] = r.owner_reply || "";
+        } else {
+          // Mantener el draft actual
+          drafts[r.review_id] = replyDrafts[r.review_id];
+        }
+      });
+      
+      // Solo actualizar si hay cambios reales
+      const hasChanges = reviews.some(r => 
+        !(r.review_id in replyDrafts) || 
+        (replyDrafts[r.review_id] === "" && r.owner_reply && r.owner_reply.trim() !== "")
+      );
+      
+      if (hasChanges) {
+        setReplyDrafts(drafts);
+      }
+    }
+    
+    // Cargar datos de likes
+    if (reviews && reviews.length > 0) {
+      loadLikesData(reviews);
+    }
+  }, [reviews, editingReplyId, savingReplies]);
+
+  const loadLikesData = async (reviewList: typeof reviews) => {
+    const token = localStorage.getItem("token");
+    
+    const likesPromises = reviewList.map(async (r) => {
+      try {
+        // Obtener el contador de likes
+        const countRes = await api.get(`/reviews/${r.review_id}/likes-count`);
+        
+        // Si el usuario está logueado, verificar si dio like
+        let liked = false;
+        if (token) {
+          try {
+            const likedRes = await api.get(`/reviews/${r.review_id}/user-liked`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            liked = likedRes.data.liked;
+          } catch (err) {
+            console.warn('Error verificando like del usuario:', err);
+          }
+        }
+        
+        return {
+          id: r.review_id,
+          count: countRes.data.count,
+          liked
+        };
+      } catch (err) {
+        console.error('Error cargando likes para reseña', r.review_id, err);
+        return {
+          id: r.review_id,
+          count: 0,
+          liked: false
+        };
+      }
     });
-    setReplyDrafts(drafts);
-    setEditingReplyId(null);
-  }, [reviews]);
+
+    const likesArray = await Promise.all(likesPromises);
+    const likesMap = likesArray.reduce((acc, item) => {
+      acc[item.id] = { count: item.count, liked: item.liked };
+      return acc;
+    }, {} as Record<number, { count: number; liked: boolean }>);
+
+    setLikesData(likesMap);
+  };
+
+  const toggleLike = async (reviewId: number) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Debes iniciar sesión para dar like a las reseñas", { autoClose: 3000 });
+      return;
+    }
+
+    try {
+      const res = await api.post(`/reviews/${reviewId}/like`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Actualizar el estado local
+      setLikesData(prev => ({
+        ...prev,
+        [reviewId]: {
+          count: res.data.count,
+          liked: res.data.liked
+        }
+      }));
+    } catch (err: any) {
+      console.error('Error al dar like:', err);
+      toast.error("Error al procesar el like", { autoClose: 3000 });
+    }
+  };
 
   const handleOwnerReplyChange = (reviewId: number, value: string) => {
+    // Marcar que estamos editando esta reseña
+    if (editingReplyId !== reviewId) {
+      setEditingReplyId(reviewId);
+    }
+    
     setReplyDrafts((prev) => ({
       ...prev,
       [reviewId]: value,
@@ -64,6 +215,11 @@ export default function RecentReviews({ reviews, businessId, limit, showViewAllB
       }));
       setEditingReplyId((prev) => (prev === reviewId ? null : prev));
       toast.success("Respuesta guardada", { autoClose: 2500 });
+      
+      // Notificar al componente padre para recargar datos
+      if (onReplyUpdated) {
+        onReplyUpdated();
+      }
     } catch (error: any) {
       console.error("Error al guardar respuesta del propietario:", error);
       toast.error(error?.response?.data?.message || "Error al guardar la respuesta", {
@@ -71,6 +227,8 @@ export default function RecentReviews({ reviews, businessId, limit, showViewAllB
       });
     } finally {
       setSavingReplies((prev) => prev.filter((id) => id !== reviewId));
+      // Limpiar editingReplyId después de finalizar guardado
+      setEditingReplyId((prev) => (prev === reviewId ? null : prev));
     }
   };
 
@@ -88,7 +246,13 @@ export default function RecentReviews({ reviews, businessId, limit, showViewAllB
         ...prev,
         [reviewId]: "",
       }));
+      setEditingReplyId((prev) => (prev === reviewId ? null : prev));
       toast.success("Respuesta eliminada", { autoClose: 2500 });
+      
+      // Notificar al componente padre para recargar datos
+      if (onReplyUpdated) {
+        onReplyUpdated();
+      }
     } catch (error: any) {
       console.error("Error al eliminar la respuesta del propietario:", error);
       toast.error(error?.response?.data?.message || "Error al eliminar la respuesta", {
@@ -96,6 +260,8 @@ export default function RecentReviews({ reviews, businessId, limit, showViewAllB
       });
     } finally {
       setSavingReplies((prev) => prev.filter((id) => id !== reviewId));
+      // Limpiar editingReplyId después de finalizar eliminación
+      setEditingReplyId((prev) => (prev === reviewId ? null : prev));
     }
   };
 
@@ -150,10 +316,78 @@ export default function RecentReviews({ reviews, businessId, limit, showViewAllB
         )}
       </div>
 
+      {/* Filtros y Ordenamiento - Solo en página de todas las reseñas */}
+      {!showViewAllButton && reviews.length > 0 && (
+        <div className="reviews-filters">
+          <div className="filter-group">
+            <Filter size={16} />
+            <span className="filter-label">Filtrar:</span>
+            <button
+              className={`filter-btn ${filterType === 'all' ? 'active' : ''}`}
+              onClick={() => setFilterType('all')}
+            >
+              Todas ({reviews.length})
+            </button>
+            <button
+              className={`filter-btn ${filterType === 'unanswered' ? 'active' : ''}`}
+              onClick={() => setFilterType('unanswered')}
+            >
+              Sin responder ({reviews.filter(r => !r.owner_reply || r.owner_reply.trim() === '').length})
+            </button>
+            <button
+              className={`filter-btn ${filterType === 'good' ? 'active' : ''}`}
+              onClick={() => setFilterType('good')}
+            >
+              Buenas 4-5 ⭐ ({reviews.filter(r => r.rating >= 4).length})
+            </button>
+            <button
+              className={`filter-btn ${filterType === 'bad' ? 'active' : ''}`}
+              onClick={() => setFilterType('bad')}
+            >
+              Malas 1-2 ⭐ ({reviews.filter(r => r.rating <= 2).length})
+            </button>
+          </div>
+
+          <div className="sort-group">
+            <ArrowUpDown size={16} />
+            <span className="filter-label">Ordenar:</span>
+            <select
+              className="sort-select"
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as SortOrder)}
+            >
+              <option value="newest">Más recientes</option>
+              <option value="oldest">Más antiguas</option>
+              <option value="highest">Mayor calificación</option>
+              <option value="lowest">Menor calificación</option>
+            </select>
+          </div>
+        </div>
+      )}
+
       {displayedReviews.length === 0 ? (
         <div className="empty-state">
-          <p>No hay reseñas aún</p>
-          <small>Las reseñas de tus clientes aparecerán aquí</small>
+          {reviews.length === 0 ? (
+            <>
+              <p>No hay reseñas aún</p>
+              <small>Las reseñas de tus clientes aparecerán aquí</small>
+            </>
+          ) : (
+            <>
+              <p>No hay reseñas con este filtro</p>
+              <small>Intenta cambiar los criterios de búsqueda</small>
+              <button
+                className="filter-btn"
+                onClick={() => {
+                  setFilterType('all');
+                  setSortOrder('newest');
+                }}
+                style={{ marginTop: '1rem' }}
+              >
+                Limpiar filtros
+              </button>
+            </>
+          )}
         </div>
       ) : (
         <div className="reviews-list">
@@ -161,7 +395,21 @@ export default function RecentReviews({ reviews, businessId, limit, showViewAllB
             <div key={review.review_id} className="review-item">
               <div className="review-header">
                 <div className="review-user">
-                  <div className="user-avatar">
+                  {review.user.avatar ? (
+                    <img 
+                      src={review.user.avatar} 
+                      alt={`${review.user.firstName} ${review.user.firstLastName}`}
+                      className="user-avatar-img"
+                      onError={(e) => {
+                        // Si la imagen falla al cargar, mostrar iniciales
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const fallback = target.nextElementSibling as HTMLDivElement;
+                        if (fallback) fallback.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div className="user-avatar" style={{ display: review.user.avatar ? 'none' : 'flex' }}>
                     {review.user.firstName.charAt(0).toUpperCase()}
                   </div>
                   <div className="user-info">
@@ -180,6 +428,42 @@ export default function RecentReviews({ reviews, businessId, limit, showViewAllB
                 {review.sentiment_label}
               </div>
 
+              {/* Sección de Likes */}
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '0.5rem', 
+                marginTop: '0.75rem',
+                paddingTop: '0.75rem',
+                borderTop: '1px solid rgba(0,0,0,0.08)'
+              }}>
+                <button
+                  onClick={() => toggleLike(review.review_id)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '1.25rem',
+                    padding: '0.25rem 0.5rem',
+                    borderRadius: '4px',
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem'
+                  }}
+                  title={likesData[review.review_id]?.liked ? "Quitar like" : "Dar like"}
+                >
+                  {likesData[review.review_id]?.liked ? "💛" : "🤍"}
+                </button>
+                <span style={{ 
+                  fontSize: '0.9rem', 
+                  color: '#64748b',
+                  fontWeight: 500 
+                }}>
+                  {likesData[review.review_id]?.count || 0}
+                </span>
+              </div>
+
               {(() => {
                 const currentReply =
                   replyDrafts[review.review_id] ?? review.owner_reply ?? "";
@@ -188,7 +472,31 @@ export default function RecentReviews({ reviews, businessId, limit, showViewAllB
                 if (currentReply && !isEditing) {
                   return (
                     <div className="owner-reply-inline">
-                      <label className="owner-reply-inline-label">Tu respuesta</label>
+                      <div className="owner-reply-header">
+                        {businessLogo ? (
+                          <img 
+                            src={businessLogo} 
+                            alt="Logo del negocio"
+                            className="business-logo-avatar"
+                            onClick={() => navigate(`/business/${businessId}`)}
+                            style={{ cursor: 'pointer' }}
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              const fallback = target.nextElementSibling as HTMLDivElement;
+                              if (fallback) fallback.style.display = 'flex';
+                            }}
+                          />
+                        ) : null}
+                        <div 
+                          className="business-logo-fallback"
+                          style={{ display: businessLogo ? 'none' : 'flex', cursor: 'pointer' }}
+                          onClick={() => navigate(`/business/${businessId}`)}
+                        >
+                          🏪
+                        </div>
+                        <label className="owner-reply-inline-label">Respuesta del negocio</label>
+                      </div>
                       <p className="owner-reply-inline-status">
                         Esta reseña ya tiene una respuesta.
                       </p>
@@ -231,6 +539,12 @@ export default function RecentReviews({ reviews, businessId, limit, showViewAllB
                       onChange={(e) =>
                         handleOwnerReplyChange(review.review_id, e.target.value)
                       }
+                      onKeyDown={(e) => {
+                        // Prevenir que Enter envíe el formulario
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                        }
+                      }}
                       placeholder="Escribe aquí tu respuesta para esta reseña"
                     />
                     <div className="owner-reply-inline-actions">

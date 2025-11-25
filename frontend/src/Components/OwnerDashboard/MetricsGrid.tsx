@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Eye, Star, MessageCircle, Image } from "lucide-react";
 import { BusinessStatistics } from "../../services/ownerStatistics";
+import "./MetricsGrid.css";
 
 interface MetricsGridProps {
   statistics: BusinessStatistics;
