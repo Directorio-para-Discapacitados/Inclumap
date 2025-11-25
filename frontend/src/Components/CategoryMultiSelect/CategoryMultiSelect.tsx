@@ -50,10 +50,13 @@ const CategoryMultiSelect: React.FC<CategoryMultiSelectProps> = ({
               onClick={() => handleToggle(category.category_id)}
               title={category.description}
             >
+              {/* Elemento de nombre a la izquierda */}
+              <span className="category-name">{category.name}</span>
+
+              {/* Elemento de check a la derecha (como el icono de ayuda) */}
               <div className="category-check">
                 {isSelected && <i className="fas fa-check"></i>}
               </div>
-              <span className="category-name">{category.name}</span>
             </div>
           );
         })}

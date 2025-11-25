@@ -20,11 +20,12 @@ body:has(.registro-fondo) #root {
 /* Contenedor del formulario */
 .registro-form {
   background: var(--color-card-bg);
-  padding: 4rem;
+  padding: 3rem 3.25rem;
   border-radius: 1.5rem;
-  box-shadow: 0 8px 25px var(--color-shadow);
+  box-shadow: 0 18px 45px var(--color-shadow);
+  border: 2px solid var(--color-border);
   width: 100%;
-  max-width: 450px;
+  max-width: 460px;
   transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, max-width 0.4s ease;
   animation: fadeIn 0.5s ease;
   margin: 0 auto;
@@ -36,8 +37,8 @@ body:has(.registro-fondo) #root {
 }
 
 .registro-form:hover {
-  transform: scale(1.02);
-  box-shadow: 0 10px 30px var(--color-shadow-hover);
+  transform: scale(1.01);
+  box-shadow: 0 16px 40px var(--color-shadow-hover);
 }
 
 /* Título */
@@ -56,19 +57,21 @@ body:has(.registro-fondo) #root {
   justify-content: center;
   align-items: center;
   background: var(--color-surface);
-  border-radius: 10px;
+  border-radius: 999px;
   padding: 4px;
   margin-bottom: 1.5rem;
   width: 100%;
   max-width: 260px;
   margin-left: auto;
   margin-right: auto;
-  transition: background 0.3s ease;
+  border: 1px solid var(--color-border);
+  box-shadow: 0 4px 14px var(--color-shadow);
+  transition: background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .registro-switch-buttons button {
   flex: 1;
-  padding: 0.5rem 0;
+  padding: 0.55rem 0;
   border: none;
   border-radius: 8px;
   font-size: 0.95rem;
@@ -76,6 +79,7 @@ body:has(.registro-fondo) #root {
   color: var(--color-text-muted);
   background: transparent;
   cursor: pointer;
+  letter-spacing: 0.02em;
   transition: all 0.25s ease;
 }
 
@@ -104,10 +108,16 @@ body:has(.registro-fondo) #root {
   margin-bottom: 0.9rem;
   border: 1px solid var(--color-border);
   border-radius: 8px;
-  font-size: 0.95rem;
+  font-size: 1rem;
   transition: border-color 0.2s, box-shadow 0.2s, background-color 0.3s ease, color 0.3s ease;
   background: var(--color-input-bg);
   color: var(--color-input-text);
+}
+
+/* Inputs más marcados en modo oscuro */
+body.dark-mode .registro-form input,
+body.dark-mode .registro-form textarea {
+  border-color: #4b5563; /* gris más claro que el fondo */
 }
 
 .registro-form input:focus,
@@ -117,16 +127,23 @@ body:has(.registro-fondo) #root {
   outline: none;
 }
 
+.registro-form input::placeholder,
+.registro-form textarea::placeholder {
+  color: var(--color-input-text);
+  opacity: 0.9;
+  font-size: 1rem;
+}
+
 /* Botón */
 .registro-btn {
-  width: 106%;
-  margin-top: 1rem;
+  width: 100%;
+  margin-top: 1.1rem;
   background-color: var(--color-primary);
   color: #ffffff !important;
   border: none;
-  padding: 0.7rem;
-  border-radius: 8px;
-  font-size: 1.2rem;
+  padding: 0.75rem;
+  border-radius: 10px;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.25s ease, box-shadow 0.25s ease;
@@ -185,8 +202,8 @@ body:has(.registro-fondo) #root {
 
 /*estilos para el genero*/
 select {
-  width: 106%;
-  padding: 1rem;
+  width: 100%;
+  padding: 0.75rem 0.9rem;
   border: 1px solid var(--color-border);
   border-radius: 8px;
   font-size: 0.95rem;
@@ -213,7 +230,7 @@ select:hover {
 /* === Campo de contraseña con ícono elegante === */
 .password-container {
   position: relative;
-  width: 106%;
+  width: 100%;
 }
 
 .password-container input {
@@ -274,7 +291,7 @@ select:hover {
   padding: 0.75rem 0.85rem;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
-  border: 2px solid transparent;
+  border: 2px solid var(--color-border);
   box-shadow: 0 2px 6px var(--color-shadow);
   min-height: 50px;
 }
@@ -290,7 +307,6 @@ select:hover {
   background-color: var(--color-card-hover);
 }
 
-/* nombre */
 .accesibilidad-nombre {
   font-size: 0.85rem;
   font-weight: 500;
@@ -299,7 +315,6 @@ select:hover {
   margin-right: 0.5rem;
 }
 
-/* tooltip */
 .tooltip-wrapper {
   position: relative;
   display: flex;
@@ -413,8 +428,8 @@ select:hover {
 }
 
 .map-picker-btn {
-  background-color: #0ea5e9;
-  color: white;
+  background-color: var(--color-primary);
+  color: var(--color-button-text-contrast);
   border: none;
   border-radius: 8px;
   width: 45px;
@@ -428,11 +443,11 @@ select:hover {
 }
 
 .map-picker-btn:hover {
-  background-color: #0284c7;
+  background-color: var(--color-primary-hover);
 }
 
 .map-picker-btn:disabled {
-  background-color: #94a3b8;
+  background-color: var(--color-border);
   cursor: not-allowed;
   opacity: 0.6;
 }
@@ -447,23 +462,23 @@ select:hover {
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  background-color: #d1fae5;
-  border-left: 3px solid #10b981;
+  background-color: var(--color-surface);
+  border-left: 3px solid var(--color-primary);
   border-radius: 6px;
   margin-bottom: 15px;
   font-size: 13px;
-  color: #065f46;
+  color: var(--color-text);
 }
 
 .location-icon {
   font-size: 16px;
-  color: #10b981;
+  color: var(--color-primary);
   font-weight: bold;
 }
 
 .location-text {
   font-size: 12px;
-  color: #065f46;
+  color: var(--color-text-muted);
 }
 
 /* === MEDIA QUERIES ADICIONALES === */
@@ -499,18 +514,103 @@ select:hover {
   text-align: center;
   margin-top: 1.5rem;
   font-size: 0.95rem;
+  color: var(--color-text-muted);
 }
 
 .registro-login-link {
   text-decoration: none;
+  color: var(--color-primary);
   transition: opacity 0.2s ease;
 }
 
 .registro-login-link:hover {
   text-decoration: underline;
+  opacity: 0.9;
 }
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+body:not(.dark-mode) .registro-fondo {
+  background: radial-gradient(circle at top, #e5efff 0%, #f3f6fc 45%, #eef2ff 100%);
+}
+
+body:not(.dark-mode) .registro-form {
+  background: linear-gradient(135deg, #ffffff 0%, #f9fbff 60%, #f3f7ff 100%);
+  border-color: rgba(15, 23, 42, 0.35);
+  box-shadow: 0 22px 55px rgba(15, 23, 42, 0.15);
+}
+
+body:not(.dark-mode) .registro-switch-buttons {
+  background: #f9fafb;
+  border-color: rgba(148, 163, 184, 0.4);
+  box-shadow: 0 8px 24px rgba(148, 163, 184, 0.25);
+}
+
+body:not(.dark-mode) .registro-switch-buttons button.activo {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #0ea5e9 100%);
+  color: #ffffff !important;
+  box-shadow: 0 3px 12px rgba(37, 99, 235, 0.4);
+}
+
+/* Botón principal más llamativo en modo claro */
+body:not(.dark-mode) .registro-form .registro-btn:not(.secondary) {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #0ea5e9 100%);
+  border: none;
+  color: #ffffff !important;
+  box-shadow: 0 10px 28px rgba(37, 99, 235, 0.45);
+}
+
+body:not(.dark-mode) .registro-form .registro-btn:not(.secondary):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 36px rgba(37, 99, 235, 0.6);
+  filter: brightness(1.03);
+}
+
+/* ===================== MODO OSCURO ESPECÍFICO REGISTRO ===================== */
+
+body.dark-mode .registro-fondo {
+  background: radial-gradient(circle at top, #1f2937 0%, #020617 55%, #000000 100%);
+}
+
+body.dark-mode .registro-form {
+  background: linear-gradient(145deg, #111827 0%, #020617 60%, #020617 100%);
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.85);
+}
+
+/* Botón principal más llamativo en modo oscuro */
+body.dark-mode .registro-form .registro-btn:not(.secondary) {
+  background: linear-gradient(135deg, #38bdf8 0%, #3b82f6 45%, #4f46e5 100%);
+  border: none;
+  color: #0b1220 !important;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.9);
+}
+
+body.dark-mode .registro-form .registro-btn:not(.secondary):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 22px 55px rgba(15, 23, 42, 1);
+  filter: brightness(1.06);
+}
+
+body.dark-mode .registro-switch-buttons {
+  background: rgba(15, 23, 42, 0.95);
+  border-color: rgba(148, 163, 184, 0.35);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+}
+
+body.dark-mode .registro-switch-buttons button {
+  color: var(--color-text-muted);
+}
+
+body.dark-mode .registro-switch-buttons button.activo {
+  background: linear-gradient(135deg, #38bdf8 0%, #3b82f6 45%, #4f46e5 100%);
+  color: #0b1220 !important;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.7);
+}
+
+body.dark-mode .registro-login-text {
+  color: var(--color-text-muted);
 }
