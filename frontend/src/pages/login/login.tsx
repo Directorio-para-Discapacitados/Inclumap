@@ -5,11 +5,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { loginUser, loginWithGoogle } from "../../config/auth";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 import { useSpeakable } from "../../hooks/useSpeakable";
 import { Eye, EyeOff } from "lucide-react";
 import "./login.css";
 
 export default function Login() {
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,6 +23,8 @@ export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const { onMouseEnter, onFocus } = useSpeakable();
+  const { darkMode } = useTheme();
+
   const isValid = email && password;
 
   useEffect(() => {
@@ -185,7 +189,11 @@ export default function Login() {
           </div>
           <img
             className="login-illustration-img"
-            src="/inclumap-login-illustration.png"
+            src= {
+              darkMode 
+              ? "/inclumap-login-illustration-dark.png" 
+              : "/inclumap-login-illustration.png"
+            }
             alt="Ilustración de inclusión con espacios y comercios accesibles"
             loading="eager"
           />
@@ -295,7 +303,7 @@ export default function Login() {
                   useOneTap={false}
                   shape="pill"
                   width="300px"
-                  theme="outline"
+                  theme={darkMode ? "filled_black" : "outline"}
                   text="continue_with"
                   locale="es"
                 />

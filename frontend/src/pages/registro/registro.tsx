@@ -177,18 +177,18 @@ export default function Registro() {
 
     const payload = isBusiness
       ? {
-          ...formData,
-          NIT: Number(formData.NIT),
-          coordinates,
-          rolIds: [2, 3],
-          accessibilityIds: selectedAccessibility,
-          categoryIds: selectedCategories,
-        }
+        ...formData,
+        NIT: Number(formData.NIT),
+        coordinates,
+        rolIds: [2, 3],
+        accessibilityIds: selectedAccessibility,
+        categoryIds: selectedCategories,
+      }
       : {
-          ...formData,
-          coordinates, // persona también lleva ubicación Mocoa
-          rolIds: [2],
-        };
+        ...formData,
+        coordinates, // persona también lleva ubicación Mocoa
+        rolIds: [2],
+      };
 
     try {
       const res = await fetch(endpoint, {
@@ -343,9 +343,9 @@ export default function Registro() {
               onFocus={onFocus}
             />
 
-            <button 
-              type="button" 
-              className="registro-btn" 
+            <button
+              type="button"
+              className="registro-btn"
               onClick={() => setStep(2)}
               aria-label="Ir al siguiente paso"
               onMouseEnter={onMouseEnter}
@@ -470,9 +470,8 @@ export default function Registro() {
               {accesibilidades.map((item) => (
                 <div
                   key={item.id}
-                  className={`accesibilidad-boton ${
-                    selectedAccessibility.includes(item.id) ? "seleccionado" : ""
-                  }`}
+                  className={`accesibilidad-boton ${selectedAccessibility.includes(item.id) ? "seleccionado" : ""
+                    }`}
                   onClick={() =>
                     setSelectedAccessibility((prev) =>
                       prev.includes(item.id)
