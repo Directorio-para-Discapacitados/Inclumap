@@ -257,9 +257,12 @@ export default function ReviewsPage() {
 
             <div className="revCardTop">
               <img
-                src={r.user?.avatar || "/default-user.png"}
+                src={r.user?.avatar ? `${r.user.avatar.startsWith('http') ? r.user.avatar : `https://res.cloudinary.com/dfuwufkwg/image/upload/${r.user.avatar}`}` : "https://ui-avatars.com/api/?name=" + encodeURIComponent(r.user?.name || "Usuario") + "&background=667eea&color=fff&size=128"}
                 className="revAvatar"
                 alt="avatar"
+                onError={(e) => {
+                  e.currentTarget.src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(r.user?.name || "Usuario") + "&background=667eea&color=fff&size=128";
+                }}
               />
 
               <div className="revUserInfo">
@@ -280,6 +283,19 @@ export default function ReviewsPage() {
             </p>
 
             <p className="revComment">{r.comment}</p>
+
+            {/* Respuesta del negocio */}
+            {r.owner_reply && (
+              <div className="revBusinessResponse">
+                <div className="revResponseHeader">
+                  <span className="revResponseLabel">📢 Respuesta del negocio:</span>
+                  <span className="revResponseDate">
+                    {new Date(r.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+                <p className="revResponseText">{r.owner_reply}</p>
+              </div>
+            )}
 
             {/* Panel de análisis de sentimientos para admins */}
             {isAdmin && r.sentiment_label && (

@@ -577,6 +577,59 @@ html.dark-mode {
 }
 
 /* ============================
+   RESPUESTA DEL NEGOCIO
+============================ */
+.revBusinessResponse {
+  margin-top: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%);
+  border-left: 4px solid var(--color-primary);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.revBusinessResponse:hover {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.12) 0%, rgba(118, 75, 162, 0.12) 100%);
+  transform: translateX(2px);
+}
+
+.revResponseHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.revResponseLabel {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.revResponseDate {
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.revResponseText {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--color-text);
+  margin: 0;
+  padding-left: 24px;
+  font-style: italic;
+}
+
+body.dark-mode .revBusinessResponse {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+}
+
+/* ============================
    RESPONSIVE
 ============================ */
 @media (max-width: 600px) {
