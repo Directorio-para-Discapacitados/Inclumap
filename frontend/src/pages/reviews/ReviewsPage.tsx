@@ -32,8 +32,8 @@ export default function ReviewsPage() {
   const [sortBy, setSortBy] = useState("newest");
   const [filterIncoherent, setFilterIncoherent] = useState(false);
 
-  // ⭐ LOCAL LIKES
-  const [likes, setLikes] = useState<Record<string, boolean>>({});
+  // ⭐ LIKES CON API
+  const [likesData, setLikesData] = useState<Record<string, { count: number; liked: boolean }>>({});
 
   // Verificar si el usuario es admin (rolIds incluye 1 = Administrador)
   const isAdmin = user?.rolIds?.includes(1);
@@ -47,23 +47,76 @@ export default function ReviewsPage() {
     }
   }, [searchParams, isAdmin]);
 
-  // cargar likes guardados
-  useEffect(() => {
-    const saved = localStorage.getItem("review_likes");
-    if (saved) setLikes(JSON.parse(saved));
-  }, []);
-
-  const toggleLike = (reviewId: string) => {
-    setLikes((prev) => {
-      const updated = { ...prev, [reviewId]: !prev[reviewId] };
-      localStorage.setItem("review_likes", JSON.stringify(updated));
-      return updated;
+  // Cargar datos de likes para todas las reseñas
+  const fetchLikesData = async (reviewList: any[]) => {
+    const token = localStorage.getItem('token');
+    const likesPromises = reviewList.map(async (r) => {
+      try {
+        // Obtener el contador
+        const countRes = await api.get(`/reviews/${r.review_id}/likes-count`);
+        
+        // Si el usuario está logueado, verificar si dio like
+        let liked = false;
+        if (token) {
+          try {
+            const likedRes = await api.get(`/reviews/${r.review_id}/user-liked`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            liked = likedRes.data.liked;
+          } catch (err) {
+            // Si no está autenticado, simplemente no está likeado
+            console.warn('Error verificando like del usuario:', err);
+          }
+        }
+        
+        return {
+          id: r.review_id,
+          count: countRes.data.count,
+          liked
+        };
+      } catch (err) {
+        console.error('Error cargando likes para reseña', r.review_id, err);
+        return {
+          id: r.review_id,
+          count: 0,
+          liked: false
+        };
+      }
     });
+
+    const likesArray = await Promise.all(likesPromises);
+    const likesMap = likesArray.reduce((acc, item) => {
+      acc[item.id] = { count: item.count, liked: item.liked };
+      return acc;
+    }, {} as Record<string, { count: number; liked: boolean }>);
+    
+    setLikesData(likesMap);
   };
 
-  const localLikesCount = (r: any) => {
-    const base = r.likes_count ?? 0;
-    return likes[r.review_id] ? base + 1 : base;
+  const toggleLike = async (reviewId: number) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error("Debes iniciar sesión para dar like a las reseñas");
+      return;
+    }
+
+    try {
+      const res = await api.post(`/reviews/${reviewId}/like`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      // Actualizar el estado local
+      setLikesData(prev => ({
+        ...prev,
+        [reviewId]: {
+          count: res.data.count,
+          liked: res.data.liked
+        }
+      }));
+    } catch (err: any) {
+      console.error('Error al dar like:', err);
+      toast.error("Error al procesar el like");
+    }
   };
 
   // Función para corregir una reseña incoherente
@@ -134,6 +187,8 @@ export default function ReviewsPage() {
       const res = await api.get("/reviews");
       setReviews(res.data);
       setFiltered(res.data);
+      // Cargar likes después de obtener las reseñas
+      await fetchLikesData(res.data);
     } catch (err) {
       console.error("Error cargando reseñas:", err);
     }
@@ -345,17 +400,17 @@ export default function ReviewsPage() {
               </div>
             )}
 
-            {/* ❤️ LIKE LOCAL */}
+            {/* ❤️ LIKE CON API */}
             <div className="revLikeContainer">
               <button
-                className={`revLikeBtn ${likes[r.review_id] ? "liked" : ""}`}
+                className={`revLikeBtn ${likesData[r.review_id]?.liked ? "liked" : ""}`}
                 onClick={() => toggleLike(r.review_id)}
               >
-                {likes[r.review_id] ? "💛" : "🤍"}
+                {likesData[r.review_id]?.liked ? "💛" : "🤍"}
               </button>
 
               <span className="revLikeCount">
-                {localLikesCount(r)}
+                {likesData[r.review_id]?.count || 0}
               </span>
             </div>
 
