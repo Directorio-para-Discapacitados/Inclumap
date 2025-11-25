@@ -98,4 +98,28 @@ export class ReviewController {
   async reanalyzeAll() {
     return this.reviewService.reanalyzeAllReviews();
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/like')
+  @HttpCode(HttpStatus.OK)
+  toggleLike(
+    @Param('id', ParseIntPipe) review_id: number,
+    @User() user: UserEntity,
+  ) {
+    return this.reviewService.toggleLike(review_id, user);
+  }
+
+  @Get(':id/likes-count')
+  getLikesCount(@Param('id', ParseIntPipe) review_id: number) {
+    return this.reviewService.getLikesCount(review_id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/user-liked')
+  checkUserLiked(
+    @Param('id', ParseIntPipe) review_id: number,
+    @User() user: UserEntity,
+  ) {
+    return this.reviewService.checkUserLiked(review_id, user.user_id);
+  }
 }

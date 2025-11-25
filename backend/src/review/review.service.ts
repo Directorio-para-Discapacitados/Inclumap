@@ -10,6 +10,7 @@ import { UserEntity } from 'src/user/entity/user.entity';
 import { Repository } from 'typeorm';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { ReviewEntity } from './entity/review.entity';
+import { ReviewLikeEntity } from './entity/review-like.entity';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { SentimentService } from 'src/sentiment/sentiment.service';
 import { NotificationService } from 'src/notification/notification.service';
@@ -19,6 +20,8 @@ export class ReviewService {
   constructor(
     @InjectRepository(ReviewEntity)
     private readonly reviewRepository: Repository<ReviewEntity>,
+    @InjectRepository(ReviewLikeEntity)
+    private readonly reviewLikeRepository: Repository<ReviewLikeEntity>,
     @InjectRepository(BusinessEntity)
     private readonly businessRepository: Repository<BusinessEntity>,
     @InjectRepository(UserEntity)
@@ -454,5 +457,61 @@ export class ReviewService {
       analyzed: analyzed,
       incoherent_found: incoherent,
     };
+  }
+
+  // LIKES SYSTEM
+
+  async toggleLike(review_id: number, user: UserEntity) {
+    const review = await this.reviewRepository.findOne({
+      where: { review_id },
+    });
+
+    if (!review) {
+      throw new NotFoundException(`Reseña con ID ${review_id} no encontrada.`);
+    }
+
+    const existingLike = await this.reviewLikeRepository.findOne({
+      where: {
+        review: { review_id },
+        user: { user_id: user.user_id },
+      },
+    });
+
+    if (existingLike) {
+      // Si ya dio like, lo quitamos
+      await this.reviewLikeRepository.remove(existingLike);
+      const count = await this.reviewLikeRepository.count({
+        where: { review: { review_id } },
+      });
+      return { liked: false, count };
+    } else {
+      // Si no ha dado like, lo agregamos
+      const newLike = this.reviewLikeRepository.create({
+        review,
+        user,
+      });
+      await this.reviewLikeRepository.save(newLike);
+      const count = await this.reviewLikeRepository.count({
+        where: { review: { review_id } },
+      });
+      return { liked: true, count };
+    }
+  }
+
+  async getLikesCount(review_id: number) {
+    const count = await this.reviewLikeRepository.count({
+      where: { review: { review_id } },
+    });
+    return { count };
+  }
+
+  async checkUserLiked(review_id: number, user_id: number) {
+    const like = await this.reviewLikeRepository.findOne({
+      where: {
+        review: { review_id },
+        user: { user_id },
+      },
+    });
+    return { liked: !!like };
   }
 }

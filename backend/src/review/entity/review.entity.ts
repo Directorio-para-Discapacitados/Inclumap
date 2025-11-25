@@ -1,5 +1,6 @@
 import { BusinessEntity } from 'src/business/entity/business.entity';
 import { UserEntity } from 'src/user/entity/user.entity';
+import { ReviewLikeEntity } from './review-like.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -7,6 +8,7 @@ import {
   ManyToOne,
   CreateDateColumn,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 
 @Entity({ name: 'review' })
@@ -65,4 +67,7 @@ export class ReviewEntity {
   })
   @JoinColumn({ name: 'user_id' })
   user: UserEntity;
+
+  @OneToMany(() => ReviewLikeEntity, (like) => like.review)
+  likes: ReviewLikeEntity[];
 }
