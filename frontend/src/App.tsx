@@ -45,17 +45,14 @@ function AppContent() {
   const [savedVersion, setSavedVersion] = useState(0);
   const [hoveredSavedId, setHoveredSavedId] = useState<number | null>(null);
 
-  // Scroll hacia arriba cuando cambia la ruta
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
   useEffect(() => {
-    // Configurar el callback que usará el interceptor para mostrar el modal
     const callback = () => {
       return new Promise<boolean>((resolve) => {
         setIsSessionModalOpen(true);
-        // Guardar el resolve para usarlo cuando el usuario haga clic
         setSessionPromiseResolve(() => resolve);
       });
     };
@@ -66,7 +63,7 @@ function AppContent() {
   const handleKeepSession = () => {
     setIsSessionModalOpen(false);
     if (sessionPromiseResolve) {
-      sessionPromiseResolve(true); // Usuario quiere mantener la sesión
+      sessionPromiseResolve(true);
       setSessionPromiseResolve(null);
     }
   };
@@ -74,7 +71,7 @@ function AppContent() {
   const handleCloseSession = () => {
     setIsSessionModalOpen(false);
     if (sessionPromiseResolve) {
-      sessionPromiseResolve(false); // Usuario quiere cerrar la sesión
+      sessionPromiseResolve(false);
       setSessionPromiseResolve(null);
     }
   };

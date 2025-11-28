@@ -7,6 +7,7 @@
 .content-wrapper {
   max-width: 1400px;
   margin: 0 auto;
+  border: 1px solid rgba(148, 163, 184, 0.5);
 }
 
 .header-section {
@@ -76,6 +77,8 @@
   font-weight: 800;
   color: #1f2937;
   margin: 0;
+  flex: 1;           
+  text-align: center; 
 }
 
 .stats-section {
@@ -112,6 +115,7 @@
   padding: 1.5rem;
   border-radius: 16px;
   border-left: 4px solid #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.25); /* contorno más visible en modo claro */
   margin-bottom: 2rem;
   animation: fadeInUp 0.6s ease;
 }
@@ -141,6 +145,7 @@
   border-radius: 16px;
   padding: 1.5rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(148, 163, 184, 0.6); /* borde visible también en modo claro */
   transition: all 0.3s ease;
   animation: slideIn 0.5s ease forwards;
   opacity: 0;
@@ -445,6 +450,51 @@
 .error-message button:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+body.dark-mode .gestion-categorias-container {
+  background: #020617;
+}
+
+body.dark-mode .gestion-categorias-container .content-wrapper {
+  background: #020617;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.9);
+  border: 1.5px solid rgba(148, 163, 184, 0.6); /* borde más visible del contenedor */
+}
+
+body.dark-mode .gestion-categorias-container .page-title {
+  color: #e5e7eb;
+}
+
+body.dark-mode .gestion-categorias-container .stat-card {
+  background: linear-gradient(135deg, #047857 0%, #059669 100%);
+}
+
+body.dark-mode .gestion-categorias-container .info-box {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  border-left-color: #3b82f6;
+  border: 1.5px solid rgba(148, 163, 184, 0.7); /* marco más marcado en modo oscuro */
+}
+
+body.dark-mode .gestion-categorias-container .info-box strong {
+  color: #bfdbfe;
+}
+
+body.dark-mode .gestion-categorias-container .info-box p {
+  color: #e5e7eb;
+}
+
+body.dark-mode .gestion-categorias-container .category-card {
+  background: #020617;
+  border: 1.5px solid rgba(148, 163, 184, 0.85); /* borde más claro y grueso */
+}
+
+body.dark-mode .gestion-categorias-container .category-name {
+  color: #f9fafb;
+}
+
+body.dark-mode .gestion-categorias-container .category-description {
+  color: #d1d5db;
 }
 
 /* Animations */

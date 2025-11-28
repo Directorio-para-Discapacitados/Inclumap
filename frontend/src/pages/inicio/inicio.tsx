@@ -325,7 +325,13 @@ export default function Inicio() {
     setSelectedAccessibility(null);
     setSelectedCategory(null);
     setFiltered([]);
-    if (location.search) window.history.replaceState({}, "", window.location.pathname);
+    setError(null);
+    setLoading(false);
+
+    // También limpiar el buscador y la categoría del Navbar:
+    // al navegar a la misma ruta pero sin parámetros, location.search cambia a ""
+    // y el Navbar sincroniza sus estados (searchQuery y selectedCategory) a vacío.
+    navigate("/", { replace: true });
   };
 
   // Manejar selección de categoría
@@ -363,7 +369,7 @@ export default function Inicio() {
             <h1 className="hero-title">IncluMap: Tu mapa hacia la Inclusión y la Accesibilidad</h1>
             <p className="hero-sub">
                 Encuentra, valora y comparte lugares accesibles para todos. Nuestro directorio ofrece filtros
-                por rampas, baños adaptados, braille y más, con "reseñas valadas por la comunidad".
+                por rampas, baños adaptados, braille y más, con "reseñas avaladas por la comunidad".
                 ¡Descubre un mundo sin barreras!
             </p>
 
@@ -378,7 +384,7 @@ export default function Inicio() {
               </button>
               <button 
                 className="btn btn-outline"
-                onClick={() => { navigate("/registro"); }}
+                onClick={() => { navigate("/reviews"); }}
               >
                 COMPARTIR TU EXPERIENCIA
               </button>
@@ -445,13 +451,6 @@ export default function Inicio() {
                           <p className="business-info-item">
                             <i className="fas fa-map-marker-alt"></i>
                             <span>{b.address}</span>
-                          </p>
-                        )}
-
-                        {ownerName && (
-                          <p className="business-info-item">
-                            <i className="fas fa-user"></i>
-                            <span>{ownerName}</span>
                           </p>
                         )}
 
@@ -528,14 +527,7 @@ export default function Inicio() {
                                 <span>{business.address}</span>
                               </p>
                             )}
-                            
-                            {business.owner_name && (
-                              <p className="business-info-item">
-                                <i className="fas fa-user"></i>
-                                <span>{business.owner_name}</span>
-                              </p>
-                            )}
-                            
+
                             {typeof business.average_rating !== 'undefined' && (
                               <p className="business-info-item">
                                 <i className="fas fa-star"></i>

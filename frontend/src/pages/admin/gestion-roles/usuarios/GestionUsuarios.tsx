@@ -258,27 +258,15 @@ const GestionUsuarios: React.FC = () => {
   return (
     <div className="gestion-container">
       <div className="content-wrapper">
-        <div className="header-section">
-          <div className="header-left">
-            <button
-              className="back-button"
-              onClick={() => navigate('/')}
-            >
-              <span>←</span>
-              Regresar
-            </button>
-            <h1 className="page-title">Gestión de Usuarios</h1>
-          </div>
-          <div className="header-right">
-            <button
-              className="back-button"
-              onClick={() => setCreateUserModalOpen(true)}
-              style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)' }}
-            >
-              <span>➕</span>
-              Crear Usuario
-            </button>
-          </div>
+        <div className="header-section" style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <button
+            className="back-button"
+            onClick={() => navigate('/')}
+          >
+            <span>←</span>
+            Regresar
+          </button>
+          <h1 className="page-title">Gestión de Usuarios</h1>
         </div>
 
         <div className="stats-section">
@@ -300,8 +288,6 @@ const GestionUsuarios: React.FC = () => {
           </div>
         </div>
 
-
-
         {users.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon">👥</div>
@@ -309,76 +295,90 @@ const GestionUsuarios: React.FC = () => {
             <small>Se excluyen administradores y propietarios de esta vista</small>
           </div>
         ) : (
-          <table className="gestion-table">
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Apellido</th>
-                <th>Email</th>
-                <th>Roles</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user, index) => (
-                <tr key={user.id} style={{ animationDelay: `${index * 0.1}s` }}>
-                  <td>{user.firstName || '-'}</td>
-                  <td>{user.firstLastName || '-'}</td>
-                  <td>{user.email || '-'}</td>
-                  <td>
-                    <span style={{
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                      color: 'white',
-                      padding: '4px 8px',
-                      borderRadius: '12px',
-                      fontSize: '0.8rem',
-                      fontWeight: '500'
-                    }}>
-                      {user.rolesText || 'Sin roles'}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="action-buttons">
-                      <button 
-                        className="btn-edit"
-                        onClick={() => handleEditUser(user)}
-                        title="Editar información del usuario"
-                      >
-                        ✏️ Editar
-                      </button>
-                      <button 
-                        className="btn-change-role"
-                        onClick={() => handleChangeRole(user)}
-                        title="Cambiar rol del usuario"
-                      >
-                        🔄 Cambiar Rol
-                      </button>
-                      {availableBusinessCount > 0 && (
-                        <button 
-                          className="btn-assign-business"
-                          onClick={() => handleAssignBusiness(user)}
-                          title={`Asignar negocio al usuario (${availableBusinessCount} disponibles)`}
-                        >
-                          🏢 Asignar Negocio
-                        </button>
-                      )}
-                      <button 
-                        className="btn-delete"
-                        onClick={() => handleDeleteUser(user)}
-                        title="Eliminar usuario del sistema"
-                        style={{
-                          background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-                          color: 'white'
-                        }}
-                      >
-                        🗑️ Eliminar
-                      </button>
-                    </div>
-                  </td>
+          <>
+            <div className="header-actions-row">
+              <div className="header-right">
+                <button
+                  className="create-user-button"
+                  onClick={() => setCreateUserModalOpen(true)}
+                >
+                  <span>➕</span>
+                  Crear Usuario
+                </button>
+              </div>
+            </div>
+
+            <table className="gestion-table">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Apellido</th>
+                  <th>Email</th>
+                  <th>Roles</th>
+                  <th>Acciones</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {users.map((user, index) => (
+                  <tr key={user.id} style={{ animationDelay: `${index * 0.1}s` }}>
+                    <td>{user.firstName || '-'}</td>
+                    <td>{user.firstLastName || '-'}</td>
+                    <td>{user.email || '-'}</td>
+                    <td>
+                      <span style={{
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        color: 'white',
+                        padding: '4px 8px',
+                        borderRadius: '12px',
+                        fontSize: '0.8rem',
+                        fontWeight: '500'
+                      }}>
+                        {user.rolesText || 'Sin roles'}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="action-buttons">
+                        <button 
+                          className="btn-edit"
+                          onClick={() => handleEditUser(user)}
+                          title="Editar información del usuario"
+                        >
+                          ✏️ Editar
+                        </button>
+                        <button 
+                          className="btn-change-role"
+                          onClick={() => handleChangeRole(user)}
+                          title="Cambiar rol del usuario"
+                        >
+                          🔄 Cambiar Rol
+                        </button>
+                        {availableBusinessCount > 0 && (
+                          <button 
+                            className="btn-assign-business"
+                            onClick={() => handleAssignBusiness(user)}
+                            title={`Asignar negocio al usuario (${availableBusinessCount} disponibles)`}
+                          >
+                            🏢 Asignar Negocio
+                          </button>
+                        )}
+                        <button 
+                          className="btn-delete"
+                          onClick={() => handleDeleteUser(user)}
+                          title="Eliminar usuario del sistema"
+                          style={{
+                            background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                            color: 'white'
+                          }}
+                        >
+                          🗑️ Eliminar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
         )}
 
         {/* Modales */}

@@ -568,6 +568,116 @@ html.dark-mode {
   box-shadow: 0 6px 16px rgba(255, 255, 255, 0.3);
 }
 
+/* Modal de reanálisis (solo admin) */
+.revReanalyzeModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+  animation: revModalFade 0.25s ease-out;
+}
+
+.revReanalyzeModal {
+  width: 100%;
+  max-width: 460px;
+  background: linear-gradient(135deg, #ffffff 0%, #f3f4ff 100%);
+  border-radius: 20px;
+  padding: 1.8rem 1.6rem 1.5rem;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(129, 140, 248, 0.35);
+  animation: revModalSlideUp 0.25s ease-out;
+}
+
+body.dark-mode .revReanalyzeModal {
+  background: linear-gradient(135deg, #111827 0%, #020617 100%);
+  border-color: rgba(129, 140, 248, 0.6);
+}
+
+.revReanalyzeTitle {
+  margin: 0 0 0.6rem 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+body.dark-mode .revReanalyzeTitle {
+  color: #e5e7eb;
+}
+
+.revReanalyzeText {
+  margin: 0 0 1.2rem 0;
+  font-size: 0.95rem;
+  color: #4b5563;
+}
+
+body.dark-mode .revReanalyzeText {
+  color: #9ca3af;
+}
+
+.revReanalyzeActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.revReanalyzeCancel,
+.revReanalyzeConfirm {
+  padding: 0.55rem 1.25rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.revReanalyzeCancel {
+  background: transparent;
+  border: 1px solid rgba(148, 163, 184, 0.8);
+  color: #4b5563;
+}
+
+.revReanalyzeCancel:hover:not(:disabled) {
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.revReanalyzeConfirm {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: white;
+  box-shadow: 0 8px 20px rgba(34, 197, 94, 0.35);
+}
+
+.revReanalyzeConfirm:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(34, 197, 94, 0.45);
+}
+
+.revReanalyzeCancel:disabled,
+.revReanalyzeConfirm:disabled {
+  opacity: 0.6;
+  cursor: default;
+  box-shadow: none;
+}
+
+@keyframes revModalFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes revModalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .revStats {
   display: flex;
   align-items: center;
