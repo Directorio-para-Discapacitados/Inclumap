@@ -32,6 +32,10 @@ export default function ReviewsPage() {
   const [sortBy, setSortBy] = useState("newest");
   const [filterIncoherent, setFilterIncoherent] = useState(false);
 
+  // Modal de reanálisis (solo admin)
+  const [reanalyzeModalOpen, setReanalyzeModalOpen] = useState(false);
+  const [reanalyzing, setReanalyzing] = useState(false);
+
   // ⭐ LIKES CON API
   const [likesData, setLikesData] = useState<Record<string, { count: number; liked: boolean }>>({});
 
@@ -157,11 +161,8 @@ export default function ReviewsPage() {
 
   // Función para reanalizar todas las reseñas
   const handleReanalyzeAll = async () => {
-    if (!window.confirm('¿Deseas reanalizar todas las reseñas existentes? Esto puede tardar unos momentos.')) {
-      return;
-    }
-
     try {
+      setReanalyzing(true);
       const token = localStorage.getItem('token');
       const res = await api.post('/reviews/reanalyze-all', {}, {
         headers: { Authorization: `Bearer ${token}` }
@@ -171,6 +172,9 @@ export default function ReviewsPage() {
       fetchReviews(); // Recargar reseñas
     } catch (error: any) {
       toast.error(`❌ Error al reanalizar: ${error.response?.data?.message || error.message}`, { autoClose: 3000 });
+    } finally {
+      setReanalyzing(false);
+      setReanalyzeModalOpen(false);
     }
   };
 
@@ -232,7 +236,10 @@ export default function ReviewsPage() {
       {/* Botón de reanálisis para admin - Ubicación superior */}
       {isAdmin && (
         <div className="revAdminPanel">
-          <button className="revReanalyzeBtn" onClick={handleReanalyzeAll}>
+          <button
+            className="revReanalyzeBtn"
+            onClick={() => setReanalyzeModalOpen(true)}
+          >
             🔄 Reanalizar Todas las Reseñas
           </button>
           <p className="revAdminHint">
@@ -418,10 +425,34 @@ export default function ReviewsPage() {
         ))}
       </div>
 
-      <div className="revWriteContainer">
-        <button className="revWriteBtn">✚ Escribe tu reseña</button>
-      </div>
-
+      {/* Modal para reanalizar todas las reseñas (solo admin) */}
+      {isAdmin && reanalyzeModalOpen && (
+        <div className="revReanalyzeModalOverlay">
+          <div className="revReanalyzeModal" role="dialog" aria-modal="true">
+            <h3 className="revReanalyzeTitle">🔄 Reanalizar todas las reseñas</h3>
+            <p className="revReanalyzeText">
+              ¿Deseas reanalizar todas las reseñas existentes? Esto puede tardar unos momentos,
+              pero nos ayudará a tener un análisis de sentimientos más preciso.
+            </p>
+            <div className="revReanalyzeActions">
+              <button
+                className="revReanalyzeCancel"
+                onClick={() => !reanalyzing && setReanalyzeModalOpen(false)}
+                disabled={reanalyzing}
+              >
+                Cancelar
+              </button>
+              <button
+                className="revReanalyzeConfirm"
+                onClick={handleReanalyzeAll}
+                disabled={reanalyzing}
+              >
+                {reanalyzing ? 'Reanalizando…' : 'Sí, reanalizar ahora'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

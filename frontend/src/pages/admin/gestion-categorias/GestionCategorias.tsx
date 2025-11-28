@@ -134,31 +134,29 @@ const GestionCategorias: React.FC = () => {
     <div className="gestion-categorias-container">
       <div className="content-wrapper">
         <div className="header-section">
-          <div className="header-left">
-            <button 
-              className="back-button" 
-              onClick={() => navigate('/')}
-              aria-label="Regresar al inicio"
-              onMouseEnter={onMouseEnter}
-              onFocus={onFocus}
-            >
-              <span>←</span>
-              Regresar
-            </button>
-            <h1 className="page-title">Gestión de Categorías</h1>
-          </div>
-          <div className="header-right">
-            <button
-              className="add-button"
-              onClick={() => handleOpenModal()}
-              aria-label="Crear nueva categoría"
-              onMouseEnter={onMouseEnter}
-              onFocus={onFocus}
-            >
-              <span>➕</span>
-              Nueva Categoría
-            </button>
-          </div>
+          <button 
+            className="back-button" 
+            onClick={() => navigate('/')}
+            aria-label="Regresar al inicio"
+            onMouseEnter={onMouseEnter}
+            onFocus={onFocus}
+          >
+            <span>←</span>
+            Regresar
+          </button>
+
+          <h1 className="page-title">Gestión de Categorías</h1>
+
+          <button
+            className="add-button"
+            onClick={() => handleOpenModal()}
+            aria-label="Crear nueva categoría"
+            onMouseEnter={onMouseEnter}
+            onFocus={onFocus}
+          >
+            <span>➕</span>
+            Nueva Categoría
+          </button>
         </div>
 
         <div className="stats-section">

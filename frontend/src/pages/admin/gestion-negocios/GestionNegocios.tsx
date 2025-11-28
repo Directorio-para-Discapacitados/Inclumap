@@ -128,19 +128,17 @@ const GestionNegocios: React.FC = () => {
     <div className="gestion-negocios-container">
       <div className="content-wrapper">
         <div className="header-section">
-          <div className="header-left">
-            <button 
-              className="back-button" 
-              onClick={() => navigate('/')}
-              aria-label="Regresar al inicio"
-              onMouseEnter={onMouseEnter}
-              onFocus={onFocus}
-            >
-              <span>←</span>
-              Regresar
-            </button>
-            <h1 className="page-title">Gestión de Negocios</h1>
-          </div>
+          <button 
+            className="back-button" 
+            onClick={() => navigate('/')}
+            aria-label="Regresar al inicio"
+            onMouseEnter={onMouseEnter}
+            onFocus={onFocus}
+          >
+            <span>←</span>
+            Regresar
+          </button>
+          <h1 className="page-title">Gestión de Negocios</h1>
         </div>
 
         <div className="stats-section">
