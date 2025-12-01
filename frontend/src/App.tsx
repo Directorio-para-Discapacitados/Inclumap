@@ -10,9 +10,10 @@ import { SpeechProvider } from "./context/SpeechContext";
 import { GlobalSpeechListener } from "./Components/GlobalSpeechListener";
 import VoiceCommander from "./Components/VoiceCommander";
 import SpeechToggle from "./Components/SpeechToggle";
+import HelpFab from "./Components/HelpFab";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import ChatWidget from "./Components/ChatWidget";
-import AccessibilitySidebar from "./Components/AccessibilitySidebar/AccessibilitySidebar"; 
+import AccessibilitySidebar from "./Components/AccessibilitySidebar/AccessibilitySidebar";
 import ForgotPasswordPage from "./pages/reseteoPassword/ForgotPasswordPage";
 import AjustesPage from "./pages/ajustes/Ajustes";
 import AdminLoginPage from './pages/adminLogin/AdminLogin';
@@ -36,6 +37,7 @@ import Accesibilidad from "./pages/accesibilidad/Accesibilidad";
 import TodasAccesibilidades from "./pages/accesibilidad/TodasAccesibilidades";
 import Negocios from "./pages/negocios/Negocios";
 import BrowseBusinesses from "./pages/explore-businesses/BrowseBusinesses";
+import Tutorial from "./pages/tutoriales/Tutorial";
 
 function AppContent() {
   const location = useLocation();
@@ -56,7 +58,7 @@ function AppContent() {
         setSessionPromiseResolve(() => resolve);
       });
     };
-    
+
     setSessionModalCallback(callback);
   }, []);
 
@@ -82,14 +84,15 @@ function AppContent() {
       <GlobalSpeechListener />
       <VoiceCommander />
       <SpeechToggle />
+      <HelpFab />
       <AccessibilitySidebar />
       <main style={{ paddingTop: '70px' }}>
         <Routes>
-          
           <Route path="/" element={<Inicio />} />
           <Route path="/accesibilidad/:id" element={<Accesibilidad />} />
           <Route path="/accesibilidades" element={<TodasAccesibilidades />} />
           <Route path="/negocios" element={<Negocios />} />
+          <Route path="/tutoriales" element={<Tutorial />} />
           <Route path="/login" element={<Login />} />
           <Route path="/registro" element={<Registro />} />
           <Route path="/admin" element={<AdminLoginPage />} />
@@ -102,9 +105,9 @@ function AppContent() {
           <Route element={<ProtectedRoute />}>
             <Route path="/perfil" element={<Perfil />} />
             <Route path="/owner/reviews" element={<OwnerBusinessReviewsPage />} />
-            
+
             <Route path="/reconocimiento" element={<LocalRecognitionPage />} />
-            
+
             <Route
               path="/guardados"
               element={
@@ -411,7 +414,6 @@ function AppContent() {
             <Route path="/admin/gestion-categorias" element={<GestionCategorias />} />
             <Route path="/admin/gestion-accesibilidad" element={<GestionAccesibilidad />} />
             <Route path="/admin/reportes" element={<Reportes />} />
-            {/* --- FIN DE LA CORRECCIÓN --- */}
 
             {/* Nueva ruta para crear negocio */}
             <Route
@@ -427,8 +429,8 @@ function AppContent() {
 
           </Route>
           <Route path="/local/:id" element={<LocalDetalle />} />
-        </Routes>
-      </main>
+        </Routes >
+      </main >
       {/* Mostrar Footer solo en la página de inicio */}
       {location.pathname === '/' && <Footer />}
       <ChatWidget />

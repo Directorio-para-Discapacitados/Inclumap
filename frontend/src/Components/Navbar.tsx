@@ -12,7 +12,7 @@ import { getAllCategories, Category } from "../services/categoryService";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  
+
   // --- ESTADOS DEL BUSCADOR ---
   const [searchQuery, setSearchQuery] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
@@ -21,15 +21,15 @@ export default function Navbar() {
   const { darkMode, toggleTheme } = useTheme();
   const [showNotification, setShowNotification] = useState(false);
   const [missingItems, setMissingItems] = useState<string[]>([]);
-  
+
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuth();
   const profileMenuRef = useRef<HTMLLIElement | null>(null);
-  
+
   // Hook para Text-to-Speech
   const { onMouseEnter, onFocus } = useSpeakable();
-  
+
   // Ocultar buscador si el usuario es admin o si es propietario en la página de inicio
   const isAdmin = user?.rolIds?.includes(1);
   const isOwnerOnHomePage = user?.roleDescription === "Propietario" && location.pathname === "/";
@@ -54,7 +54,7 @@ export default function Navbar() {
     const params = new URLSearchParams(location.search);
     const q = (params.get("q") || "").trim();
     const cat = params.get("categoryId") || "";
-    
+
     // Solo actualizamos si es diferente para evitar loops
     setSearchQuery(prev => prev !== q ? q : prev);
     setSelectedCategory(prev => prev !== cat ? cat : prev);
@@ -65,7 +65,7 @@ export default function Navbar() {
     const params = new URLSearchParams();
     if (q) params.append("q", q);
     if (cat) params.append("categoryId", cat);
-    
+
     // replace: true evita llenar el historial del navegador con cada letra
     navigate(`/?${params.toString()}`, { replace: true });
   };
@@ -82,22 +82,22 @@ export default function Navbar() {
     if (!showSearch) return;
 
     const timer = setTimeout(() => {
-        const params = new URLSearchParams(location.search);
-        const currentQ = (params.get("q") || "").trim();
-        
-        // Solo navegar si el texto ha cambiado respecto a la URL actual
-        if (searchQuery.trim() !== currentQ) {
-            updateSearchUrl(searchQuery.trim(), selectedCategory);
-        }
+      const params = new URLSearchParams(location.search);
+      const currentQ = (params.get("q") || "").trim();
+
+      // Solo navegar si el texto ha cambiado respecto a la URL actual
+      if (searchQuery.trim() !== currentQ) {
+        updateSearchUrl(searchQuery.trim(), selectedCategory);
+      }
     }, 400); // Espera 400ms
 
     return () => clearTimeout(timer);
-  }, [searchQuery, selectedCategory, showSearch]); 
+  }, [searchQuery, selectedCategory, showSearch]);
 
   // Opcional: Enter para buscar inmediatamente
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-       updateSearchUrl(searchQuery.trim(), selectedCategory);
+      updateSearchUrl(searchQuery.trim(), selectedCategory);
     }
   };
 
@@ -145,9 +145,8 @@ export default function Navbar() {
 
         {showSearch && (
           <div className="search-container unified-search-bar">
-            
             {/* SELECTOR DE CATEGORÍA */}
-            <select 
+            <select
               className="search-select"
               value={selectedCategory}
               onChange={handleCategoryChange} // <--- Acción inmediata
@@ -157,8 +156,8 @@ export default function Navbar() {
             >
               <option value="" aria-label="Todas las categorías">Todas</option>
               {categories.map((cat) => (
-                <option 
-                  key={cat.category_id} 
+                <option
+                  key={cat.category_id}
                   value={cat.category_id}
                   aria-label={`Categoría ${cat.name}`}
                 >
@@ -184,9 +183,9 @@ export default function Navbar() {
 
             <div className="search-actions">
               {(searchQuery || selectedCategory) && (
-                <button 
-                  className="clear-btn" 
-                  onClick={clearSearch} 
+                <button
+                  className="clear-btn"
+                  onClick={clearSearch}
                   title="Limpiar"
                   aria-label="Limpiar búsqueda"
                   onMouseEnter={onMouseEnter}
@@ -195,9 +194,9 @@ export default function Navbar() {
                   &times;
                 </button>
               )}
-              <button 
-                className="search-btn" 
-                onClick={() => updateSearchUrl(searchQuery, selectedCategory)} 
+              <button
+                className="search-btn"
+                onClick={() => updateSearchUrl(searchQuery, selectedCategory)}
                 title="Buscar"
                 aria-label="Buscar locales"
                 onMouseEnter={onMouseEnter}
@@ -210,160 +209,169 @@ export default function Navbar() {
         )}
 
         <ul className="nav-links">
-            {/* ... (Resto de tus links e iconos de usuario idénticos a lo que ya tenías) ... */}
-            <li>
-              <Link 
-                to="/" 
-                aria-label="Ir a inicio"
-                onMouseEnter={onMouseEnter}
-                onFocus={onFocus}
-              >
-                Inicio
-              </Link>
-            </li>
-            {!isAuthenticated && (
-                <>
-                <li>
-                  <Link 
-                    to="/registro" 
-                    aria-label="Ir a registro"
-                    onMouseEnter={onMouseEnter}
-                    onFocus={onFocus}
-                  >
-                    Registro
-                  </Link>
-                </li>
-                <li>
-                  <Link 
-                    to="/login" 
-                    aria-label="Iniciar sesión"
-                    onMouseEnter={onMouseEnter}
-                    onFocus={onFocus}
-                  >
-                    Iniciar sesión
-                  </Link>
-                </li>
-                </>
-            )}
-            
-            {isAuthenticated && (
-                <>
-                <li><NotificationBell /></li>
-                <li className="profile-container" ref={profileMenuRef}>
-                    <div 
-                      onClick={handleProfileClick} 
-                      className="profile-trigger"
-                      aria-label="Abrir menú de perfil"
-                      onMouseEnter={onMouseEnter}
-                      onFocus={onFocus}
-                      tabIndex={0}
-                      role="button"
-                    >
-                    <Avatar key={user?.avatar} src={user?.avatar} alt="Perfil" size="small" className="profile-image" />
-                    </div>
-                    {isMenuOpen && (
-                    <div className="profile-menu">
-                        <button 
-                          className="profile-menu-close" 
-                          onClick={() => setIsMenuOpen(false)}
-                          aria-label="Cerrar menú de perfil"
-                          onMouseEnter={onMouseEnter}
-                          onFocus={onFocus}
-                        >
-                          ✕
-                        </button>
-                        <div className="profile-menu-email">{user?.email}</div>
-                        <div className="profile-menu-header">
-                        <Avatar src={user?.avatar} alt="Perfil" size="large" />
-                        <div className="profile-menu-user-info">
-                            <h3>{user?.displayName}</h3>
-                            <p className="profile-menu-role">
-                              {user?.roleDescription}
-                              {user?.roleDescription === "Propietario" && user?.verified && (
-                                <i className="fas fa-check-circle verified-icon" title="Verificado"></i>
-                              )}
-                            </p>
-                        </div>
-                        </div>
-                        <button 
-                          onClick={() => { setIsMenuOpen(false); navigate("/perfil"); }} 
-                          className="profile-menu-manage-btn"
-                          aria-label="Administrar cuenta"
-                          onMouseEnter={onMouseEnter}
-                          onFocus={onFocus}
-                        >
-                          Administrar cuenta
-                        </button>
-                        <div className="profile-menu-divider"></div>
-                        <div className="profile-menu-items">
-                            {user?.roleDescription === "Usuario" && (
-                            <>
-                                <button 
-                                  onClick={() => {setIsMenuOpen(false); navigate("/crear-negocio")}} 
-                                  className="menu-item"
-                                  aria-label="Crear negocio"
-                                  onMouseEnter={onMouseEnter}
-                                  onFocus={onFocus}
-                                >
-                                  <span>🏪</span> Crear Negocio
-                                </button>
-                                <button 
-                                  onClick={() => {setIsMenuOpen(false); navigate("/guardados")}} 
-                                  className="menu-item"
-                                  aria-label="Ver guardados"
-                                  onMouseEnter={onMouseEnter}
-                                  onFocus={onFocus}
-                                >
-                                  <span>📍</span> Guardados
-                                </button>
-                            </>
-                            )}
-                            <button 
-                              onClick={() => {setIsMenuOpen(false); navigate("/ajustes")}} 
-                              className="menu-item"
-                              aria-label="Ir a ajustes"
-                              onMouseEnter={onMouseEnter}
-                              onFocus={onFocus}
-                            >
-                              <span>⚙️</span> Ajustes
-                            </button>
-                        </div>
-                        <div className="profile-menu-divider"></div>
-                        <button 
-                          onClick={handleLogout} 
-                          className="menu-item logout"
-                          aria-label="Cerrar sesión"
-                          onMouseEnter={onMouseEnter}
-                          onFocus={onFocus}
-                        >
-                          <span>🚪</span> Cerrar sesión
-                        </button>
-                    </div>
-                    )}
-                </li>
-                </>
-            )}
-            <li 
-              className="theme-toggle" 
-              onClick={toggleTheme}
-              aria-label={darkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+          <li>
+            <Link
+              to="/"
+              aria-label="Ir a inicio"
               onMouseEnter={onMouseEnter}
               onFocus={onFocus}
-              tabIndex={0}
-              role="button"
             >
-              {darkMode ? <FaSun /> : <FaMoon />}
-            </li>
+              Inicio
+            </Link>
+          </li>
+          <li>
+            <Link
+              to="/tutoriales"
+              aria-label="Ir a ayuda y tutoriales"
+              onMouseEnter={onMouseEnter}
+              onFocus={onFocus}
+            >
+              Ayuda
+            </Link>
+          </li>
+          {!isAuthenticated && (
+            <>
+              <li>
+                <Link
+                  to="/registro"
+                  aria-label="Ir a registro"
+                  onMouseEnter={onMouseEnter}
+                  onFocus={onFocus}
+                >
+                  Registro
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/login"
+                  aria-label="Iniciar sesión"
+                  onMouseEnter={onMouseEnter}
+                  onFocus={onFocus}
+                >
+                  Iniciar sesión
+                </Link>
+              </li>
+            </>
+          )}
+
+          {isAuthenticated && (
+            <>
+              <li><NotificationBell /></li>
+              <li className="profile-container" ref={profileMenuRef}>
+                <div
+                  onClick={handleProfileClick}
+                  className="profile-trigger"
+                  aria-label="Abrir menú de perfil"
+                  onMouseEnter={onMouseEnter}
+                  onFocus={onFocus}
+                  tabIndex={0}
+                  role="button"
+                >
+                  <Avatar key={user?.avatar} src={user?.avatar} alt="Perfil" size="small" className="profile-image" />
+                </div>
+                {isMenuOpen && (
+                  <div className="profile-menu">
+                    <button
+                      className="profile-menu-close"
+                      onClick={() => setIsMenuOpen(false)}
+                      aria-label="Cerrar menú de perfil"
+                      onMouseEnter={onMouseEnter}
+                      onFocus={onFocus}
+                    >
+                      ✕
+                    </button>
+                    <div className="profile-menu-email">{user?.email}</div>
+                    <div className="profile-menu-header">
+                      <Avatar src={user?.avatar} alt="Perfil" size="large" />
+                      <div className="profile-menu-user-info">
+                        <h3>{user?.displayName}</h3>
+                        <p className="profile-menu-role">
+                          {user?.roleDescription}
+                          {user?.roleDescription === "Propietario" && user?.verified && (
+                            <i className="fas fa-check-circle verified-icon" title="Verificado"></i>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => { setIsMenuOpen(false); navigate("/perfil"); }}
+                      className="profile-menu-manage-btn"
+                      aria-label="Administrar cuenta"
+                      onMouseEnter={onMouseEnter}
+                      onFocus={onFocus}
+                    >
+                      Administrar cuenta
+                    </button>
+                    <div className="profile-menu-divider"></div>
+                    <div className="profile-menu-items">
+                      {user?.roleDescription === "Usuario" && (
+                        <>
+                          <button
+                            onClick={() => { setIsMenuOpen(false); navigate("/crear-negocio") }}
+                            className="menu-item"
+                            aria-label="Crear negocio"
+                            onMouseEnter={onMouseEnter}
+                            onFocus={onFocus}
+                          >
+                            <span>🏪</span> Crear Negocio
+                          </button>
+                          <button
+                            onClick={() => { setIsMenuOpen(false); navigate("/guardados") }}
+                            className="menu-item"
+                            aria-label="Ver guardados"
+                            onMouseEnter={onMouseEnter}
+                            onFocus={onFocus}
+                          >
+                            <span>📍</span> Guardados
+                          </button>
+                        </>
+                      )}
+                      <button
+                        onClick={() => { setIsMenuOpen(false); navigate("/ajustes") }}
+                        className="menu-item"
+                        aria-label="Ir a ajustes"
+                        onMouseEnter={onMouseEnter}
+                        onFocus={onFocus}
+                      >
+                        <span>⚙️</span> Ajustes
+                      </button>
+                    </div>
+                    <div className="profile-menu-divider"></div>
+                    <button
+                      onClick={handleLogout}
+                      className="menu-item logout"
+                      aria-label="Cerrar sesión"
+                      onMouseEnter={onMouseEnter}
+                      onFocus={onFocus}
+                    >
+                      <span>🚪</span> Cerrar sesión
+                    </button>
+                  </div>
+                )}
+              </li>
+            </>
+          )}
+          <li
+            className="theme-toggle"
+            onClick={toggleTheme}
+            aria-label={darkMode ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+            onMouseEnter={onMouseEnter}
+            onFocus={onFocus}
+            tabIndex={0}
+            role="button"
+          >
+            {darkMode ? <FaSun /> : <FaMoon />}
+          </li>
         </ul>
       </div>
-      
+
       {showNotification && (
         <div className="navbar-notification" onClick={() => navigate(user?.roleDescription === "Propietario" ? "/perfil?section=owner-profile" : "/perfil")}>
-           <div className="notification-badge"><i className="fas fa-exclamation-circle"></i></div>
-           <div className="notification-message">
-             <span className="notification-title">Completa tu perfil: </span>
-             <span className="notification-detail">{missingItems.join(", ")}</span>
-           </div>
+          <div className="notification-badge"><i className="fas fa-exclamation-circle"></i></div>
+          <div className="notification-message">
+            <span className="notification-title">Completa tu perfil: </span>
+            <span className="notification-detail">{missingItems.join(", ")}</span>
+          </div>
         </div>
       )}
     </nav>
