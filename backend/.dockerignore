@@ -1,6 +1,56 @@
+# Dependencies
 node_modules
+
+# Build artifacts
 dist
+coverage
+
+# Git
 .git
 .gitignore
-Dockerfile
+.gitattributes
+
+# CI/CD
+.github
+
+# Documentation
+*.md
+docs/
+
+# Logs
 npm-debug.log
+yarn-error.log
+pnpm-debug.log
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test files
+test
+__tests__
+*.test.ts
+*.spec.ts
+jest.config.js
+
+# Development files
+.eslintrc*
+.prettierrc*
+eslint.config.mjs
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml

@@ -1,0 +1,132 @@
+name: CD de Backend (Despliegue Continuo)
+
+on:
+  workflow_run:
+    workflows: ["CI de Backend (NestJS con Postgres)"]
+    types:
+      - completed
+    branches:
+      - main
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/backend
+
+jobs:
+  deploy_backend:
+    runs-on: ubuntu-latest
+    # Solo ejecutar si el CI fue exitoso
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login en GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extraer metadata para Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build y Push de imagen Docker
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+
+      - name: Desplegar en servidor remoto via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          script: |
+            # Navegar al directorio de despliegue
+            cd ${{ secrets.DEPLOY_PATH || '~/inclumap' }}
+            
+            # Login en el registry
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+            
+            # Pull de la nueva imagen
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            
+            # Detener y eliminar el contenedor anterior
+            docker stop inclumap-backend || true
+            docker rm inclumap-backend || true
+            
+            # Ejecutar el nuevo contenedor
+            docker run -d \
+              --name inclumap-backend \
+              --restart unless-stopped \
+              --network inclumap-network \
+              -p 9080:9080 \
+              -e DB_HOST=${{ secrets.PROD_DB_HOST }} \
+              -e DB_PORT=${{ secrets.PROD_DB_PORT }} \
+              -e DB_USER=${{ secrets.DB_USER }} \
+              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+              -e DB_DATABASE=${{ secrets.DB_DATABASE }} \
+              -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
+              -e GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} \
+              -e GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }} \
+              -e CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }} \
+              -e CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }} \
+              -e CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }} \
+              -e MAIL_HOST=${{ secrets.MAIL_HOST }} \
+              -e MAIL_PORT=${{ secrets.MAIL_PORT }} \
+              -e MAIL_USER=${{ secrets.MAIL_USER }} \
+              -e MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }} \
+              -e NODE_ENV=production \
+              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            
+            # Limpiar imágenes antiguas
+            docker image prune -f
+
+      - name: Verificar despliegue
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          script: |
+            # Verificar que el contenedor está corriendo
+            docker ps | grep inclumap-backend
+            
+            # Mostrar logs recientes
+            docker logs --tail 50 inclumap-backend
+
+      - name: Notificación de despliegue exitoso
+        if: success()
+        run: |
+          echo "✅ Backend desplegado exitosamente"
+          echo "Imagen: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+
+      - name: Notificación de error
+        if: failure()
+        run: |
+          echo "❌ Error en el despliegue del backend"
+          exit 1
