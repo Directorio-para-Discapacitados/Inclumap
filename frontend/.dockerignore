@@ -1,6 +1,51 @@
+# Dependencies
 node_modules
+
+# Build artifacts
 dist
+build
+coverage
+
+# Git
 .git
 .gitignore
-Dockerfile
+.gitattributes
+
+# CI/CD
+.github
+
+# Documentation
+*.md
+docs/
+
+# Logs
 npm-debug.log
+yarn-error.log
+pnpm-debug.log
+*.log
+
+# Environment files (should be passed as build args)
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Development files
+.eslintrc*
+.prettierrc*
+eslint.config.js
+vite.config.js
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
