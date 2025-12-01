@@ -14,7 +14,39 @@
   padding:20px 16px 16px;
 }
 .footer__brand{max-width:260px}
-.footer__logo{font-weight:700;font-size:1.2rem;color: var(--color-text)}
+
+
+.footer__logo-container{
+  display: flex; 
+  align-items: center; 
+  gap: 8px; 
+  height: 7.5rem; 
+}
+
+.footer__logo-img {
+  height: 100%; 
+  width: auto; 
+  display: block;
+}
+
+.footer__logo-container img:first-child {
+  border-right: 2px solid var(--color-border);
+  padding-right: 8px; 
+}
+
+
+/* AJUSTE: Estilos específicos para el logo IncluMap */
+.footer__logo-inclumap {
+  border-left: none; 
+  padding-left: 0; 
+  
+  /* Estilos opcionales del paso anterior */
+  height: 80%; 
+  opacity: 0.8; 
+}
+
+/* FIN DE MODIFICACIÓN */
+
 .footer__tagline{margin:6px 0 0;font-size:.85rem;color: var(--color-text-muted)}
 .footer__columns{display:flex;gap:36px;flex-wrap:wrap}
 .footer__col{min-width:140px}
@@ -61,6 +93,10 @@
     text-align: center;
   }
   
+  .footer__logo-container { 
+    justify-content: center; 
+  }
+
   .footer__columns {
     width: 100%;
     justify-content: space-around;
@@ -88,8 +124,8 @@
     gap: 20px;
   }
   
-  .footer__logo {
-    font-size: 1.2rem;
+  .footer__logo-container { 
+    height: 2rem; 
   }
   
   .footer__tagline {
@@ -122,4 +158,3 @@
     padding: 12px;
   }
 }
-

@@ -1,7 +1,7 @@
 import React from 'react';
 import './Footer.css';
 import { Link } from 'react-router-dom';
-import { useSpeakable } from '../hooks/useSpeakable';
+import { useSpeakable } from '../../hooks/useSpeakable';
 
 export default function Footer() {
   const { onMouseEnter, onFocus } = useSpeakable();
@@ -10,7 +10,19 @@ export default function Footer() {
     <footer className="footer">
       <div className="footer__container">
         <div className="footer__brand">
-          <div className="footer__logo">IncluMap</div>
+          <div className="footer__logo-container"> {/* Nuevo contenedor para los logos */}
+          <img 
+              src="/inclumap.png" 
+              alt="Logo IncluMap" 
+              className="footer__logo-img footer__logo-inclumap" /* Clase adicional para inclumap.png */
+            />
+            <img 
+              src="/logo-UniPutumayo.png" 
+              alt="Logo UniPutumayo" 
+              className="footer__logo-img"
+            />
+            
+          </div>
           <p className="footer__tagline">Tu mapa hacia la inclusión</p>
         </div>
 
