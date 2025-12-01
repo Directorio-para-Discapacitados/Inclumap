@@ -10,7 +10,6 @@ import { SpeechProvider } from "./context/SpeechContext";
 import { GlobalSpeechListener } from "./Components/GlobalSpeechListener";
 import VoiceCommander from "./Components/VoiceCommander";
 import SpeechToggle from "./Components/SpeechToggle";
-import HelpFab from "./Components/HelpFab";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import ChatWidget from "./Components/ChatWidget";
 import AccessibilitySidebar from "./Components/AccessibilitySidebar/AccessibilitySidebar";
@@ -84,7 +83,6 @@ function AppContent() {
       <GlobalSpeechListener />
       <VoiceCommander />
       <SpeechToggle />
-      <HelpFab />
       <AccessibilitySidebar />
       <main style={{ paddingTop: '70px' }}>
         <Routes>

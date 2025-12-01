@@ -4,6 +4,7 @@ import ChatWidget from "../ChatWidget";
 import SpeechToggle from "../SpeechToggle";
 import { VoiceCommander } from "../VoiceCommander";
 import { useSpeakable } from "../../hooks/useSpeakable";
+import HelpFab from "../HelpFab";
 
 /**
  * Sidebar de Accesibilidad
@@ -76,8 +77,13 @@ export const AccessibilitySidebar: React.FC = () => {
           <div className="accessibility-tool-item" title="Asistente Virtual">
             <ChatWidget />
           </div>
+
+        {/* Botón de Ayuda y Tutoriales: AÑADIDO */}
+        <div className="accessibility-tool-item" title="Ayuda y Tutoriales">
+          <HelpFab />
         </div>
-      )}
+      </div>
+    )}
     </>
   );
 };
