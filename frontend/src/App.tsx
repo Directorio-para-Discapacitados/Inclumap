@@ -26,7 +26,7 @@ import CrearNegocio from "./pages/crearNegocio/CrearNegocio";
 import LocalDetalle from "./pages/local/LocalDetalle";
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Footer from "./Components/Footer";
+import Footer from "./Components/Footer/Footer";
 import LocalRecognitionPage from './pages/LocalRecognition/LocalRecognition';
 import ReviewsPage from "./pages/reviews/ReviewsPage";
 import OwnerBusinessReviewsPage from "./pages/reviews/OwnerBusinessReviewsPage";
