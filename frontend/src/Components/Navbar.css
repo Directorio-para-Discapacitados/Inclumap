@@ -361,9 +361,12 @@
   padding: 0.5rem 0.75rem;
   border-radius: 8px;
 }
+
+/* Contorno al pasar el mouse por los enlaces */
 .nav-links a:hover {
-  color: var(--color-primary);
-  background-color: var(--color-hover-bg);
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  background-color: var(--color-surface);
 }
 
 /* ===== PERFIL ===== */
