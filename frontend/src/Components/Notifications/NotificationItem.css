@@ -62,6 +62,26 @@
   min-width: 0;
 }
 
+.notification-title {
+  margin: 0 0 4px 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+}
+
+/* Título de alerta NO leída (rojo) */
+.notification-item.type-alert.unread .notification-title {
+  color: #ef4444;
+}
+
+/* Título de alerta LEÍDA (color normal más tenue) */
+.notification-item.type-alert.read .notification-title {
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
 .notification-message {
   margin: 0 0 4px 0;
   font-size: 14px;
@@ -72,10 +92,16 @@
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  font-weight: 400;
 }
 
 .notification-item.read .notification-message {
   color: var(--color-text-muted);
+}
+
+.notification-item.read .notification-title {
+  color: var(--color-text-muted);
+  font-weight: 600;
 }
 
 .notification-time {
@@ -116,32 +142,53 @@
 
 /* --- ESTILOS POR TIPO DE NOTIFICACIÓN --- */
 
-/* Estilo para Sugerencias (Estándar/Blanco) */
+/* Estilo para Sugerencias (Estándar) */
 .notification-item.type-suggestion {
   background-color: var(--color-background);
   border-left: 4px solid transparent;
 }
 
-/* Sugerencias NO leídas (Azulito suave) */
+/* Sugerencias NO leídas (Azul suave) */
 .notification-item.type-suggestion.unread {
-  background-color: rgba(30, 136, 229, 0.08);
+  background-color: rgba(59, 130, 246, 0.1);
   border-left: 4px solid #3b82f6;
 }
 
-/* Estilo para ALERTAS (Rojo suave) */
-.notification-item.type-alert {
-  background-color: #fff5f5; /* Rojo muy pálido */
-  border-left: 4px solid #ef4444; /* Línea roja */
+.notification-item.type-suggestion.unread:hover {
+  background-color: rgba(59, 130, 246, 0.15);
 }
 
-/* Alertas NO leídas (Rojo un poco más fuerte) */
+/* Estilo para ALERTAS LEÍDAS (fondo normal, borde gris) */
+.notification-item.type-alert.read {
+  background-color: var(--color-background);
+  border-left: 4px solid var(--color-border);
+}
+
+.notification-item.type-alert.read:hover {
+  background-color: var(--color-surface);
+}
+
+/* Estilo para ALERTAS NO LEÍDAS (Naranja/Rojo) */
 .notification-item.type-alert.unread {
-  background-color: #fee2e2; 
+  background-color: rgba(239, 68, 68, 0.15);
+  border-left: 4px solid #ef4444;
 }
 
-/* Hover para alertas */
-.notification-item.type-alert:hover {
-  background-color: #fecaca;
+/* Hover para alertas no leídas */
+.notification-item.type-alert.unread:hover {
+  background-color: rgba(239, 68, 68, 0.2);
+}
+
+/* Icono de alerta con color de advertencia solo si NO está leída */
+.notification-item.type-alert.unread .notification-icon {
+  color: #f59e0b;
+  filter: drop-shadow(0 1px 2px rgba(245, 158, 11, 0.3));
+}
+
+/* Icono de alerta leída (color normal) */
+.notification-item.type-alert.read .notification-icon {
+  color: var(--color-text-muted);
+  filter: none;
 }
 
 /* Mostrar botón de eliminar en desktop al hacer hover */

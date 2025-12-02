@@ -9,6 +9,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { SentimentModule } from 'src/sentiment/sentiment.module';
 import { NotificationModule } from 'src/notification/notification.module';
+import { OffensiveContentDetector } from './offensive-content.detector';
 
 @Module({
   imports: [
@@ -17,7 +18,7 @@ import { NotificationModule } from 'src/notification/notification.module';
     SentimentModule,
     NotificationModule,
   ],
-  providers: [ReviewService],
+  providers: [ReviewService, OffensiveContentDetector],
   controllers: [ReviewController],
 })
 export class ReviewModule {}

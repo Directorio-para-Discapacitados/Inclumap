@@ -428,6 +428,14 @@ export class AuthService {
         throw new UnauthorizedException('Contraseña incorrecta');
       }
 
+      // Verificar si el usuario está bloqueado por strikes
+      if (user.is_banned) {
+        const strikes = user.offensive_strikes || 0;
+        throw new UnauthorizedException(
+          `Tu cuenta ha sido bloqueada permanentemente por uso de lenguaje ofensivo repetido (${strikes} strikes). Contacta al administrador si crees que esto es un error.`,
+        );
+      }
+
       if (!user.userroles || user.userroles.length === 0) {
         throw new UnauthorizedException('El usuario no tiene roles asignados');
       }
@@ -1046,6 +1054,14 @@ export class AuthService {
       if (!user) {
         throw new UnauthorizedException(
           'Usuario no registrado. Por favor, regístrese primero con correo y contraseña antes de usar Google.',
+        );
+      }
+
+      // Verificar si el usuario está bloqueado por strikes
+      if (user.is_banned) {
+        const strikes = user.offensive_strikes || 0;
+        throw new UnauthorizedException(
+          `Tu cuenta ha sido bloqueada permanentemente por uso de lenguaje ofensivo repetido (${strikes} strikes). Contacta al administrador si crees que esto es un error.`,
         );
       }
 

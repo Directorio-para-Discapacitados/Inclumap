@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback } from "react";
 import { GoogleMap, useJsApiLoader, MarkerF } from "@react-google-maps/api";
+import { LoadingSpinner } from "../../Components/LoadingSpinner/LoadingSpinner";
 import "./LocationPicker.css";
 
 const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
@@ -108,7 +109,7 @@ export default function LocationPicker({ initialLat, initialLng, onConfirm, onCa
   };
 
   if (loadError) return <div className="lp-error-screen">Error al cargar Google Maps.</div>;
-  if (!isLoaded) return <div className="lp-loading-screen">Cargando Mapa...</div>;
+  if (!isLoaded) return <div className="lp-loading-screen"><LoadingSpinner message="Cargando Mapa..." /></div>;
 
   return (
     <div className="location-picker-overlay" onClick={(e) => {

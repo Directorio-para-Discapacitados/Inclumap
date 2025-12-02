@@ -5,6 +5,7 @@ import { api } from "../../config/api";
 import RecentReviews from "../../Components/OwnerDashboard/RecentReviews";
 import { getBusinessStatistics, BusinessStatistics } from "../../services/ownerStatistics";
 import { Heart, ArrowLeft, MessageCircle, TrendingUp, ThumbsUp } from "lucide-react";
+import { LoadingSpinner } from "../../Components/LoadingSpinner/LoadingSpinner";
 import "./OwnerBusinessReviewsPage.css";
 
 export default function OwnerBusinessReviewsPage() {
@@ -77,10 +78,7 @@ export default function OwnerBusinessReviewsPage() {
   if (loading) {
     return (
       <div className="owner-reviews-page">
-        <div className="owner-reviews-loading">
-          <div className="loading-spinner"></div>
-          <p>Cargando reseñas...</p>
-        </div>
+        <LoadingSpinner message="Cargando reseñas..." />
       </div>
     );
   }

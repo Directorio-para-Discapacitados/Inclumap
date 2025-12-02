@@ -74,7 +74,7 @@ export default function Negocios() {
       </div>
 
       <div className="negocios-container">
-        {loading && <div className="loading">Cargando negocios...</div>}
+        {loading && <LoadingSpinner message="Cargando negocios..." size="small" />}
         {error && !loading && <div className="error">{error}</div>}
         {!loading && businesses.length === 0 && (
           <div className="no-results">No hay negocios registrados aún</div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { getAllBusinesses } from '../../../services/admin';
 import { eliminarNegocioCompleto } from '../../../services/owner.service';
 import Toast from '../../../Components/Toast/Toast';
@@ -33,7 +33,10 @@ const GestionNegocios: React.FC = () => {
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [deleteOwner, setDeleteOwner] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { onMouseEnter, onFocus } = useSpeakable();
+
+  const filterType = searchParams.get('filter'); // 'unverified' o null
 
   useEffect(() => {
     fetchBusinesses();
@@ -43,9 +46,13 @@ const GestionNegocios: React.FC = () => {
     try {
       setLoading(true);
       const data = await getAllBusinesses();
+      console.log('📊 Negocios obtenidos:', data);
+      console.log('📊 Total de negocios:', data.length);
+      console.log('📊 Negocios sin logo (sin verificar):', data.filter((b: any) => !b.logo_url).length);
       setBusinesses(data);
       setError(null);
     } catch (err) {
+      console.error('❌ Error al cargar negocios:', err);
       setError(err instanceof Error ? err.message : 'Error al cargar negocios');
     } finally {
       setLoading(false);
@@ -94,6 +101,23 @@ const GestionNegocios: React.FC = () => {
       .join(', ');
   };
 
+  // Filtrar negocios según el parámetro de URL
+  const filteredBusinesses = React.useMemo(() => {
+    console.log('🔍 Filtro activo:', filterType);
+    console.log('🔍 Total businesses:', businesses.length);
+    
+    if (filterType === 'unverified') {
+      // Negocios sin verificar = sin logo_url
+      const unverified = businesses.filter(b => !b.logo_url);
+      console.log('🔍 Negocios sin verificar (sin logo):', unverified.length);
+      console.log('🔍 Ejemplos:', unverified.slice(0, 3));
+      return unverified;
+    }
+    
+    console.log('🔍 Mostrando todos los negocios');
+    return businesses;
+  }, [businesses, filterType]);
+
   if (loading) {
     return (
       <div className="gestion-negocios-container">
@@ -138,21 +162,34 @@ const GestionNegocios: React.FC = () => {
             <span>←</span>
             Regresar
           </button>
-          <h1 className="page-title">Gestión de Negocios</h1>
+          <h1 className="page-title">
+            {filterType === 'unverified' ? 'Negocios Sin Verificar' : 'Gestión de Negocios'}
+          </h1>
+          <button
+            className="advanced-button"
+            onClick={() => navigate('/admin/gestion-propietarios')}
+            aria-label="Opciones avanzadas"
+            onMouseEnter={onMouseEnter}
+            onFocus={onFocus}
+          >
+            ⚙️ Opciones Avanzadas
+          </button>
         </div>
 
         <div className="stats-section">
           <div className="stat-card">
-            <div className="stat-number">{businesses.length}</div>
-            <div className="stat-label">Total de Negocios</div>
+            <div className="stat-number">{filteredBusinesses.length}</div>
+            <div className="stat-label">
+              {filterType === 'unverified' ? 'Sin Verificar' : 'Total de Negocios'}
+            </div>
           </div>
           <div className="stat-card">
-            <div className="stat-number">{businesses.filter(b => b.user).length}</div>
-            <div className="stat-label">Con Propietario</div>
+            <div className="stat-number">{businesses.filter(b => b.logo_url).length}</div>
+            <div className="stat-label">Verificados (con logo)</div>
           </div>
           <div className="stat-card">
-            <div className="stat-number">{businesses.filter(b => !b.user).length}</div>
-            <div className="stat-label">Sin Propietario</div>
+            <div className="stat-number">{businesses.filter(b => !b.logo_url).length}</div>
+            <div className="stat-label">Sin Verificar (sin logo)</div>
           </div>
           <div className="stat-card">
             <div className="stat-number">
@@ -162,10 +199,14 @@ const GestionNegocios: React.FC = () => {
           </div>
         </div>
 
-        {businesses.length === 0 ? (
+        {filteredBusinesses.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon">🏪</div>
-            <p>No se encontraron negocios en el sistema</p>
+            <p>
+              {filterType === 'unverified' 
+                ? 'No hay negocios sin verificar' 
+                : 'No se encontraron negocios en el sistema'}
+            </p>
           </div>
         ) : (
           <table className="gestion-table">
@@ -174,6 +215,7 @@ const GestionNegocios: React.FC = () => {
                 <th>Logo</th>
                 <th>Nombre</th>
                 <th>Dirección</th>
+                <th>Estado</th>
                 <th>Propietario</th>
                 <th>Categorías</th>
                 <th>Rating</th>
@@ -181,7 +223,7 @@ const GestionNegocios: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {businesses.map((business, index) => (
+              {filteredBusinesses.map((business, index) => (
                 <tr key={business.id} style={{ animationDelay: `${index * 0.1}s` }}>
                   <td>
                     <div className="business-logo">
@@ -196,6 +238,11 @@ const GestionNegocios: React.FC = () => {
                     <strong>{business.name}</strong>
                   </td>
                   <td>{business.address || '-'}</td>
+                  <td>
+                    <span className={business.logo_url ? 'owner-badge' : 'no-owner-badge'}>
+                      {business.logo_url ? '✓ Verificado' : '⚠️ Sin verificar'}
+                    </span>
+                  </td>
                   <td>
                     <span className={business.user ? 'owner-badge' : 'no-owner-badge'}>
                       {getOwnerName(business)}

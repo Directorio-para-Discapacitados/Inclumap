@@ -3,6 +3,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { API_URL, api } from "../../config/api";
 import { useAuth } from "../../context/AuthContext";
 import { recordBusinessView } from "../../services/ownerStatistics";
+import { LoadingSpinner } from "../../Components/LoadingSpinner/LoadingSpinner";
 import "./LocalDetalle.css";
 
 import Swal from "sweetalert2";
@@ -233,6 +234,7 @@ const LocalDetalle: React.FC = () => {
   const [reviews, setReviews] = useState<any[]>([]);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
+  const [reviewCategory, setReviewCategory] = useState("access");
   const [editing, setEditing] = useState<any | null>(null);
   const [copied, setCopied] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -543,7 +545,7 @@ const LocalDetalle: React.FC = () => {
     try {
       await api.post(
         "/reviews",
-        { rating, comment, business_id: Number(id) },
+        { rating, comment, category: reviewCategory, business_id: Number(id) },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -560,6 +562,7 @@ const LocalDetalle: React.FC = () => {
 
       setRating(0);
       setComment("");
+      setReviewCategory("access");
 
       const res = await api.get(`/reviews/business/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -647,7 +650,7 @@ const LocalDetalle: React.FC = () => {
 
   return (
     <div className="local-details-container">
-      {loading && <div className="loading">Cargando...</div>}
+      {loading && <LoadingSpinner message="Guardando reseña..." size="small" />}
 
       {data && (
         <>

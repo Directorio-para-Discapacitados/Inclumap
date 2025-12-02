@@ -709,13 +709,80 @@ body.dark-mode .revReanalyzeText {
   justify-content: space-between;
   margin-bottom: 10px;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
+}
+
+.revResponseBusinessInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s ease;
+  border-radius: 8px;
+  padding: 4px;
+  margin: -4px;
+}
+
+.revResponseBusinessInfo:hover {
+  background: rgba(102, 126, 234, 0.1);
+  transform: translateX(2px);
+}
+
+.revResponseBusinessLogo {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--color-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.revResponseBusinessInfo:hover .revResponseBusinessLogo {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.revResponseBusinessDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.revResponseBusinessNameWrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.revResponseBusinessName {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  transition: color 0.2s ease;
+}
+
+.revResponseBusinessInfo:hover .revResponseBusinessName {
+  color: var(--color-primary);
+}
+
+.revResponseVerifiedBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: var(--color-primary);
+  color: white;
+  border-radius: 50%;
+  font-size: 0.7rem;
+  font-weight: bold;
+  flex-shrink: 0;
 }
 
 .revResponseLabel {
-  font-weight: 700;
-  font-size: 0.95rem;
-  color: var(--color-primary);
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -724,6 +791,7 @@ body.dark-mode .revReanalyzeText {
 .revResponseDate {
   font-size: 0.85rem;
   color: var(--color-text-muted);
+  white-space: nowrap;
 }
 
 .revResponseText {
@@ -731,12 +799,16 @@ body.dark-mode .revReanalyzeText {
   line-height: 1.6;
   color: var(--color-text);
   margin: 0;
-  padding-left: 24px;
+  padding-left: 60px;
   font-style: italic;
 }
 
 body.dark-mode .revBusinessResponse {
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+}
+
+body.dark-mode .revResponseBusinessLogo {
+  border-color: var(--color-primary);
 }
 
 /* ============================
@@ -760,5 +832,24 @@ body.dark-mode .revBusinessResponse {
 
   .revWriteBtn {
     width: 100%;
+  }
+
+  .revResponseHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .revResponseBusinessLogo {
+    width: 40px;
+    height: 40px;
+  }
+
+  .revResponseBusinessName {
+    font-size: 0.9rem;
+  }
+
+  .revResponseText {
+    padding-left: 0;
+    margin-top: 8px;
   }
 }
