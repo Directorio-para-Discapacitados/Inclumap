@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../../config/api";
 import { useAuth } from "../../context/AuthContext";
 import { toast } from "react-toastify";
+import Swal from 'sweetalert2';
+import ConfirmModal from "../../Components/ConfirmModal/ConfirmModal";
 import "./reviews.css";
 
 function StarRating({ value }: { value: number }) {
@@ -35,6 +37,10 @@ export default function ReviewsPage() {
   // Modal de reanálisis (solo admin)
   const [reanalyzeModalOpen, setReanalyzeModalOpen] = useState(false);
   const [reanalyzing, setReanalyzing] = useState(false);
+
+  // Modal de confirmación para corrección
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [selectedReview, setSelectedReview] = useState<{ id: number; stars: number; comment: string } | null>(null);
 
   // ⭐ LIKES CON API
   const [likesData, setLikesData] = useState<Record<string, { count: number; liked: boolean }>>({});
@@ -139,6 +145,20 @@ export default function ReviewsPage() {
     }
   };
 
+  // Función para abrir el modal de confirmación
+  const openConfirmModal = (reviewId: number, stars: number, comment: string) => {
+    setSelectedReview({ id: reviewId, stars, comment });
+    setConfirmModalOpen(true);
+  };
+
+  // Función para confirmar la corrección
+  const confirmCorrection = () => {
+    if (selectedReview) {
+      handleCorrectReview(selectedReview.id, selectedReview.stars);
+      setSelectedReview(null);
+    }
+  };
+
   // Sugerencia de calificación basada en el sentimiento
   const getSuggestedRating = (review: any): number | null => {
     if (!review.sentiment_label || !review.coherence_check) return null;
@@ -178,17 +198,77 @@ export default function ReviewsPage() {
     }
   };
 
-  const categories = [
-    { key: "all", label: "Todas" },
-    { key: "access", label: "Accesibilidad" },
-    { key: "service", label: "Servicio" },
-    { key: "comfort", label: "Comodidad" },
-    { key: "food", label: "Comida" },
-  ];
+  // Función para reportar usuario
+  const handleReportUser = async (userId: number, userName: string) => {
+    if (!window.confirm(`¿Reportar a ${userName}? Esto incrementará sus strikes y le enviará una notificación de advertencia.`)) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await api.post(`/reviews/moderation/user/${userId}/report`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      toast.success(`✅ ${res.data.message}. Strikes: ${res.data.strikes}`, { autoClose: 4000 });
+      fetchReviews(); // Recargar para actualizar strikes
+    } catch (error: any) {
+      toast.error(`❌ Error: ${error.response?.data?.message || error.message}`, { autoClose: 3000 });
+    }
+  };
+
+  // Función para eliminar reseña (solo admin)
+  const handleDeleteReview = async (reviewId: number, businessName: string) => {
+    const result = await Swal.fire({
+      title: '¿Eliminar reseña?',
+      html: `<p>Esta acción eliminará permanentemente la reseña del negocio <strong>${businessName}</strong>.</p>`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar',
+      background: 'var(--color-background)',
+      color: 'var(--color-text)',
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const token = localStorage.getItem('token');
+        await api.delete(`/reviews/${reviewId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        await Swal.fire({
+          title: '¡Eliminada!',
+          text: 'La reseña ha sido eliminada exitosamente.',
+          icon: 'success',
+          background: 'var(--color-background)',
+          color: 'var(--color-text)',
+          timer: 2000,
+          showConfirmButton: false
+        });
+
+        fetchReviews(); // Recargar lista
+      } catch (error: any) {
+        Swal.fire({
+          title: 'Error',
+          text: error.response?.data?.message || 'No se pudo eliminar la reseña',
+          icon: 'error',
+          background: 'var(--color-background)',
+          color: 'var(--color-text)',
+        });
+      }
+    }
+  };
 
   const fetchReviews = async () => {
     try {
       const res = await api.get("/reviews");
+      console.log('📊 Reseñas obtenidas:', res.data);
+      console.log('📊 Primera reseña (ejemplo):', res.data[0]);
+      console.log('📊 Reseñas con categoría:', res.data.filter((r: any) => r.category).length);
+      console.log('📊 Categorías encontradas:', [...new Set(res.data.map((r: any) => r.category).filter(Boolean))]);
       setReviews(res.data);
       setFiltered(res.data);
       // Cargar likes después de obtener las reseñas
@@ -205,7 +285,15 @@ export default function ReviewsPage() {
   useEffect(() => {
     let temp = [...reviews];
 
-    if (category !== "all") temp = temp.filter((r) => r.category === category);
+    console.log('🔍 Filtro activo - Categoría:', category);
+    console.log('🔍 Total reseñas antes de filtrar:', temp.length);
+    
+    if (category !== "all") {
+      temp = temp.filter((r) => r.category === category);
+      console.log('🔍 Reseñas después de filtrar por categoría:', temp.length);
+      console.log('🔍 Ejemplos filtrados:', temp.slice(0, 3).map(r => ({ category: r.category, comment: r.comment?.substring(0, 30) })));
+    }
+    
     if (rating !== "") temp = temp.filter((r) => r.rating === Number(rating));
     
     // Filtro de reseñas incoherentes (solo para admin)
@@ -258,18 +346,6 @@ export default function ReviewsPage() {
         <h2 className="revTitle">Reseñas de la comunidad</h2>
         <div className="revStats">
           <span className="revScore">¡Descubre nuevos negocios!</span>
-        </div>
-
-        <div className="revCategories">
-          {categories.map((c) => (
-            <button
-              key={c.key}
-              className={`revCategoryBtn ${category === c.key ? "active" : ""}`}
-              onClick={() => setCategory(c.key)}
-            >
-              {c.label}
-            </button>
-          ))}
         </div>
 
         <div className="revFilters">
@@ -350,7 +426,29 @@ export default function ReviewsPage() {
             {r.owner_reply && (
               <div className="revBusinessResponse">
                 <div className="revResponseHeader">
-                  <span className="revResponseLabel">📢 Respuesta del negocio:</span>
+                  <div 
+                    className="revResponseBusinessInfo"
+                    onClick={() => navigate(`/local/${r.business?.business_id}`)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <img 
+                      src={r.business?.logo_url || '/inclumap.png'} 
+                      alt={r.business?.business_name}
+                      className="revResponseBusinessLogo"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/inclumap.png';
+                      }}
+                    />
+                    <div className="revResponseBusinessDetails">
+                      <div className="revResponseBusinessNameWrapper">
+                        <span className="revResponseBusinessName">{r.business?.business_name}</span>
+                        {r.business?.verified && (
+                          <span className="revResponseVerifiedBadge" title="Negocio verificado">✓</span>
+                        )}
+                      </div>
+                      <span className="revResponseLabel">Respuesta del negocio</span>
+                    </div>
+                  </div>
                   <span className="revResponseDate">
                     {new Date(r.created_at).toLocaleDateString()}
                   </span>
@@ -364,10 +462,38 @@ export default function ReviewsPage() {
               <div className={`revSentimentPanel ${r.coherence_check?.startsWith('Incoherente') ? 'incoherent' : 'coherent'}`}>
                 <h4>📊 Análisis de Sentimiento:</h4>
                 <div className="revSentimentInfo">
+                  <span><strong>Usuario:</strong> {r.user?.name || 'Usuario'} (ID: {r.user?.user_id})</span>
+                  <span><strong>Strikes:</strong> {r.user?.offensive_strikes || 0} ⚠️</span>
+                  <span><strong>Estado:</strong> {r.user?.is_banned ? '🚫 Bloqueado' : '✅ Activo'}</span>
                   <span><strong>Sentimiento:</strong> {r.sentiment_label}</span>
                   <span><strong>Coherencia:</strong> {r.coherence_check}</span>
                   <span><strong>Acción Sugerida:</strong> {r.suggested_action}</span>
                 </div>
+
+                {/* Botón de reportar usuario */}
+                {!r.user?.is_banned && (
+                  <div style={{ marginTop: '12px' }}>
+                    <button 
+                      className="revReportUserBtn"
+                      onClick={() => handleReportUser(r.user?.user_id, r.user?.name || 'Usuario')}
+                      style={{
+                        padding: '8px 16px',
+                        backgroundColor: '#dc3545',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontWeight: '500',
+                        fontSize: '14px',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#c82333'}
+                      onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#dc3545'}
+                    >
+                      🚨 Reportar Usuario (+1 Strike)
+                    </button>
+                  </div>
+                )}
                 
                 {/* Botón de corrección solo si es incoherente */}
                 {r.coherence_check?.startsWith('Incoherente') && (
@@ -383,11 +509,7 @@ export default function ReviewsPage() {
                         <button
                           key={stars}
                           className={`revCorrectionBtn ${getSuggestedRating(r) === stars ? 'suggested' : ''}`}
-                          onClick={() => {
-                            if (window.confirm(`¿Corregir calificación a ${stars} estrellas?`)) {
-                              handleCorrectReview(r.review_id, stars);
-                            }
-                          }}
+                          onClick={() => openConfirmModal(r.review_id, stars, r.comment)}
                           title={`Corregir a ${stars} estrellas`}
                         >
                           {stars} ⭐
@@ -419,6 +541,34 @@ export default function ReviewsPage() {
               <span className="revLikeCount">
                 {likesData[r.review_id]?.count || 0}
               </span>
+
+              {/* Botón de eliminar (solo admin) */}
+              {isAdmin && (
+                <button
+                  className="revDeleteBtn"
+                  onClick={() => handleDeleteReview(r.review_id, r.business?.business_name || 'este negocio')}
+                  title="Eliminar reseña"
+                  style={{
+                    marginLeft: '12px',
+                    padding: '8px 16px',
+                    backgroundColor: '#dc3545',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontWeight: '500',
+                    fontSize: '14px',
+                    transition: 'all 0.2s',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#c82333'}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#dc3545'}
+                >
+                  🗑️ Eliminar
+                </button>
+              )}
             </div>
 
           </div>
@@ -453,6 +603,22 @@ export default function ReviewsPage() {
           </div>
         </div>
       )}
+
+      {/* Modal de confirmación para corrección */}
+      <ConfirmModal
+        isOpen={confirmModalOpen}
+        onClose={() => {
+          setConfirmModalOpen(false);
+          setSelectedReview(null);
+        }}
+        onConfirm={confirmCorrection}
+        title="¿Confirmar corrección?"
+        message={`La calificación de esta reseña será actualizada a ${selectedReview?.stars} estrella${selectedReview?.stars !== 1 ? 's' : ''}.`}
+        details={selectedReview?.comment.substring(0, 100) + (selectedReview?.comment.length > 100 ? '...' : '')}
+        confirmText="Confirmar Corrección"
+        cancelText="Cancelar"
+        type="warning"
+      />
     </div>
   );
 }

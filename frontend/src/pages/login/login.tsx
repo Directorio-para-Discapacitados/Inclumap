@@ -7,6 +7,7 @@ import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useSpeakable } from "../../hooks/useSpeakable";
+import { LoadingSpinner } from "../../Components/LoadingSpinner/LoadingSpinner";
 import { Eye, EyeOff } from "lucide-react";
 import "./login.css";
 
@@ -295,7 +296,7 @@ export default function Login() {
 
             <div className="google-btn-container">
               {loading ? (
-                <p>Cargando...</p>
+                <LoadingSpinner message="" size="small" />
               ) : (
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}

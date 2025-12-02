@@ -53,6 +53,30 @@ export class ReviewEntity {
   })
   owner_reply: string | null;
 
+  @Column({
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+    comment: 'Categoría de la reseña: access, service, comfort, food',
+  })
+  category: string;
+
+  @Column({
+    type: 'boolean',
+    default: false,
+    name: 'is_offensive',
+    comment: 'Marca si la reseña contiene contenido ofensivo',
+  })
+  is_offensive: boolean;
+
+  @Column({
+    type: 'boolean',
+    default: false,
+    name: 'is_reviewed_by_admin',
+    comment: 'Indica si el admin ya revisó esta reseña ofensiva',
+  })
+  is_reviewed_by_admin: boolean;
+
   @CreateDateColumn({ name: 'created_at' })
   created_at: Date;
 

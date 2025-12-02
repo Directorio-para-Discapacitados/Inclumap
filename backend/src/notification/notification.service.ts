@@ -200,6 +200,25 @@ export class NotificationService {
   }
 
   /**
+   * Crea una notificación para un usuario específico (método simplificado)
+   * @param userId - ID del usuario
+   * @param message - Mensaje de la notificación
+   * @param relatedId - ID relacionado opcional (business_id o review_id)
+   */
+  async notifyUser(
+    userId: number,
+    message: string,
+    relatedId?: number,
+  ): Promise<void> {
+    await this.createNotification(
+      userId,
+      NotificationType.REVIEW_ALERT,
+      message,
+      relatedId,
+    );
+  }
+
+  /**
    * Crea notificaciones de sugerencia para todos los usuarios registrados
    * @param message - Mensaje de la sugerencia
    * @param businessId - ID del negocio sugerido

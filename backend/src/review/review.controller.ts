@@ -122,4 +122,37 @@ export class ReviewController {
   ) {
     return this.reviewService.checkUserLiked(review_id, user.user_id);
   }
+
+  // MODERACIÓN DE CONTENIDO OFENSIVO
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1) // Solo Admin
+  @Get('moderation/offensive')
+  getOffensiveReviews() {
+    return this.reviewService.getOffensiveReviews();
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1) // Solo Admin
+  @Patch('moderation/:id/reviewed')
+  @HttpCode(HttpStatus.OK)
+  markAsReviewed(@Param('id', ParseIntPipe) review_id: number) {
+    return this.reviewService.markOffensiveReviewAsReviewed(review_id);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1) // Solo Admin
+  @Get('moderation/user/:userId/strikes')
+  getUserStrikes(@Param('userId', ParseIntPipe) userId: number) {
+    return this.reviewService.getUserStrikes(userId);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(1) // Solo Admin
+  @Post('moderation/user/:userId/report')
+  @HttpCode(HttpStatus.OK)
+  reportUser(@Param('userId', ParseIntPipe) userId: number) {
+    return this.reviewService.reportUser(userId);
+  }
 }
+

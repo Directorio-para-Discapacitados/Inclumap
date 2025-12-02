@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { LoadingSpinner } from "../../Components/LoadingSpinner/LoadingSpinner";
 import "./inicio.css";
 import { API_URL } from "../../config/api";
 import { getAllCategories, Category } from "../../services/categoryService";
@@ -404,7 +405,7 @@ export default function Inicio() {
           {/* Mostrar resultados si hay búsqueda O categoría seleccionada */}
           {(query || selectedCategory) ? (
             <div className="businesses-grid businesses-grid--results" ref={cardsRef}>
-              {loading && <div className="loading">Cargando locales...</div>}
+              {loading && <LoadingSpinner message="Cargando locales..." size="small" />}
               {error && !loading && <div className="error">{error}</div>}
               
               {/* Mensaje de SIN RESULTADOS cuando se filtra */}
@@ -484,7 +485,7 @@ export default function Inicio() {
           ) : (
             <>
               {/* Vista por defecto (sin filtros) */}
-              {loadingAllBusinesses && <div className="loading">Cargando negocios...</div>}
+              {loadingAllBusinesses && <LoadingSpinner message="Cargando negocios..." size="small" />}
               {!loadingAllBusinesses && allBusinesses.length === 0 && (
                 <div className="no-results">No hay negocios registrados aún</div>
               )}
@@ -586,7 +587,7 @@ export default function Inicio() {
         {/* Resultados de búsqueda o filtro de accesibilidad */}
         {selectedAccessibility && !query && (
           <div className="cards-grid cards-grid--results">
-            {loading && <div className="loading">Cargando locales...</div>}
+            {loading && <LoadingSpinner message="Cargando locales..." size="small" />}
             {error && !loading && <div className="error">{error}</div>}
             {!loading && !error && filtered.length === 0 && (
               <div className="no-results">
@@ -636,7 +637,7 @@ export default function Inicio() {
 
         {/* Grid de accesibilidades */}
         <div className="cards-grid">
-          {loadingAccessibilities && <div className="loading">Cargando accesibilidades...</div>}
+          {loadingAccessibilities && <LoadingSpinner message="Cargando accesibilidades..." size="small" />}
           {!loadingAccessibilities && cards.length === 0 && (
             <div className="no-results">No se encontraron accesibilidades</div>
           )}

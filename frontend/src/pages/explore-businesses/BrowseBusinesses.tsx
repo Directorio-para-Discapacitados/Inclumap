@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../../config/api";
 import { recordBusinessView } from "../../services/ownerStatistics";
 import { useAuth } from "../../context/AuthContext";
+import { LoadingSpinner } from "../../Components/LoadingSpinner/LoadingSpinner";
 import {
   MapPin,
   Star,
@@ -116,10 +117,7 @@ export default function BrowseBusinesses() {
   if (loading) {
     return (
       <div className="browse-businesses-container">
-        <div className="loading-spinner">
-          <div className="spinner"></div>
-          <p>Cargando negocios...</p>
-        </div>
+        <LoadingSpinner message="Cargando negocios..." />
       </div>
     );
   }

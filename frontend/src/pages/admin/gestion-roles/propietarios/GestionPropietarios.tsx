@@ -272,39 +272,35 @@ const GestionPropietarios: React.FC = () => {
     <div className="gestion-container">
       <div className="content-wrapper">
         <div className="header-section">
-          <div className="header-left">
-            <button
-              className="back-button"
-              onClick={() => navigate('/')}
-            >
-              <span>←</span>
-              Regresar al Panel
-            </button>
-            <h1 className="page-title">Gestión de Propietarios</h1>
-          </div>
-          <div className="header-right">
-            <button
-              className="btn-refresh"
-              onClick={() => fetchBusinesses()}
-              disabled={loading}
-              style={{
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                color: 'white',
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.7 : 1,
-                fontSize: '0.9rem',
-                fontWeight: '500',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem'
-              }}
-            >
-              🔄 Actualizar
-            </button>
-          </div>
+          <button
+            className="back-button"
+            onClick={() => navigate('/')}
+          >
+            <span>←</span>
+            Regresar al Panel
+          </button>
+          <h1 className="page-title">Gestión de Propietarios</h1>
+          <button
+            className="btn-refresh"
+            onClick={() => fetchBusinesses()}
+            disabled={loading}
+            style={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              border: 'none',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.7 : 1,
+              fontSize: '0.9rem',
+              fontWeight: '500',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem'
+            }}
+          >
+            🔄 Actualizar
+          </button>
         </div>
 
         <div className="stats-section">

@@ -55,12 +55,19 @@ const NotificationBell: React.FC = () => {
 
   const handleMarkAsRead = async (id: number) => {
     try {
-      await markAsRead(id);
+      // Actualizar el estado inmediatamente para mejor UX
       setNotifications((prev) =>
         prev.map((n) => (n.notification_id === id ? { ...n, is_read: true } : n))
       );
+      
+      // Luego hacer la llamada al backend
+      await markAsRead(id);
     } catch (error) {
       console.error('Error al marcar como leída:', error);
+      // Revertir el cambio si falla
+      setNotifications((prev) =>
+        prev.map((n) => (n.notification_id === id ? { ...n, is_read: false } : n))
+      );
     }
   };
 
@@ -75,18 +82,26 @@ const NotificationBell: React.FC = () => {
 
 
 
-  const handleNavigate = (notification: Notification) => {
+  const handleNavigate = async (notification: Notification) => {
     setIsOpen(false);
-    if (!notification.is_read) handleMarkAsRead(notification.notification_id);
+    
+    // Marcar como leída si no lo está
+    if (!notification.is_read) {
+      await handleMarkAsRead(notification.notification_id);
+    }
 
+    // Navegar según el tipo de notificación
     if (notification.type === 'SUGGESTION') {
+      // Navegar al negocio recomendado
       navigate(`/local/${notification.related_id}`);
     } 
     else if (notification.type === 'REVIEW_ALERT') {
-      navigate(`/reviews?filter=incoherent`);
+      // Navegar a la página de moderación de contenido ofensivo
+      navigate('/admin/moderation/offensive');
     } 
     else if (notification.type === 'REVIEW_ATTENTION') {
-      navigate(`/local/${notification.related_id}`);
+      // Navegar a las reseñas incoherentes
+      navigate('/reviews?filter=incoherent');
     }
   };
 

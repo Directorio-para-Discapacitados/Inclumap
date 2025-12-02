@@ -34,7 +34,10 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
   };
 
   const getIcon = (): string => {
-    return notification.type === 'SUGGESTION' ? '⭐' : '⚠️';
+    if (notification.type === 'SUGGESTION') return '⭐';
+    if (notification.type === 'REVIEW_ALERT') return '🚨';
+    if (notification.type === 'REVIEW_ATTENTION') return '⚠️';
+    return '📢';
   };
 
   // --- NUEVA FUNCIÓN: Determinar clase según tipo ---
@@ -44,11 +47,21 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
     return 'type-alert'; 
   };
 
-  const handleClick = () => {
+  // --- NUEVA FUNCIÓN: Obtener título según tipo ---
+  const getTitle = (): string => {
+    if (notification.type === 'SUGGESTION') return 'Recomendación';
+    if (notification.type === 'REVIEW_ALERT') return '¡Alerta de Moderación!';
+    if (notification.type === 'REVIEW_ATTENTION') return 'Revisión Requerida';
+    return 'Notificación';
+  };
+
+  const handleClick = async () => {
     if (!isDragging && translateX === 0) {
+      // Marcar como leída primero si no lo está
       if (!notification.is_read) {
         onMarkAsRead(notification.notification_id);
       }
+      // Navegar después
       onNavigate(notification);
     }
   };
@@ -135,6 +148,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
       >
         <div className="notification-icon">{getIcon()}</div>
         <div className="notification-content">
+          <p className="notification-title">{getTitle()}</p>
           <p className="notification-message">{notification.message}</p>
           <span className="notification-time">{getTimeAgo(notification.created_at)}</span>
         </div>
