@@ -1,6 +1,7 @@
 import { BusinessEntity } from 'src/business/entity/business.entity';
 import { UserEntity } from 'src/user/entity/user.entity';
 import { ReviewLikeEntity } from './review-like.entity';
+import { ReviewReport } from './review-report.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -77,6 +78,14 @@ export class ReviewEntity {
   })
   is_reviewed_by_admin: boolean;
 
+  @Column({
+    type: 'varchar',
+    length: 20,
+    default: 'approved',
+    comment: 'Estado de la reseña: approved, in_review, rejected',
+  })
+  status: string;
+
   @CreateDateColumn({ name: 'created_at' })
   created_at: Date;
 
@@ -94,4 +103,7 @@ export class ReviewEntity {
 
   @OneToMany(() => ReviewLikeEntity, (like) => like.review)
   likes: ReviewLikeEntity[];
+
+  @OneToMany(() => ReviewReport, (report) => report.review)
+  reports: ReviewReport[];
 }

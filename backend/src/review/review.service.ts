@@ -12,6 +12,7 @@ import { Repository } from 'typeorm';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { ReviewEntity } from './entity/review.entity';
 import { ReviewLikeEntity } from './entity/review-like.entity';
+import { ReviewReport, ReportStatus } from './entity/review-report.entity';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { SentimentService } from 'src/sentiment/sentiment.service';
 import { NotificationService } from 'src/notification/notification.service';
@@ -25,6 +26,8 @@ export class ReviewService {
     private readonly reviewRepository: Repository<ReviewEntity>,
     @InjectRepository(ReviewLikeEntity)
     private readonly reviewLikeRepository: Repository<ReviewLikeEntity>,
+    @InjectRepository(ReviewReport)
+    private readonly reportRepository: Repository<ReviewReport>,
     @InjectRepository(BusinessEntity)
     private readonly businessRepository: Repository<BusinessEntity>,
     @InjectRepository(UserEntity)
@@ -231,10 +234,21 @@ export class ReviewService {
   //Obtiene todas las reseñas de un local (versión minimalista).
 
   async getReviewsForBusiness(business_id: number): Promise<ReviewEntity[]> {
+    // Obtener IDs de reseñas con reportes pendientes
+    const reportedReviewIds = await this.reportRepository
+      .createQueryBuilder('report')
+      .select('report.review_id')
+      .where('report.status = :status', { status: ReportStatus.PENDING })
+      .getMany();
+
+    const reportedIds = reportedReviewIds.map(r => r.review_id);
+
+    // Obtener reseñas del negocio excluyendo las reportadas
     return this.reviewRepository
       .createQueryBuilder('review')
+      .leftJoinAndSelect('review.user', 'user')
+      .leftJoinAndSelect('user.people', 'people')
       .leftJoin('review.business', 'business')
-      .leftJoin('review.user', 'user')
       .select([
         // Reseña
         'review.review_id',
@@ -245,11 +259,15 @@ export class ReviewService {
         'review.coherence_check',
         'review.suggested_action',
         'review.owner_reply',
-        'review.owner_reply',
-        // Usuario (Solo ID)
+        // Usuario con sus datos
         'user.user_id',
+        'people.firstName',
+        'people.firstLastName',
+        'people.avatar',
       ])
       .where('business.business_id = :business_id', { business_id })
+      .andWhere(reportedIds.length > 0 ? 'review.review_id NOT IN (:...reportedIds)' : '1=1', 
+        reportedIds.length > 0 ? { reportedIds } : {})
       .orderBy('review.created_at', 'DESC')
       .getMany();
   }
@@ -355,6 +373,8 @@ export class ReviewService {
         'review.coherence_check',
         'review.suggested_action',
         'review.owner_reply',
+        'review.is_offensive',
+        'review.is_reviewed_by_admin',
         'business.business_id',
         'business.business_name',
         'business.average_rating',
@@ -380,6 +400,8 @@ export class ReviewService {
       coherence_check: review.coherence_check,
       suggested_action: review.suggested_action,
       owner_reply: review.owner_reply,
+      is_offensive: review.is_offensive,
+      is_reviewed_by_admin: review.is_reviewed_by_admin,
       business: review.business,
       user: {
         user_id: review.user.user_id,
@@ -791,6 +813,383 @@ ${strikes >= 3 ? '⛔ Usuario bloqueado automáticamente' : strikes === 2 ? '⚠
       strikes: user.offensive_strikes,
       is_banned: user.is_banned,
     };
+  }
+
+  /**
+   * Crear un reporte de reseña (nuevo sistema)
+   */
+  async createReviewReport(
+    review_id: number,
+    reason: string,
+    reporter: UserEntity,
+  ) {
+    const review = await this.reviewRepository.findOne({
+      where: { review_id },
+      relations: ['user', 'user.people', 'business'],
+    });
+
+    if (!review) {
+      throw new NotFoundException('Reseña no encontrada');
+    }
+
+    if (review.user.user_id === reporter.user_id) {
+      throw new ForbiddenException('No puedes reportar tu propia reseña');
+    }
+
+    // Cargar datos completos del reportero para la notificación
+    const reporterFullData = await this.userRepository.findOne({
+      where: { user_id: reporter.user_id },
+      relations: ['people'],
+    });
+
+    // Crear registro de reporte
+    const reportRecord = this.reportRepository.create({
+      review_id,
+      user_id: reporter.user_id,
+      reason,
+      status: ReportStatus.PENDING,
+    });
+
+    const savedReport = await this.reportRepository.save(reportRecord);
+
+    // Construir nombre del reportero
+    const reporterName = reporterFullData?.people
+      ? `${reporterFullData.people.firstName} ${reporterFullData.people.firstLastName || ''}`.trim()
+      : 'Usuario';
+
+    // Notificar a admins sobre el nuevo reporte
+    const admins = await this.userRepository
+      .createQueryBuilder('user')
+      .innerJoin('user.userroles', 'userroles')
+      .where('userroles.rol_id = :rolId', { rolId: 1 })
+      .select(['user.user_id'])
+      .getMany();
+
+    console.log(`📢 Notificando a ${admins.length} admin(s) sobre nuevo reporte de reseña #${review_id}`);
+
+    for (const admin of admins) {
+      try {
+        await this.notificationService.createNotification(
+          admin.user_id,
+          NotificationType.REVIEW_ATTENTION,
+          `Nueva reseña reportada en "${review.business.business_name}" por ${reporterName}. Razón: ${reason.substring(0, 50)}...`,
+          review_id,
+        );
+        console.log(`✓ Notificación enviada al admin ${admin.user_id}`);
+      } catch (error) {
+        console.error(`✗ Error notificando al admin ${admin.user_id}:`, error);
+      }
+    }
+
+    // Notificar al autor de la reseña sobre el reporte
+    try {
+      await this.notificationService.createNotification(
+        review.user.user_id,
+        NotificationType.REVIEW_ATTENTION,
+        `Tu reseña en "${review.business.business_name}" ha sido reportada y está siendo revisada por un administrador.`,
+        review_id,
+      );
+      console.log(`✓ Notificación enviada al autor de la reseña ${review.user.user_id}`);
+    } catch (error) {
+      console.error(`✗ Error notificando al autor:`, error);
+    }
+
+    return {
+      message: 'Reporte creado exitosamente',
+      report_id: savedReport.report_id,
+      review_id,
+    };
+  }
+
+  /**
+   * Obtener reportes pendientes (admin)
+   */
+  async getPendingReports(page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+    const [reports, total] = await Promise.all([
+      this.reportRepository
+        .createQueryBuilder('report')
+        .leftJoinAndSelect('report.review', 'review')
+        .leftJoinAndSelect('review.user', 'review_author')
+        .leftJoinAndSelect('review_author.people', 'review_author_people')
+        .leftJoinAndSelect('review.business', 'business')
+        .leftJoinAndSelect('report.user', 'reporter')
+        .leftJoinAndSelect('reporter.people', 'reporter_people')
+        .where('report.status = :status', { status: ReportStatus.PENDING })
+        .orderBy('report.created_at', 'DESC')
+        .skip(skip)
+        .take(limit)
+        .getMany(),
+      this.reportRepository.countBy({ status: ReportStatus.PENDING }),
+    ]);
+
+    return {
+      data: reports,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  /**
+   * Obtener historial de reportes (admin)
+   */
+  async getReportHistoryList(page: number = 1, limit: number = 20) {
+    const skip = (page - 1) * limit;
+    const [reports, total] = await Promise.all([
+      this.reportRepository
+        .createQueryBuilder('report')
+        .leftJoinAndSelect('report.review', 'review')
+        .leftJoinAndSelect('review.user', 'review_author')
+        .leftJoinAndSelect('review_author.people', 'review_author_people')
+        .leftJoinAndSelect('review.business', 'business')
+        .leftJoinAndSelect('report.user', 'reporter')
+        .leftJoinAndSelect('reporter.people', 'reporter_people')
+        .leftJoinAndSelect('report.admin', 'admin')
+        .leftJoinAndSelect('admin.people', 'admin_people')
+        .where('report.status IN (:...statuses)', { statuses: [ReportStatus.ACCEPTED, ReportStatus.REJECTED] })
+        .orderBy('report.updated_at', 'DESC')
+        .skip(skip)
+        .take(limit)
+        .getMany(),
+      this.reportRepository
+        .createQueryBuilder('report')
+        .where('report.status IN (:...statuses)', { statuses: [ReportStatus.ACCEPTED, ReportStatus.REJECTED] })
+        .getCount(),
+    ]);
+
+    return {
+      data: reports,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  /**
+   * Obtener reportes de una reseña
+   */
+  async getReviewReports(review_id: number, page: number = 1, limit: number = 10) {
+    return {
+      data: [],
+      total: 0,
+    };
+  }
+
+  /**
+   * Resolver decisión de reporte
+   */
+  async resolveReportDecision(
+    report_id: number,
+    decision: 'accepted' | 'rejected',
+    strike_action?: 'add_strike' | 'no_strike',
+    admin_notes?: string,
+    admin?: UserEntity,
+  ) {
+    if (decision === 'accepted') {
+      // Si se acepta, eliminar la reseña
+      return this.deleteReportedReview(report_id, strike_action, admin_notes, admin);
+    } else {
+      // Si se rechaza, restaurar visibilidad de la reseña
+      return this.rejectReport(report_id, admin);
+    }
+  }
+
+  /**
+   * Rechazar reporte - La reseña vuelve a ser visible
+   */
+  async rejectReport(report_id: number, admin?: UserEntity) {
+    const report = await this.reportRepository.findOne({
+      where: { report_id },
+      relations: ['review', 'review.user', 'review.user.people', 'review.business', 'user', 'user.people'],
+    });
+
+    if (!report) {
+      throw new NotFoundException('Reporte no encontrado');
+    }
+
+    // Actualizar el reporte a rechazado
+    report.status = ReportStatus.REJECTED;
+    report.admin_id = admin?.user_id || null;
+    await this.reportRepository.save(report);
+
+    // Notificar al usuario que reportó que su reporte fue rechazado
+    await this.notificationService.createNotification(
+      report.user_id,
+      NotificationType.REVIEW_ATTENTION,
+      `Tu reporte sobre la reseña en "${report.review.business?.business_name || 'este negocio'}" ha sido revisado y rechazado por el administrador.`,
+      report.review_id,
+    );
+
+    // Notificar al autor de la reseña que su reseña vuelve a estar visible
+    await this.notificationService.createNotification(
+      report.review.user.user_id,
+      NotificationType.REVIEW_ATTENTION,
+      `Tu reseña en "${report.review.business?.business_name || 'este negocio'}" está nuevamente visible en la plataforma.`,
+      report.review_id,
+    );
+
+    return { message: 'Reporte rechazado', report_id };
+  }
+
+  /**
+   * Aceptar reporte - Eliminar reseña reportada y opcionalmente agregar strike
+   */
+  async deleteReportedReview(
+    report_id: number,
+    strike_action?: 'add_strike' | 'no_strike',
+    admin_notes?: string,
+    admin?: UserEntity,
+  ) {
+    const report = await this.reportRepository.findOne({
+      where: { report_id },
+      relations: ['review', 'review.user', 'review.user.people', 'user', 'user.people', 'review.business'],
+    });
+
+    if (!report) {
+      throw new NotFoundException('Reporte no encontrado');
+    }
+
+    // Actualizar el reporte a aceptado
+    report.status = ReportStatus.ACCEPTED;
+    report.admin_id = admin?.user_id || null;
+    report.admin_notes = admin_notes || null;
+    await this.reportRepository.save(report);
+
+    // Cargar el usuario (autor de la reseña) con datos completos
+    const reviewAuthor = await this.userRepository.findOne({
+      where: { user_id: report.review.user.user_id },
+    });
+
+    if (!reviewAuthor) {
+      throw new NotFoundException('Usuario autor de la reseña no encontrado');
+    }
+
+    // Si se agrega strike, actualizar el contador
+    let strikeData = {
+      current_strikes: reviewAuthor.offensive_strikes,
+      max_strikes: 3,
+      is_banned: reviewAuthor.is_banned,
+      banned_after_this_strike: false,
+    };
+
+    if (strike_action === 'add_strike' && !reviewAuthor.is_banned) {
+      reviewAuthor.offensive_strikes += 1;
+      
+      // Si alcanza 3 strikes, banear la cuenta
+      if (reviewAuthor.offensive_strikes >= 3) {
+        reviewAuthor.is_banned = true;
+        strikeData.banned_after_this_strike = true;
+        strikeData.is_banned = true;
+      }
+      
+      await this.userRepository.save(reviewAuthor);
+      strikeData.current_strikes = reviewAuthor.offensive_strikes;
+    }
+
+    // Notificar al usuario que reportó que su reporte fue aceptado
+    await this.notificationService.createNotification(
+      report.user_id,
+      NotificationType.REVIEW_ATTENTION,
+      `Tu reporte sobre la reseña en "${report.review.business.business_name}" ha sido aceptado. La reseña ha sido eliminada.`,
+      report.review_id,
+    );
+
+    // Notificar al autor de la reseña que fue eliminada
+    let authorNotificationMessage = `Tu reseña en "${report.review.business.business_name}" ha sido eliminada por violar nuestras políticas de contenido.`;
+    
+    if (strike_action === 'add_strike') {
+      authorNotificationMessage += ` (Strike ${strikeData.current_strikes}/${strikeData.max_strikes})`;
+      
+      if (strikeData.banned_after_this_strike) {
+        authorNotificationMessage += `. Tu cuenta ha sido bloqueada después de ${strikeData.max_strikes} reportes aceptados.`;
+      }
+    }
+
+    await this.notificationService.createNotification(
+      report.review.user.user_id,
+      NotificationType.REVIEW_ATTENTION,
+      authorNotificationMessage,
+      report.review_id,
+    );
+
+    // Eliminar la reseña
+    await this.reviewRepository.delete({ review_id: report.review_id });
+
+    return {
+      message: 'Reseña eliminada',
+      report_id,
+      strike_info: strikeData,
+    };
+  }
+
+  /**
+   * Obtener estadísticas de reportes
+   */
+  async getReportStatistics() {
+    return {
+      pending: await this.reviewRepository.countBy({ status: 'in_review' }),
+      approved: await this.reviewRepository.countBy({ status: 'approved' }),
+      rejected: await this.reviewRepository.countBy({ status: 'rejected' }),
+    };
+  }
+
+  /**
+   * Obtener historial con filtro por decisión
+   */
+  async getReportHistoryByDecision(decision: string, page: number = 1, limit: number = 20) {
+    return {
+      data: [],
+      total: 0,
+    };
+  }
+
+  /**
+   * Obtener reseñas del usuario
+   */
+  async getUserReviews(userId: number) {
+    return this.reviewRepository.find({
+      where: { user: { user_id: userId } },
+      relations: ['business'],
+    });
+  }
+
+  /**
+   * Aprobar reseña
+   */
+  async approveReview(review_id: number, admin?: UserEntity) {
+    const review = await this.reviewRepository.findOne({
+      where: { review_id },
+    });
+
+    if (!review) {
+      throw new NotFoundException('Reseña no encontrada');
+    }
+
+    review.status = 'approved';
+    await this.reviewRepository.save(review);
+
+    return { message: 'Reseña aprobada' };
+  }
+
+  /**
+   * Rechazar reseña
+   */
+  async rejectReview(review_id: number, admin?: UserEntity) {
+    const review = await this.reviewRepository.findOne({
+      where: { review_id },
+    });
+
+    if (!review) {
+      throw new NotFoundException('Reseña no encontrada');
+    }
+
+    review.status = 'rejected';
+    await this.reviewRepository.save(review);
+
+    return { message: 'Reseña rechazada' };
   }
 }
 

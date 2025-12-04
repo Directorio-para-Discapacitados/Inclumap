@@ -10,7 +10,7 @@ import AdminDashboard from "../../Components/AdminDashboard/AdminDashboard";
 import OwnerDashboard from "../../Components/OwnerDashboard/OwnerDashboard";
 
 /* --- IMPORTACIONES PARA EL MAPA --- */
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -22,6 +22,28 @@ const defaultIcon = L.icon({
   iconAnchor: [12, 41],
 });
 L.Marker.prototype.options.icon = defaultIcon;
+
+/* --- COMPONENTE PARA RECENTRAR EL MAPA --- */
+function RecenterButton({ userLocation }: { userLocation: [number, number] }) {
+  const map = useMap();
+  
+  const handleRecenter = () => {
+    map.setView(userLocation, 15, {
+      animate: true,
+      duration: 4
+    });
+  };
+  
+  return (
+    <button 
+      className="recenter-map-btn-floating"
+      onClick={handleRecenter}
+      title="Ir a mi ubicación"
+    >
+      🎯
+    </button>
+  );
+}
 
 interface Accessibility {
   accessibility_id: number | string;
@@ -52,6 +74,39 @@ export default function Inicio() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [loadingCategories, setLoadingCategories] = useState(true);
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const [mapCenter, setMapCenter] = useState<[number, number]>([3.8, -75.2]); // Centro en región cercana a Florencia/sur de Colombia
+  const [mapZoom, setMapZoom] = useState(7); // Zoom para ver la región completa
+
+  // Obtener ubicación del usuario
+  useEffect(() => {
+    if (navigator.geolocation && user) { // Solo obtener ubicación si está logueado
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation([latitude, longitude]);
+          setMapCenter([latitude, longitude]);
+          setMapZoom(15); // Zoom más cercano para la ciudad del usuario
+        },
+        (error) => {
+
+          // Mantener coordenadas por defecto
+        }
+      );
+    } else if (!user) {
+      // Si no está logueado, obtener ubicación pero no actualizar el mapa
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation([latitude, longitude]);
+          // No actualizar mapCenter ni mapZoom para usuarios no autenticados
+        },
+        (error) => {
+
+        }
+      );
+    }
+  }, [user]);
 
   // Cargar accesibilidades desde BD
   useEffect(() => {
@@ -71,7 +126,7 @@ export default function Inicio() {
         const data: Accessibility[] = await resp.json();
         setCards(data || []);
       } catch (e: any) {
-        console.error("Error cargando accesibilidades:", e.message, e);
+
         setCards([]);
       } finally {
         setLoadingAccessibilities(false);
@@ -88,7 +143,7 @@ export default function Inicio() {
         const data = await getAllCategories();
         setCategories(data || []);
       } catch (e: any) {
-        console.error("Error cargando categorías:", e.message, e);
+
         setCategories([]);
       } finally {
         setLoadingCategories(false);
@@ -115,7 +170,7 @@ export default function Inicio() {
         const shuffledData = [...data].sort(() => Math.random() - 0.5);
         setAllBusinesses(shuffledData || []);
       } catch (e: any) {
-        console.error("Error cargando negocios:", e.message, e);
+
         setAllBusinesses([]);
       } finally {
         setLoadingAllBusinesses(false);
@@ -716,15 +771,37 @@ export default function Inicio() {
         
         <div className="map-container-wrapper">
           <MapContainer 
-            center={[4.6097, -74.0817]} // Coordenadas por defecto (ej. Bogotá)
-            zoom={6} 
+            center={mapCenter}
+            zoom={mapZoom} 
             style={{ height: "100%", width: "100%" }}
             scrollWheelZoom="center"
+            key={`${mapCenter[0]}-${mapCenter[1]}`}
           >
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             />
+            
+            {/* Botón de recentrado - Solo para usuarios autenticados */}
+            {userLocation && user && <RecenterButton userLocation={userLocation} />}
+            
+            {/* Marcador de ubicación del usuario - Solo para usuarios autenticados */}
+            {userLocation && user && (
+              <Marker 
+                position={userLocation}
+                icon={L.icon({
+                  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png",
+                  shadowUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png",
+                  iconSize: [25, 41],
+                  iconAnchor: [12, 41],
+                  popupAnchor: [1, -34],
+                })}
+              >
+                <Popup>
+                  <strong>📍 Tu ubicación</strong>
+                </Popup>
+              </Marker>
+            )}
             
             {mapPoints.map((b) => {
               // Validar que existan coordenadas

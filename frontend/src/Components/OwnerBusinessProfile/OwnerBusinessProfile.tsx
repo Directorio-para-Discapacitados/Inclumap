@@ -4,7 +4,6 @@ import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
 import { localRecognitionService } from "../../services/localRecognition";
 import { businessLogoService } from "../../services/businessLogo";
-import { businessImagesService } from "../../services/businessImages";
 import { useJsApiLoader } from "@react-google-maps/api";
 import LocationPicker from "../../pages/LocationPicker/LocationPicker";
 import { MapPin } from "lucide-react";
@@ -61,7 +60,6 @@ export default function OwnerBusinessProfile() {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [isUploadingImages, setIsUploadingImages] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [editData, setEditData] = useState<EditState>({
     business_name: "",
@@ -98,7 +96,7 @@ export default function OwnerBusinessProfile() {
         const categoriesData = await getAllCategories();
         setCategories(categoriesData);
       } catch (error) {
-        console.error("Error al cargar categorías:", error);
+
       }
     };
 
@@ -112,7 +110,7 @@ export default function OwnerBusinessProfile() {
         const accessibilityData = await getAllAccessibilities();
         setAccessibilities(accessibilityData);
       } catch (error) {
-        console.error("Error al cargar accesibilidades:", error);
+
         toast.error("No se pudieron cargar las accesibilidades", { autoClose: 3000 });
       }
     };
@@ -253,7 +251,7 @@ export default function OwnerBusinessProfile() {
           });
         },
         (error) => {
-          console.warn("Error al obtener ubicación:", error);
+
           setIsDetectingLocation(false);
           setShowMap(true);
           toast.warning(" No se pudo detectar tu ubicación automáticamente. Selecciona manualmente en el mapa.", {
@@ -366,92 +364,6 @@ export default function OwnerBusinessProfile() {
     setSelectedImage(null);
   };
 
-  const handleGalleryImagesSelect = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const files = Array.from(e.target.files || []);
-    if (!files.length || !businessData) return;
-
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-    const maxSize = 5 * 1024 * 1024;
-
-    for (const file of files) {
-      if (!allowedTypes.includes(file.type)) {
-        toast.error("Solo se aceptan imágenes JPG, PNG o WebP", {
-          autoClose: 3000,
-        });
-        return;
-      }
-      if (file.size > maxSize) {
-        toast.error("Cada imagen no debe superar 5MB", { autoClose: 3000 });
-        return;
-      }
-    }
-
-    setIsUploadingImages(true);
-    try {
-      const result = await businessImagesService.uploadImages(
-        businessData.business_id,
-        files,
-      );
-
-      setBusinessData((prev) =>
-        prev
-          ? {
-              ...prev,
-              images: [
-                ...(prev.images || []),
-                ...(result.images || []),
-              ],
-            }
-          : prev,
-      );
-
-      toast.success("Imágenes subidas correctamente", {
-        autoClose: 2500,
-        position: "top-right",
-      });
-    } catch (error: any) {
-      toast.error(error.message || "Error al subir imágenes", {
-        autoClose: 3000,
-        position: "top-right",
-      });
-    } finally {
-      setIsUploadingImages(false);
-      e.target.value = "";
-    }
-  };
-
-  const handleDeleteImage = async (imageId: number) => {
-    if (!businessData) return;
-
-    try {
-      await businessImagesService.deleteImage(
-        businessData.business_id,
-        imageId,
-      );
-
-      setBusinessData((prev) =>
-        prev
-          ? {
-              ...prev,
-              images: (prev.images || []).filter((img) => img.id !== imageId),
-            }
-          : prev,
-      );
-
-      toast.success("Imagen eliminada", {
-        autoClose: 2000,
-        position: "top-right",
-      });
-    } catch (error: any) {
-      toast.error(error.message || "Error al eliminar imagen", {
-        autoClose: 3000,
-        position: "top-right",
-      });
-    }
-  };
-
   const handleSave = async () => {
     if (!editData.business_name.trim()) {
       toast.error("El nombre del negocio es requerido", { autoClose: 3000 });
@@ -488,7 +400,7 @@ export default function OwnerBusinessProfile() {
               await businessLogoService.uploadLogo(editData.logo);
               toast.dismiss(loadingToastId);
             } catch (logoError) {
-              console.error("Error al subir logo:", logoError);
+
               toast.dismiss(loadingToastId);
               toast.warning(" Logo validado pero error al subir. Intenta de nuevo.", { 
                 autoClose: 3000,
@@ -555,7 +467,7 @@ export default function OwnerBusinessProfile() {
 
       if (!response.ok) {
         const errorData = await response.text();
-        console.error(' Error response:', errorData);
+
         throw new Error("Error al actualizar el negocio");
       }
 
@@ -666,7 +578,7 @@ export default function OwnerBusinessProfile() {
   }
 
   return (
-    <>
+    <div className="owner-business-profile-wrapper">
       {showMap && isLoaded && (
         <LocationPicker
           initialLat={mapInitialCoords.lat}
@@ -708,6 +620,23 @@ export default function OwnerBusinessProfile() {
                   <p>Sin logo</p>
                 </div>
               )}
+              
+              {/* Accesibilidades debajo del logo */}
+              <div className="info-item accessibility-below-logo">
+                <label>Accesibilidades</label>
+                <div className="accessibility-display">
+                  {businessData.business_accessibility && businessData.business_accessibility.length > 0 ? (
+                    businessData.business_accessibility.map((acc) => (
+                      <span key={acc.accessibility_id} className="accessibility-badge-view">
+                        <i className="fas fa-check-circle"></i>
+                        {acc.accessibility_name}
+                      </span>
+                    ))
+                  ) : (
+                    <p className="no-accessibility">Sin accesibilidades registradas</p>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="business-info">
@@ -742,22 +671,6 @@ export default function OwnerBusinessProfile() {
                     ))
                   ) : (
                     <p className="no-categories">Sin categorías asignadas</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="info-item">
-                <label>Accesibilidades</label>
-                <div className="accessibility-display">
-                  {businessData.business_accessibility && businessData.business_accessibility.length > 0 ? (
-                    businessData.business_accessibility.map((acc) => (
-                      <span key={acc.accessibility_id} className="accessibility-badge-view">
-                        <i className="fas fa-check-circle"></i>
-                        {acc.accessibility_name}
-                      </span>
-                    ))
-                  ) : (
-                    <p className="no-accessibility">Sin accesibilidades registradas</p>
                   )}
                 </div>
               </div>
@@ -806,51 +719,6 @@ export default function OwnerBusinessProfile() {
                 onChange={handleLogoSelect}
                 style={{ display: "none" }}
               />
-            </div>
-
-            <div className="form-group">
-              <label>Galería de Imágenes</label>
-              <p className="form-description">
-                Sube fotos de tu local (máx. 5MB por imagen, formatos JPG, PNG o WebP).
-              </p>
-              {Array.isArray(businessData.images) && businessData.images.length > 0 && (
-                <div className="business-gallery edit-mode">
-                  {businessData.images.map((img) => (
-                    <div key={img.id} className="business-gallery-item">
-                      <img
-                        src={img.url}
-                        alt={businessData.business_name}
-                        className="business-gallery-image"
-                        onClick={() => handleOpenImage(img.url)}
-                      />
-                      <button
-                        type="button"
-                        className="gallery-delete-btn"
-                        onClick={() => handleDeleteImage(img.id)}
-                      >
-                        Eliminar
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <div className="gallery-upload-control">
-                <label className={`gallery-upload-btn ${isUploadingImages ? "uploading" : ""}`}>
-                  <i className="fas fa-cloud-upload-alt" />
-                  <span>{isUploadingImages ? "Subiendo..." : "Elegir imágenes"}</span>
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    multiple
-                    onChange={handleGalleryImagesSelect}
-                    disabled={isUploadingImages}
-                    style={{ display: "none" }}
-                  />
-                </label>
-              </div>
-              {isUploadingImages && (
-                <span className="uploading-text">Subiendo imágenes...</span>
-              )}
             </div>
 
             <div className="edit-form">
@@ -989,6 +857,6 @@ export default function OwnerBusinessProfile() {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

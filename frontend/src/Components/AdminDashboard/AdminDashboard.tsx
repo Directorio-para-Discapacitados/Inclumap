@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './AdminDashboard.css';
 import { api } from '../../config/api';
 
@@ -10,12 +10,14 @@ interface DashboardStats {
   offensiveReviews: number;
   unverifiedBusinesses: number;
   incoherentReviews: number;
+  reportedReviews: number;
 }
 
 type ViewMode = 'overview' | 'users' | 'businesses' | 'moderation';
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     totalBusinesses: 0,
@@ -23,6 +25,7 @@ const AdminDashboard: React.FC = () => {
     offensiveReviews: 0,
     unverifiedBusinesses: 0,
     incoherentReviews: 0,
+    reportedReviews: 0,
   });
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>('overview');
@@ -31,21 +34,28 @@ const AdminDashboard: React.FC = () => {
     fetchDashboardStats();
   }, []);
 
+  // Recargar estadísticas cada vez que el usuario vuelve a este componente
+  useEffect(() => {
+    fetchDashboardStats();
+  }, [location.pathname]);
+
   const fetchDashboardStats = async () => {
     try {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
 
       // Obtener estadísticas en paralelo
-      const [usersRes, businessesRes, reviewsRes] = await Promise.all([
+      const [usersRes, businessesRes, reviewsRes, reportedRes] = await Promise.all([
         api.get('/user', { headers }),
         api.get('/business', { headers }),
         api.get('/reviews', { headers }),
+        api.get('/reviews/reports/pending?page=1&limit=1', { headers }).catch(() => ({ data: { total: 0 } })),
       ]);
 
       const users = usersRes.data || [];
       const businesses = businessesRes.data || [];
       const reviews = reviewsRes.data || [];
+      const reportedCount = reportedRes.data?.total || 0;
 
       const offensiveCount = reviews.filter((r: any) => r.is_offensive && !r.is_reviewed_by_admin).length;
       const unverifiedCount = businesses.filter((b: any) => !b.logo_url).length; // Sin verificar = sin logo
@@ -53,11 +63,12 @@ const AdminDashboard: React.FC = () => {
         r.coherence_check?.startsWith('Incoherente') && !r.is_reviewed_by_admin
       ).length;
 
-      console.log('📊 Dashboard Stats:');
-      console.log('   Total negocios:', businesses.length);
-      console.log('   Negocios sin logo:', unverifiedCount);
-      console.log('   Reseñas ofensivas:', offensiveCount);
-      console.log('   Reseñas incoherentes:', incoherentCount);
+
+
+
+
+
+
 
       setStats({
         totalUsers: users.length,
@@ -66,9 +77,10 @@ const AdminDashboard: React.FC = () => {
         offensiveReviews: offensiveCount,
         unverifiedBusinesses: unverifiedCount,
         incoherentReviews: incoherentCount,
+        reportedReviews: reportedCount,
       });
     } catch (error) {
-      console.error('Error cargando estadísticas:', error);
+
     } finally {
       setLoading(false);
     }
@@ -90,6 +102,14 @@ const AdminDashboard: React.FC = () => {
       color: '#F59E0B',
       route: '/admin/moderation/offensive',
       description: 'Requieren revisión manual'
+    },
+    {
+      title: 'Reseñas Reportadas',
+      count: stats.reportedReviews,
+      icon: '📢',
+      color: '#EC4899',
+      route: '/admin/moderation/reported',
+      description: 'Reportadas por usuarios'
     },
     {
       title: 'Negocios Sin Verificar',
@@ -116,18 +136,18 @@ const AdminDashboard: React.FC = () => {
       action: () => navigate('/admin/gestion-negocios?filter=unverified')
     },
     {
-      title: 'Moderar Contenido',
-      icon: '🚨',
+      title: 'Moderación de Contenido',
+      icon: '🛡️',
       color: '#EF4444',
-      count: stats.offensiveReviews + stats.incoherentReviews, // Suma de ofensivas + incoherentes
+      count: stats.offensiveReviews + stats.incoherentReviews,
       action: () => navigate('/admin/moderation/offensive')
     },
     {
-      title: 'Revisar Incoherencias',
-      icon: '⚠️',
-      color: '#F59E0B',
-      count: stats.incoherentReviews,
-      action: () => navigate('/reviews?filter=incoherent')
+      title: 'Reseñas Reportadas',
+      icon: '📢',
+      color: '#3B82F6',
+      count: stats.reportedReviews,
+      action: () => navigate('/admin/moderation/reported')
     },
     {
       title: 'Gestionar Usuarios',
@@ -279,7 +299,7 @@ const AdminDashboard: React.FC = () => {
           </div>
           <div className="moderation-actions">
             <button className="action-button danger" onClick={() => navigate('/admin/moderation/offensive')}>
-              🚨 Moderar Contenido Ofensivo
+              🚨 Ver Reseñas Reportadas
             </button>
             <button className="action-button warning" onClick={() => navigate('/reviews?filter=incoherent')}>
               ⚠️ Revisar Incoherencias

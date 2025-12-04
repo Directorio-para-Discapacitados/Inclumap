@@ -42,7 +42,7 @@ export default function Navbar() {
         const data = await getAllCategories();
         setCategories(data || []);
       } catch (e: any) {
-        console.error("Error cargando categorías:", e.message);
+
       }
     };
     fetchCategories();

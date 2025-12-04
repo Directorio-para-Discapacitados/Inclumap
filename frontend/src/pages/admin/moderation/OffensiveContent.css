@@ -10,6 +10,28 @@
 .offensive-header {
   max-width: 1200px;
   margin: 0 auto 2rem;
+  position: relative;
+}
+
+.history-btn {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.history-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
 }
 
 .back-btn {
@@ -76,6 +98,72 @@
 .empty-state p {
   color: var(--color-text-muted);
   margin: 0;
+}
+
+/* Tabs de navegación */
+.moderation-tabs {
+  max-width: 1200px;
+  margin: 0 auto 2rem;
+  display: flex;
+  gap: 1rem;
+  background: var(--color-surface);
+  padding: 0.75rem;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: transparent;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+  background: var(--color-background);
+  color: var(--color-text);
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.tab-icon {
+  font-size: 1.5rem;
+}
+
+.tab-label {
+  font-size: 0.95rem;
+}
+
+.tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 0.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.tab-btn.active .tab-count {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 /* Reviews List */
@@ -163,10 +251,86 @@ body.dark-mode .user-avatar-initials {
   gap: 0.25rem;
 }
 
+.user-label {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
 .user-name {
   font-weight: 600;
   font-size: 1.1rem;
   color: var(--color-text);
+}
+
+/* Información del propietario */
+.owner-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--color-background);
+  border-radius: 12px;
+  border: 2px solid var(--color-border);
+}
+
+.owner-avatar,
+.owner-avatar-initials {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.owner-avatar {
+  object-fit: cover;
+}
+
+.owner-avatar-initials {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  color: white;
+  text-transform: uppercase;
+}
+
+body.dark-mode .owner-avatar-initials {
+  background: linear-gradient(135deg, #047857 0%, #065F46 100%);
+}
+
+.owner-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.owner-label {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.owner-name {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--color-text);
+}
+
+.owner-id-badge {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  padding: 0.15rem 0.5rem;
+  border-radius: 8px;
+  display: inline-block;
 }
 
 /* Badge de razón (Ofensiva/Incoherente) */
@@ -191,6 +355,18 @@ body.dark-mode .user-avatar-initials {
   border: 1px solid #F59E0B;
 }
 
+.reason-badge.user-report {
+  background: #DBEAFE;
+  color: #1E3A8A;
+  border: 1px solid #3B82F6;
+}
+
+.reason-badge.owner-report {
+  background: #D1FAE5;
+  color: #065F46;
+  border: 1px solid #10B981;
+}
+
 body.dark-mode .reason-badge.offensive {
   background: #7F1D1D;
   color: #FEE2E2;
@@ -201,6 +377,18 @@ body.dark-mode .reason-badge.incoherent {
   background: #78350F;
   color: #FEF3C7;
   border-color: #D97706;
+}
+
+body.dark-mode .reason-badge.user-report {
+  background: #1E3A8A;
+  color: #DBEAFE;
+  border-color: #60A5FA;
+}
+
+body.dark-mode .reason-badge.owner-report {
+  background: #065F46;
+  color: #D1FAE5;
+  border-color: #34D399;
 }
 
 /* Badge de strikes */
@@ -340,6 +528,42 @@ body.dark-mode .strikes-badge.critical {
 .coherence-info strong {
   color: var(--color-text);
   font-weight: 600;
+}
+
+/* Sección de respuesta del propietario reportada */
+.owner-reply-section {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(220, 38, 38, 0.05) 100%);
+  border: 2px solid #EF4444;
+  border-radius: 12px;
+}
+
+.owner-reply-label {
+  color: #DC2626;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.owner-reply-text {
+  background: var(--color-surface);
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 4px solid #EF4444;
+  font-style: italic;
+}
+
+body.dark-mode .owner-reply-section {
+  background: linear-gradient(135deg, rgba(127, 29, 29, 0.3) 0%, rgba(153, 27, 27, 0.3) 100%);
+  border-color: #DC2626;
+}
+
+body.dark-mode .owner-reply-text {
+  background: rgba(0, 0, 0, 0.2);
+  border-left-color: #DC2626;
 }
 
 .content-label {

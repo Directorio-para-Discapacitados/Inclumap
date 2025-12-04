@@ -2,6 +2,7 @@ import { BusinessEntity } from 'src/business/entity/business.entity';
 import { PeopleEntity } from 'src/people/entity/people.entity';
 import {
   Column,
+  CreateDateColumn,
   Entity,
   OneToMany,
   OneToOne,
@@ -44,6 +45,9 @@ export class UserEntity {
 
   @Column({ type: 'boolean', default: false, name: 'is_banned', comment: 'Usuario bloqueado por comportamiento ofensivo' })
   is_banned: boolean;
+
+  @CreateDateColumn({ name: 'created_at' })
+  created_at: Date;
 
   @OneToMany(() => ReviewEntity, (review) => review.user)
   reviews: ReviewEntity[];

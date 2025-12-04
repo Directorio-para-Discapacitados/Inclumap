@@ -239,6 +239,7 @@ const LocalDetalle: React.FC = () => {
   const [copied, setCopied] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [carouselIndex, setCarouselIndex] = useState(0);
   
   // Ref para evitar registros duplicados de visitas
   const viewRegisteredRef = useRef(false);
@@ -326,7 +327,56 @@ const LocalDetalle: React.FC = () => {
         const res = await api.get(`/reviews/business/${id}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
-        setReviews(res.data || []);
+        const reviewsData = res.data || [];
+        setReviews(reviewsData);
+        
+        // Cargar likes para cada reseña
+        if (reviewsData.length > 0) {
+          const likesPromises = reviewsData.map(async (review: any) => {
+            try {
+              const likesRes = await api.get(`/reviews/${review.review_id}/likes-count`);
+              
+              // Si el usuario está logueado, verificar si ha dado like
+              let userHasLiked = false;
+              if (token) {
+                try {
+                  const likedRes = await api.get(`/reviews/${review.review_id}/user-liked`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                  });
+                  userHasLiked = likedRes.data.liked || false;
+                } catch {
+                  userHasLiked = false;
+                }
+              }
+              
+              return {
+                review_id: review.review_id,
+                likes_count: likesRes.data.count || 0,
+                user_has_liked: userHasLiked
+              };
+            } catch {
+              return {
+                review_id: review.review_id,
+                likes_count: 0,
+                user_has_liked: false
+              };
+            }
+          });
+          
+          const likesData = await Promise.all(likesPromises);
+          
+          // Actualizar las reseñas con los datos de likes
+          const updatedReviews = reviewsData.map((review: any) => {
+            const likeData = likesData.find(l => l.review_id === review.review_id);
+            return {
+              ...review,
+              likes_count: likeData?.likes_count || 0,
+              user_has_liked: likeData?.user_has_liked || false
+            };
+          });
+          
+          setReviews(updatedReviews);
+        }
       } catch {
         Swal.fire({
           title: "Error",
@@ -455,6 +505,24 @@ const LocalDetalle: React.FC = () => {
     setSelectedImage(null);
   };
 
+  const handlePrevImage = () => {
+    if (!data?.images) return;
+    setCarouselIndex((prevIndex) =>
+      prevIndex === 0 ? data.images!.length - 1 : prevIndex - 1
+    );
+  };
+
+  const handleNextImage = () => {
+    if (!data?.images) return;
+    setCarouselIndex((prevIndex) =>
+      prevIndex === data.images!.length - 1 ? 0 : prevIndex + 1
+    );
+  };
+
+  const handleThumbnailClick = (index: number) => {
+    setCarouselIndex(index);
+  };
+
   const applyNewAverageFromReviews = (reviewsArray: any[]) => {
     if (!Array.isArray(reviewsArray) || reviewsArray.length === 0) {
       setData((prev) => (prev ? { ...prev, average_rating: undefined } : prev));
@@ -549,10 +617,14 @@ const LocalDetalle: React.FC = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      Swal.fire({
+      await Swal.fire({
         title: "¡Listo!",
         text: "¡ Tu reseña fue publicada !",
         icon: "success",
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#4CAF50',
+        allowOutsideClick: false,
+        allowEscapeKey: true,
         customClass: {
           popup: "my-swal-dark",
           title: "my-swal-title",
@@ -619,6 +691,229 @@ const LocalDetalle: React.FC = () => {
       applyNewAverageFromReviews(res.data);
     } catch {
       Swal.fire("Error", "No se pudo eliminar la reseña.", "error");
+    }
+  };
+
+  /* Dar/Quitar Like a una reseña */
+  const handleLikeReview = async (reviewId: number) => {
+    if (!token) {
+      return Swal.fire(
+        "Inicia sesión",
+        "Debes iniciar sesión para dar me gusta.",
+        "info"
+      );
+    }
+
+    try {
+      await api.post(`/reviews/${reviewId}/like`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // Actualizar la lista de reseñas para reflejar el cambio
+      const reviewsRes = await api.get(`/reviews/business/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      const reviewsData = reviewsRes.data || [];
+      
+      // Cargar likes actualizados para cada reseña
+      if (reviewsData.length > 0) {
+        const likesPromises = reviewsData.map(async (review: any) => {
+          try {
+            const likesRes = await api.get(`/reviews/${review.review_id}/likes-count`);
+            
+            // Verificar si el usuario ha dado like
+            let userHasLiked = false;
+            if (token) {
+              try {
+                const likedRes = await api.get(`/reviews/${review.review_id}/user-liked`, {
+                  headers: { Authorization: `Bearer ${token}` }
+                });
+                userHasLiked = likedRes.data.liked || false;
+              } catch {
+                userHasLiked = false;
+              }
+            }
+            
+            return {
+              review_id: review.review_id,
+              likes_count: likesRes.data.count || 0,
+              user_has_liked: userHasLiked
+            };
+          } catch {
+            return {
+              review_id: review.review_id,
+              likes_count: 0,
+              user_has_liked: false
+            };
+          }
+        });
+        
+        const likesData = await Promise.all(likesPromises);
+        
+        // Actualizar las reseñas con los datos de likes
+        const updatedReviews = reviewsData.map((review: any) => {
+          const likeData = likesData.find(l => l.review_id === review.review_id);
+          return {
+            ...review,
+            likes_count: likeData?.likes_count || 0,
+            user_has_liked: likeData?.user_has_liked || false
+          };
+        });
+        
+        setReviews(updatedReviews);
+      }
+    } catch (error) {
+
+      Swal.fire("Error", "No se pudo procesar tu reacción.", "error");
+    }
+  };
+
+  /* Reportar respuesta del propietario */
+  const handleReportOwnerReply = async (reviewId: number) => {
+    if (!token) {
+      return Swal.fire(
+        "Inicia sesión",
+        "Debes iniciar sesión para reportar.",
+        "info"
+      );
+    }
+
+    const confirm = await Swal.fire({
+      title: "¿Reportar esta respuesta?",
+      text: "La respuesta del propietario será revisada por un administrador.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Sí, reportar",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    // Pedir la razón del reporte
+    const reasonResult = await Swal.fire({
+      title: 'Razón del reporte',
+      text: 'Por favor, explica por qué estás reportando esta respuesta',
+      input: 'textarea',
+      inputPlaceholder: 'Describe la razón del reporte (mínimo 10 caracteres)',
+      showCancelButton: true,
+      confirmButtonText: 'Reportar',
+      cancelButtonText: 'Cancelar',
+      inputValidator: (value) => {
+        if (!value) {
+          return 'La razón es requerida';
+        }
+        if (value.length < 10) {
+          return 'La razón debe tener al menos 10 caracteres';
+        }
+        if (value.length > 500) {
+          return 'La razón no puede exceder 500 caracteres';
+        }
+        return null;
+      }
+    });
+
+    if (!reasonResult.isConfirmed || !reasonResult.value) return;
+
+    try {
+      await api.post(
+        `/reviews/reports`,
+        {
+          review_id: reviewId,
+          reason: reasonResult.value
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      Swal.fire({
+        icon: "success",
+        title: "Reporte enviado",
+        text: "La respuesta está en revisión. Recibirás una notificación cuando sea evaluada.",
+        timer: 3000,
+      });
+
+      // Recargar reseñas
+      const res = await api.get(`/reviews/business/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setReviews(res.data);
+    } catch (error: any) {
+      const message = error?.response?.data?.message || "No se pudo enviar el reporte.";
+      Swal.fire("Error", message, "error");
+    }
+  };
+
+  /* Reportar reseña de otro usuario */
+  const handleReportReview = async (reviewId: number) => {
+    if (!token) {
+      return Swal.fire(
+        "Inicia sesión",
+        "Debes iniciar sesión para reportar.",
+        "info"
+      );
+    }
+
+    const confirm = await Swal.fire({
+      title: "¿Reportar esta reseña?",
+      text: "La reseña será revisada por un administrador.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Sí, reportar",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    // Pedir la razón del reporte
+    const reasonResult = await Swal.fire({
+      title: 'Razón del reporte',
+      text: 'Por favor, explica por qué estás reportando esta reseña',
+      input: 'textarea',
+      inputPlaceholder: 'Describe la razón del reporte (mínimo 10 caracteres)',
+      showCancelButton: true,
+      confirmButtonText: 'Reportar',
+      cancelButtonText: 'Cancelar',
+      inputValidator: (value) => {
+        if (!value) {
+          return 'La razón es requerida';
+        }
+        if (value.length < 10) {
+          return 'La razón debe tener al menos 10 caracteres';
+        }
+        if (value.length > 500) {
+          return 'La razón no puede exceder 500 caracteres';
+        }
+        return null;
+      }
+    });
+
+    if (!reasonResult.isConfirmed || !reasonResult.value) return;
+
+    try {
+      await api.post(
+        `/reviews/reports`,
+        {
+          review_id: reviewId,
+          reason: reasonResult.value
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      Swal.fire({
+        icon: "success",
+        title: "Reporte enviado",
+        text: "La reseña está en revisión. Recibirás una notificación cuando sea evaluada.",
+        timer: 3000,
+      });
+
+      // Recargar reseñas
+      const res = await api.get(`/reviews/business/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setReviews(res.data);
+    } catch (error: any) {
+      const message = error?.response?.data?.message || "No se pudo enviar el reporte.";
+      Swal.fire("Error", message, "error");
     }
   };
 
@@ -736,16 +1031,56 @@ const LocalDetalle: React.FC = () => {
               {Array.isArray(data.images) && data.images.length > 0 && (
                 <div className="card galeria-card">
                   <h2>Galería</h2>
-                  <div className="galeria-grid">
-                    {data.images.map((img) => (
+                  
+                  {/* Carrusel */}
+                  <div className="carousel-container">
+                    {/* Imagen principal */}
+                    <div className="carousel-main">
                       <img
-                        key={img.id}
-                        src={img.url}
-                        alt={data.business_name}
-                        className="galeria-imagen"
-                        onClick={() => handleOpenImage(img.url)}
+                        src={data.images[carouselIndex]?.url}
+                        alt={`Foto ${carouselIndex + 1}`}
+                        className="carousel-main-image"
+                        onClick={() => handleOpenImage(data.images[carouselIndex]?.url)}
                       />
-                    ))}
+                      
+                      {/* Botones de navegación */}
+                      <button
+                        className="carousel-nav-btn carousel-prev"
+                        onClick={handlePrevImage}
+                        title="Imagen anterior"
+                      >
+                        <i className="fas fa-chevron-left"></i>
+                      </button>
+                      
+                      <button
+                        className="carousel-nav-btn carousel-next"
+                        onClick={handleNextImage}
+                        title="Siguiente imagen"
+                      >
+                        <i className="fas fa-chevron-right"></i>
+                      </button>
+                      
+                      {/* Indicador de progreso */}
+                      <div className="carousel-counter">
+                        {carouselIndex + 1} / {data.images.length}
+                      </div>
+                    </div>
+                    
+                    {/* Miniaturas */}
+                    {data.images.length > 1 && (
+                      <div className="carousel-thumbnails">
+                        {data.images.map((img, index) => (
+                          <button
+                            key={img.id}
+                            className={`carousel-thumbnail ${index === carouselIndex ? 'active' : ''}`}
+                            onClick={() => handleThumbnailClick(index)}
+                            title={`Ir a foto ${index + 1}`}
+                          >
+                            <img src={img.url} alt={`Miniatura ${index + 1}`} />
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -868,15 +1203,56 @@ const LocalDetalle: React.FC = () => {
               {reviews.length === 0 ? (
                 <p>No hay reseñas aún.</p>
               ) : (
-                reviews.map((r) => (
+                reviews.map((r) => {
+                  const firstName = r.user?.people?.firstName || 'Usuario';
+                  const lastName = r.user?.people?.firstLastName || '';
+                  const avatar = r.user?.people?.avatar;
+                  const initials = `${firstName.charAt(0)}${lastName.charAt(0) || firstName.charAt(1) || ''}`;
+                  const likesCount = r.likes_count || 0;
+                  
+                  return (
                   <div key={r.review_id} className="review-item">
-                    <RatingStars value={r.rating} size={16} />
+                    <div className="review-header">
+                      <div className="review-user-info">
+                        {avatar ? (
+                          <img 
+                            src={avatar} 
+                            alt={`${firstName} ${lastName}`}
+                            className="review-user-avatar"
+                          />
+                        ) : (
+                          <div className="review-user-avatar-initials">
+                            {initials.toUpperCase()}
+                          </div>
+                        )}
+                        <div className="review-user-details">
+                          <span className="review-user-name">{firstName} {lastName}</span>
+                          <RatingStars value={r.rating} size={16} />
+                        </div>
+                      </div>
+                    </div>
 
                     <p className="review-text">{r.comment}</p>
 
                     {r.owner_reply && (
                       <div className="owner-reply-public">
-                        <span className="owner-reply-public-label">Respuesta del propietario</span>
+                        <div className="owner-reply-public-header">
+                          <span className="owner-reply-public-label">Respuesta del propietario</span>
+                          {token && !r.owner_reply_reported && (
+                            <button
+                              className="report-owner-reply-btn"
+                              onClick={() => handleReportOwnerReply(r.review_id)}
+                              title="Reportar respuesta del propietario"
+                            >
+                              🚩 Reportar
+                            </button>
+                          )}
+                          {r.owner_reply_reported && (
+                            <span className="owner-reply-reported-badge" title="Respuesta reportada en revisión">
+                              ⏳ En revisión
+                            </span>
+                          )}
+                        </div>
                         <p className="owner-reply-public-text">{r.owner_reply}</p>
                       </div>
                     )}
@@ -884,25 +1260,56 @@ const LocalDetalle: React.FC = () => {
                     <div className="review-meta">
                       <small>{new Date(r.created_at).toLocaleDateString()}</small>
 
-                      {userId === r.user.user_id && (
-                        <div className="review-actions">
-                          <button
-                            className="review-action-btn review-edit-btn"
-                            onClick={() => setEditing({ ...r })}
-                          >
-                            Editar mi reseña
-                          </button>
-                          <button
-                            className="review-action-btn review-delete-btn"
-                            onClick={() => handleDeleteReview(r.review_id)}
-                          >
-                            Eliminar
-                          </button>
-                        </div>
-                      )}
+                      <div className="review-actions-container">
+                        {userId === r.user.user_id ? (
+                          <div className="review-actions">
+                            <button
+                              className="review-action-btn review-edit-btn"
+                              onClick={() => setEditing({ ...r })}
+                            >
+                              Editar mi reseña
+                            </button>
+                            <button
+                              className="review-action-btn review-delete-btn"
+                              onClick={() => handleDeleteReview(r.review_id)}
+                            >
+                              Eliminar
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="review-actions">
+                            {/* Botón de Like */}
+                            <button
+                              className={`review-action-btn review-like-btn ${r.user_has_liked ? 'liked' : ''}`}
+                              onClick={() => handleLikeReview(r.review_id)}
+                              title={r.user_has_liked ? "Quitar like" : "Me gusta"}
+                            >
+                              {r.user_has_liked ? '💛' : '🤍'} Me gusta ({likesCount})
+                            </button>
+                            
+                            {/* Botón de Reportar */}
+                            {token && !r.review_reported_by_owner && (
+                              <button
+                                className="review-action-btn report-review-btn"
+                                onClick={() => handleReportReview(r.review_id)}
+                                title="Reportar reseña"
+                              >
+                                🚩 Reportar
+                              </button>
+                            )}
+                          </div>
+                        )}
+                        
+                        {r.review_reported_by_owner && userId !== r.user.user_id && (
+                          <span className="owner-reply-reported-badge" title="Reseña reportada en revisión">
+                            ⏳ En revisión
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
-                ))
+                  );
+                })
               )}
             </div>
 

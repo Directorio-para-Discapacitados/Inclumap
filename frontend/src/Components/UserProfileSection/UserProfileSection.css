@@ -252,13 +252,16 @@
 }
 
 .form-actions {
-  display: flex;
+  display: flex !important;
+  flex-direction: row !important;
   gap: 1rem;
-  justify-content: flex-end;
+  justify-content: center !important;
+  align-items: center !important;
   margin-top: 2.5rem;
   padding-top: 1.5rem;
   border-top: 2px solid var(--color-border);
   transition: border-color 0.3s ease;
+  width: 100%;
 }
 
 .btn-primary,
@@ -272,9 +275,16 @@
   border: 2px solid;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.625rem;
   position: relative;
   overflow: hidden;
+  min-width: 160px;
+  height: 44px;
+}
+
+.btn-secondary {
+  margin: 0 !important;
 }
 
 .btn-primary {
@@ -282,6 +292,7 @@
   border-color: var(--color-primary);
   color: #ffffff !important;
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+  margin: 0 !important;
 }
 
 .btn-primary::before {
@@ -423,12 +434,17 @@ body.dark-mode .map-picker-btn:hover:not(:disabled) {
   }
   
   .form-actions {
-    flex-direction: column-reverse;
+    flex-direction: row !important;
+    gap: 0.75rem;
+    flex-wrap: nowrap !important;
   }
   
   .btn-primary,
   .btn-secondary {
-    width: 100%;
+    width: auto !important;
+    flex: 1;
     justify-content: center;
+    margin: 0 !important;
+    white-space: nowrap;
   }
 }

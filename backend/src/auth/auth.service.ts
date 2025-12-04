@@ -143,13 +143,11 @@ export class AuthService {
         cellphone: newPeople.cellphone,
         address: newPeople.address,
         rolIds: [rol.rol_id],
-
         business_id: null,
         business_name: null,
         business_address: null,
         NIT: null,
-        
-
+        created_at: newUser.created_at,
       };
 
       // Generar el token JWT
@@ -376,6 +374,7 @@ export class AuthService {
         business_address: savedBusiness.address,
         NIT: savedBusiness.NIT,
         rolIds: rolIds,
+        created_at: newUser.created_at,
         accessibilityIds: businessData.accessibilityIds || [],
         categoryIds: businessData.categoryIds || [],
       };
@@ -441,7 +440,6 @@ export class AuthService {
       }
 
       const rolIds = user.userroles.map((ur) => ur.rol.rol_id);
-
       const payload: PayloadInterface = {
         user_id: user.user_id,
         user_email: user.user_email,
@@ -450,11 +448,11 @@ export class AuthService {
         cellphone: user.people?.cellphone || null,
         address: user.people?.address || null,
         rolIds: rolIds,
-
         business_id: user.business?.business_id || null,
         business_name: user.business?.business_name || null,
         business_address: user.business?.address || null,
         NIT: user.business?.NIT || null,
+        created_at: user.created_at,
       };
 
       const token = this.jwtService.sign(payload);
@@ -583,7 +581,6 @@ export class AuthService {
       }
 
       const rolIds = updatedUser.userroles.map((ur) => ur.rol.rol_id);
-
       // 3. Generar Payload Actualizado
       const payload: PayloadInterface = {
         user_id: updatedUser.user_id,
@@ -597,8 +594,9 @@ export class AuthService {
         business_address: newBusiness.address,
         NIT: newBusiness.NIT,
         rolIds: rolIds,
+        created_at: updatedUser.created_at,
         accessibilityIds: businessData.accessibilityIds || [],
-        categoryIds: businessData.categoryIds || [], // <--- AGREGADO AQUÍ
+        categoryIds: businessData.categoryIds || [],
       };
 
       const token = this.jwtService.sign(payload);
@@ -1088,6 +1086,7 @@ export class AuthService {
         business_name: user.business?.business_name || null,
         business_address: user.business?.address || null,
         NIT: user.business?.NIT || null,
+        created_at: user.created_at,
       };
 
       const token = this.jwtService.sign(payload);
@@ -1127,6 +1126,7 @@ export class AuthService {
     logo_url?: string | null;
     verified?: boolean;
     business_id?: number | null;
+    created_at?: Date;
   }> {
     try {
       const user: UserEntity | null = await this.userRepository.findOne({
@@ -1174,6 +1174,7 @@ export class AuthService {
         logo_url,
         verified,
         business_id: user.business?.business_id || null,
+        created_at: user.created_at,
       };
     } catch (error) {
       if (error instanceof HttpException) {

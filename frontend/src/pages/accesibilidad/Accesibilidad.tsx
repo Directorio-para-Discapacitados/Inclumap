@@ -87,14 +87,14 @@ export default function Accesibilidad() {
         
         if (!businessResp.ok) {
           const errorText = await businessResp.text();
-          console.error("Error response:", errorText);
+
           throw new Error(`Error al obtener negocios: ${businessResp.status}`);
         }
         
         const filteredBusinesses: Business[] = await businessResp.json();
         setBusinesses(filteredBusinesses);
       } catch (e: any) {
-        console.error("Error completo:", e);
+
         setError(e?.message || "Error al cargar datos");
       } finally {
         setLoading(false);

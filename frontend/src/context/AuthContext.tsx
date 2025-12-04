@@ -11,6 +11,7 @@ interface User {
   logo_url?: string | null;
   verified?: boolean;
   business_id?: number;
+  created_at?: string;
 }
 
 interface AuthContextType {
@@ -78,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       logo_url: decoded.logo_url || null,
       verified: decoded.verified || false,
       business_id: decoded.business_id || decoded.businessId,
+      created_at: decoded.created_at,
     });
     setIsAuthenticated(true);
     return true;
@@ -116,6 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logo_url: data.logo_url || null,
         verified: data.verified || false,
         business_id: data.business_id || data.businessId,
+        created_at: data.created_at,
       });
       setIsAuthenticated(true);
       return true;
@@ -187,7 +190,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (newToken) { updateToken(newToken); return newToken; }
       return null;
     } catch (error) {
-      console.error('Error al refrescar el token:', error);
+
       logout();
       return null;
     }

@@ -73,7 +73,7 @@ export default function ChatWidget() {
 
   const requestLocation = () => {
     if (!navigator.geolocation) {
-      console.warn("Geolocalización no soportada por este navegador");
+
       setLocationPermission("denied");
       return;
     }
@@ -87,7 +87,7 @@ export default function ChatWidget() {
         setLocationPermission("granted");
       },
       (error) => {
-        console.error("Error obteniendo ubicación:", error);
+
         setLocationPermission("denied");
       },
       {

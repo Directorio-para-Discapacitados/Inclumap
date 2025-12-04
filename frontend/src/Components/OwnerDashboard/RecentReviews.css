@@ -485,3 +485,47 @@
     width: 100%;
   }
 }
+
+/* Botón para reportar reseña por propietario */
+.report-review-btn-owner {
+  margin-top: 12px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid #ef4444;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+}
+
+.report-review-btn-owner:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  border-color: #b91c1c;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(239, 68, 68, 0.4);
+}
+
+.report-review-btn-owner:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+}
+
+.review-reported-badge-owner {
+  margin-top: 12px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.1), rgba(202, 138, 4, 0.08));
+  color: #ca8a04;
+  border-radius: 12px;
+  white-space: nowrap;
+  display: inline-block;
+}

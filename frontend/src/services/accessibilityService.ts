@@ -11,7 +11,7 @@ export const getAllAccessibilities = async (): Promise<Accessibility[]> => {
     const response = await api.get('/accessibility');
     return response.data;
   } catch (error) {
-    console.error('Error al obtener accesibilidades:', error);
+
     throw error;
   }
 };

@@ -148,6 +148,7 @@ export class BusinessService {
                     firstLastName:
                       (negocio.user.people as any).firstLastName ||
                       (negocio.user.people as any).first_last_name,
+                    cellphone: (negocio.user.people as any).cellphone,
                   }
                 : undefined,
             }

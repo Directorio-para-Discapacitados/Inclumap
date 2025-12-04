@@ -85,6 +85,6 @@ export const recordBusinessView = async (businessId: number): Promise<void> => {
       referrer: document.referrer,
     });
   } catch (error) {
-    console.error('Error recording view:', error);
+
   }
 };

@@ -26,44 +26,68 @@ class BusinessImagesService {
     files: File[],
   ): Promise<UploadBusinessImagesResponse> {
     const formData = new FormData();
+    const token = localStorage.getItem('token');
+    const url = `${API_URL}/business/${businessId}/images`;
 
-    files.forEach((file) => {
+    files.forEach((file, index) => {
       formData.append('images', file);
     });
 
-    const response = await fetch(`${API_URL}/business/${businessId}/images`, {
-      method: 'POST',
-      headers: this.getAuthHeaders(),
-      body: formData,
-    });
+    try {
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
-      throw new Error(
-        errorData?.message ||
-          `Error al subir imágenes: ${response.status} ${response.statusText}`,
-      );
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+
+        throw new Error(
+          errorData?.message ||
+            `Error al subir imágenes: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const result = await response.json();
+
+      return result as UploadBusinessImagesResponse;
+    } catch (error: any) {
+      throw error;
     }
-
-    const result = await response.json();
-    return result as UploadBusinessImagesResponse;
   }
 
-  async deleteImage(businessId: number, imageId: number): Promise<void> {
-    const response = await fetch(
-      `${API_URL}/business/${businessId}/images/${imageId}`,
-      {
-        method: 'DELETE',
-        headers: this.getAuthHeaders(),
-      },
-    );
+  async deleteImage(businessId: number, imageId: number): Promise<{ message: string }> {
+    const token = localStorage.getItem('token');
+    const url = `${API_URL}/business/${businessId}/images/${imageId}`;
 
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => '');
-      throw new Error(
-        errorText ||
-          `Error al eliminar imagen: ${response.status} ${response.statusText}`,
-      );
+
+
+    try {
+      const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => '');
+
+        throw new Error(
+          errorText ||
+            `Error al eliminar imagen: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const result = await response.json().catch(() => ({ message: 'Imagen eliminada correctamente' }));
+
+      return result;
+    } catch (error: any) {
+      throw error;
     }
   }
 }

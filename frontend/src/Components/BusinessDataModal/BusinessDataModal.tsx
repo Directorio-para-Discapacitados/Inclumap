@@ -96,7 +96,7 @@ const BusinessDataModal: React.FC<BusinessDataModalProps> = ({
       const data = await getAllCategories();
       setCategories(data);
     } catch (err) {
-      console.error('Error al cargar categorías:', err);
+
     } finally {
       setLoadingCategories(false);
     }
@@ -187,7 +187,7 @@ const BusinessDataModal: React.FC<BusinessDataModalProps> = ({
       try {
         await changeUserRole(userId, 3);
       } catch (roleError) {
-        console.error('Error al cambiar rol después de crear negocio:', roleError);
+
         // No lanzar error aquí, el negocio ya fue creado exitosamente
       }
 

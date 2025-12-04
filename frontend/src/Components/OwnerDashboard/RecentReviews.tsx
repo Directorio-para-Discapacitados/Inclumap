@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { Star, StarHalf, Filter, ArrowUpDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import Swal from "sweetalert2";
 import { setOwnerReply } from "../../pages/reviews/reviewService";
 import { api } from "../../config/api";
 import "./RecentReviews.css";
@@ -17,6 +18,7 @@ interface RecentReviewsProps {
     sentiment_label: string;
     created_at: Date;
     owner_reply?: string | null;
+    review_reported_by_owner?: boolean;
     user: {
       firstName: string;
       firstLastName: string;
@@ -131,7 +133,7 @@ export default function RecentReviews({ reviews, businessId, businessLogo, limit
             });
             liked = likedRes.data.liked;
           } catch (err) {
-            console.warn('Error verificando like del usuario:', err);
+
           }
         }
         
@@ -141,7 +143,7 @@ export default function RecentReviews({ reviews, businessId, businessLogo, limit
           liked
         };
       } catch (err) {
-        console.error('Error cargando likes para reseña', r.review_id, err);
+
         return {
           id: r.review_id,
           count: 0,
@@ -180,7 +182,7 @@ export default function RecentReviews({ reviews, businessId, businessLogo, limit
         }
       }));
     } catch (err: any) {
-      console.error('Error al dar like:', err);
+
       toast.error("Error al procesar el like", { autoClose: 3000 });
     }
   };
@@ -221,7 +223,7 @@ export default function RecentReviews({ reviews, businessId, businessLogo, limit
         onReplyUpdated();
       }
     } catch (error: any) {
-      console.error("Error al guardar respuesta del propietario:", error);
+
       toast.error(error?.response?.data?.message || "Error al guardar la respuesta", {
         autoClose: 3000,
       });
@@ -254,7 +256,7 @@ export default function RecentReviews({ reviews, businessId, businessLogo, limit
         onReplyUpdated();
       }
     } catch (error: any) {
-      console.error("Error al eliminar la respuesta del propietario:", error);
+
       toast.error(error?.response?.data?.message || "Error al eliminar la respuesta", {
         autoClose: 3000,
       });
@@ -262,6 +264,93 @@ export default function RecentReviews({ reviews, businessId, businessLogo, limit
       setSavingReplies((prev) => prev.filter((id) => id !== reviewId));
       // Limpiar editingReplyId después de finalizar eliminación
       setEditingReplyId((prev) => (prev === reviewId ? null : prev));
+    }
+  };
+
+  const handleReportReview = async (reviewId: number) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("No hay sesión activa", { autoClose: 3000 });
+      return;
+    }
+
+    // Primero pedir confirmación
+    const result = await Swal.fire({
+      title: '¿Reportar esta reseña?',
+      text: 'La reseña será revisada por un administrador. Esta acción no se puede deshacer.',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Sí, reportar',
+      cancelButtonText: 'Cancelar',
+      background: 'var(--color-background)',
+      color: 'var(--color-text)',
+    });
+
+    if (!result.isConfirmed) return;
+
+    // Luego pedir la razón
+    const reasonResult = await Swal.fire({
+      title: 'Razón del reporte',
+      text: 'Por favor, explica por qué estás reportando esta reseña',
+      input: 'textarea',
+      inputPlaceholder: 'Describe la razón del reporte (mínimo 10 caracteres)',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Reportar',
+      cancelButtonText: 'Cancelar',
+      background: 'var(--color-background)',
+      color: 'var(--color-text)',
+      inputValidator: (value) => {
+        if (!value) {
+          return 'La razón es requerida';
+        }
+        if (value.length < 10) {
+          return 'La razón debe tener al menos 10 caracteres';
+        }
+        if (value.length > 500) {
+          return 'La razón no puede exceder 500 caracteres';
+        }
+        return null;
+      }
+    });
+
+    if (!reasonResult.isConfirmed || !reasonResult.value) return;
+
+    try {
+      await api.post('/reviews/reports', {
+        review_id: reviewId,
+        reason: reasonResult.value
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      await Swal.fire({
+        title: '¡Reporte enviado!',
+        text: 'La reseña está en revisión. Un administrador la evaluará pronto.',
+        icon: 'success',
+        background: 'var(--color-background)',
+        color: 'var(--color-text)',
+        timer: 3000,
+        showConfirmButton: false
+      });
+      
+      // Notificar al componente padre para recargar datos
+      if (onReplyUpdated) {
+        onReplyUpdated();
+      }
+    } catch (error: any) {
+
+      const message = error?.response?.data?.message || "Error al reportar la reseña";
+      Swal.fire({
+        title: 'Error',
+        text: message,
+        icon: 'error',
+        background: 'var(--color-background)',
+        color: 'var(--color-text)',
+      });
     }
   };
 
@@ -427,6 +516,21 @@ export default function RecentReviews({ reviews, businessId, businessLogo, limit
               <div className={`review-sentiment ${getSentimentClass(review.sentiment_label)}`}>
                 {review.sentiment_label}
               </div>
+
+              {/* Botón para reportar reseña */}
+              {!review.review_reported_by_owner ? (
+                <button
+                  className="report-review-btn-owner"
+                  onClick={() => handleReportReview(review.review_id)}
+                  title="Reportar reseña inapropiada"
+                >
+                  🚩 Reportar reseña
+                </button>
+              ) : (
+                <span className="review-reported-badge-owner" title="Reseña reportada en revisión">
+                  ⏳ Reseña en revisión
+                </span>
+              )}
 
               {/* Sección de Likes */}
               <div style={{ 

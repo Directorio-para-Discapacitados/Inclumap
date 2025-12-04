@@ -10,10 +10,10 @@
 }
 
 .gestion-negocios-container .header-section {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  justify-items: center;
+  display: grid !important;
+  grid-template-columns: auto 1fr auto !important;
+  align-items: center !important;
+  justify-items: center !important;
   margin-bottom: 2rem;
   gap: 1rem;
 }
@@ -32,7 +32,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
-  justify-self: start;
+  justify-self: start !important;
 }
 
 .gestion-negocios-container .back-button:hover {
@@ -54,7 +54,7 @@
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
-  justify-self: end;
+  justify-self: end !important;
 }
 
 .gestion-negocios-container .advanced-button:hover {
@@ -201,13 +201,19 @@
 .rating-display {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   font-weight: 600;
-  color: #f59e0b;
 }
 
 .star-icon {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
+}
+
+.rating-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f59e0b;
 }
 
 .action-buttons {
