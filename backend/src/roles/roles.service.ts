@@ -1,17 +1,25 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RolEntity } from './entity/rol.entity';
 
 @Injectable()
 export class RolesService implements OnModuleInit {
+  private readonly logger = new Logger(RolesService.name);
+
   constructor(
     @InjectRepository(RolEntity)
     private readonly rolRepository: Repository<RolEntity>,
   ) {}
 
   async onModuleInit() {
-    await this.initializeDefaultRoles();
+    // Esperar a que TypeORM esté listo
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      await this.initializeDefaultRoles();
+    } catch (error) {
+      this.logger.error('Error initializing default roles:', error);
+    }
   }
 
   private async initializeDefaultRoles() {
@@ -30,13 +38,18 @@ export class RolesService implements OnModuleInit {
     rol_id: number;
     rol_name: string;
   }): Promise<void> {
-    const roleExists = await this.rolRepository.findOne({
-      where: [{ rol_id: roleData.rol_id }, { rol_name: roleData.rol_name }],
-    });
+    try {
+      const roleExists = await this.rolRepository.findOne({
+        where: [{ rol_id: roleData.rol_id }, { rol_name: roleData.rol_name }],
+      });
 
-    if (!roleExists) {
-      const newRole = this.rolRepository.create(roleData);
-      await this.rolRepository.save(newRole);
+      if (!roleExists) {
+        const newRole = this.rolRepository.create(roleData);
+        await this.rolRepository.save(newRole);
+        this.logger.debug(`Role ${roleData.rol_name} created successfully`);
+      }
+    } catch (error) {
+      this.logger.warn(`Error creating role ${roleData.rol_name}:`, error.message);
     }
   }
 

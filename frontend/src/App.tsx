@@ -6,6 +6,7 @@ import Login from "./pages/login/login";
 import Registro from "./pages/registro/registro";
 import Perfil from "./pages/perfil/perfil";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { useTheme } from "./context/ThemeContext";
 import { SpeechProvider } from "./context/SpeechContext";
 import { GlobalSpeechListener } from "./Components/GlobalSpeechListener";
 import VoiceCommander from "./Components/VoiceCommander";
@@ -23,6 +24,8 @@ import GestionCategorias from "./pages/admin/gestion-categorias/GestionCategoria
 import GestionAccesibilidad from "./pages/admin/gestion-accesibilidad/GestionAccesibilidad";
 import Reportes from "./pages/admin/reportes/Reportes";
 import OffensiveContent from "./pages/admin/moderation/OffensiveContent";
+import ReportedReviews from "./pages/admin/moderation/ReportedReviews";
+import ReportHistory from "./pages/admin/moderation/ReportHistory";
 import CrearNegocio from "./pages/crearNegocio/CrearNegocio";
 import LocalDetalle from "./pages/local/LocalDetalle";
 import { ToastContainer } from 'react-toastify';
@@ -31,6 +34,7 @@ import Footer from "./Components/Footer/Footer";
 import LocalRecognitionPage from './pages/LocalRecognition/LocalRecognition';
 import ReviewsPage from "./pages/reviews/ReviewsPage";
 import OwnerBusinessReviewsPage from "./pages/reviews/OwnerBusinessReviewsPage";
+import PendingReportsPage from "./pages/reviews/PendingReportsPage";
 import SessionModal from "./Components/SessionModal/SessionModal";
 import { setSessionModalCallback } from "./config/api";
 import Accesibilidad from "./pages/accesibilidad/Accesibilidad";
@@ -42,6 +46,7 @@ import Tutorial from "./pages/tutoriales/Tutorial";
 function AppContent() {
   const location = useLocation();
   const { user } = useAuth();
+  const { darkMode } = useTheme();
   const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
   const [sessionPromiseResolve, setSessionPromiseResolve] = useState<((value: boolean) => void) | null>(null);
   const [savedVersion, setSavedVersion] = useState(0);
@@ -98,6 +103,7 @@ function AppContent() {
 
           <Route path="/reviews" element={<ReviewsPage />} />
           <Route path="/reviews/:businessId" element={<ReviewsPage />} />
+          <Route path="/reviews/pending-reports" element={<PendingReportsPage />} />
 
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
@@ -116,19 +122,20 @@ function AppContent() {
                     margin: '2.5rem auto 3rem',
                     padding: '2.5rem 2rem 2.8rem',
                     borderRadius: '30px',
-                    background:
-                      'linear-gradient(135deg, rgba(56,189,248,0.25) 0%, rgba(129,140,248,0.25) 50%, #e5f1ff 100%)',
+                    background: darkMode
+                      ? 'linear-gradient(135deg, rgba(30,41,59,0.95) 0%, rgba(51,65,85,0.95) 50%, rgba(30,41,59,0.95) 100%)'
+                      : 'linear-gradient(135deg, rgba(56,189,248,0.25) 0%, rgba(129,140,248,0.25) 50%, #e5f1ff 100%)',
                     boxShadow: '0 25px 60px rgba(15,23,42,0.35)',
                   }}
                 >
                   <header
                     style={{
                       borderRadius: '22px',
-                      background: '#ffffff',
+                      background: darkMode ? '#1e293b' : '#ffffff',
                       boxShadow: '0 18px 40px rgba(15,23,42,0.15)',
                       padding: '1.6rem 2rem',
                       marginBottom: '1.8rem',
-                      border: '1px solid rgba(148,163,184,0.3)',
+                      border: darkMode ? '1px solid rgba(71,85,105,0.5)' : '1px solid rgba(148,163,184,0.3)',
                     }}
                   >
                     <h1
@@ -139,7 +146,7 @@ function AppContent() {
                         display: 'flex',
                         alignItems: 'center',
                         gap: '0.7rem',
-                        color: '#0f172a',
+                        color: darkMode ? '#f1f5f9' : '#0f172a',
                       }}
                     >
                       <span style={{ fontSize: '1.8rem' }}>⭐</span>
@@ -149,7 +156,7 @@ function AppContent() {
                       style={{
                         margin: '0.5rem 0 0',
                         fontSize: '0.96rem',
-                        color: '#6b7280',
+                        color: darkMode ? '#94a3b8' : '#6b7280',
                       }}
                     >
                       Accede rápido a los locales que más te gustan y que consideras accesibles.
@@ -166,11 +173,11 @@ function AppContent() {
                           style={{
                             padding: '1.6rem',
                             borderRadius: '18px',
-                            background: '#ffffff',
-                            border: '1px solid rgba(148,163,184,0.35)',
+                            background: darkMode ? '#1e293b' : '#ffffff',
+                            border: darkMode ? '1px solid rgba(71,85,105,0.5)' : '1px solid rgba(148,163,184,0.35)',
                             textAlign: 'center',
                             fontSize: '0.95rem',
-                            color: '#374151',
+                            color: darkMode ? '#cbd5e1' : '#374151',
                           }}
                         >
                           Inicia sesión para ver y gestionar tus lugares guardados.
@@ -198,10 +205,10 @@ function AppContent() {
                           style={{
                             padding: '2rem 1.5rem',
                             borderRadius: '22px',
-                            background: '#ffffff',
-                            border: '1px dashed rgba(148,163,184,0.7)',
+                            background: darkMode ? '#1e293b' : '#ffffff',
+                            border: darkMode ? '1px dashed rgba(71,85,105,0.7)' : '1px dashed rgba(148,163,184,0.7)',
                             textAlign: 'center',
-                            color: '#6b7280',
+                            color: darkMode ? '#94a3b8' : '#6b7280',
                             fontSize: '0.95rem',
                           }}
                         >
@@ -221,8 +228,8 @@ function AppContent() {
                       <section
                         style={{
                           borderRadius: '24px',
-                          background: '#ffffff',
-                          border: '1px solid rgba(148,163,184,0.4)',
+                          background: darkMode ? '#1e293b' : '#ffffff',
+                          border: darkMode ? '1px solid rgba(71,85,105,0.5)' : '1px solid rgba(148,163,184,0.4)',
                           padding: '1.6rem 1.7rem 1.8rem',
                           boxShadow: '0 18px 40px rgba(15,23,42,0.18)',
                         }}
@@ -232,7 +239,7 @@ function AppContent() {
                             margin: 0,
                             marginBottom: '1.2rem',
                             fontSize: '0.9rem',
-                            color: '#6b7280',
+                            color: darkMode ? '#94a3b8' : '#6b7280',
                           }}
                         >
                           Tienes {count} {count === 1 ? 'lugar guardado' : 'lugares guardados'}.
@@ -262,9 +269,11 @@ function AppContent() {
                                 style={{
                                   borderRadius: '20px',
                                   border: isHovered
-                                    ? '1px solid #2563eb'
-                                    : '1px solid rgba(209,213,219,0.9)',
-                                  background: isHovered ? '#ffffff' : '#f9fafb',
+                                    ? (darkMode ? '1px solid #3b82f6' : '1px solid #2563eb')
+                                    : (darkMode ? '1px solid rgba(71,85,105,0.6)' : '1px solid rgba(209,213,219,0.9)'),
+                                  background: isHovered
+                                    ? (darkMode ? '#334155' : '#ffffff')
+                                    : (darkMode ? '#1e293b' : '#f9fafb'),
                                   boxShadow: isHovered
                                     ? '0 18px 40px rgba(15,23,42,0.22)'
                                     : '0 10px 30px rgba(15,23,42,0.12)',
@@ -325,7 +334,7 @@ function AppContent() {
                                         margin: 0,
                                         fontSize: '1.02rem',
                                         fontWeight: 700,
-                                        color: '#111827',
+                                        color: darkMode ? '#f1f5f9' : '#111827',
                                       }}
                                     >
                                       {p.business_name}
@@ -335,7 +344,7 @@ function AppContent() {
                                         style={{
                                           margin: '0.28rem 0 0',
                                           fontSize: '0.9rem',
-                                          color: '#6b7280',
+                                          color: darkMode ? '#94a3b8' : '#6b7280',
                                         }}
                                       >
                                         {p.address}
@@ -350,8 +359,8 @@ function AppContent() {
                                         gap: '0.3rem',
                                         padding: '0.23rem 0.55rem',
                                         borderRadius: '999px',
-                                        background: '#ffffff',
-                                        border: '1px solid rgba(209,213,219,0.7)',
+                                        background: darkMode ? '#0f172a' : '#ffffff',
+                                        border: darkMode ? '1px solid rgba(71,85,105,0.7)' : '1px solid rgba(209,213,219,0.7)',
                                       }}
                                     >
                                       <span>⭐</span>
@@ -382,12 +391,12 @@ function AppContent() {
                                   style={{
                                     width: '100%',
                                     border: 'none',
-                                    borderTop: '1px solid rgba(229,231,235,0.9)',
+                                    borderTop: darkMode ? '1px solid rgba(71,85,105,0.7)' : '1px solid rgba(229,231,235,0.9)',
                                     background: 'transparent',
                                     padding: '0.7rem 1.2rem 0.85rem',
                                     textAlign: 'right',
                                     fontSize: '0.86rem',
-                                    color: '#6b7280',
+                                    color: darkMode ? '#94a3b8' : '#6b7280',
                                     cursor: 'pointer',
                                   }}
                                 >
@@ -414,24 +423,15 @@ function AppContent() {
             <Route path="/admin/gestion-accesibilidad" element={<GestionAccesibilidad />} />
             <Route path="/admin/reportes" element={<Reportes />} />
             <Route path="/admin/moderation/offensive" element={<OffensiveContent />} />
-            {/* --- FIN DE LA CORRECCIÓN --- */}
-
-            {/* Nueva ruta para crear negocio */}
-            <Route
-              path="/crear-negocio"
-              element={<CrearNegocio />}
-            />
-
-            {/* Ruta para explorar negocios */}
-            <Route
-              path="/explorar-negocios"
-              element={<BrowseBusinesses />}
-            />
+            <Route path="/admin/moderation/reported" element={<ReportedReviews />} />
+            <Route path="/admin/moderation/history" element={<ReportHistory />} />
+            <Route path="/crear-negocio" element={<CrearNegocio />} />
+            <Route path="/explorar-negocios" element={<BrowseBusinesses />} />
 
           </Route>
           <Route path="/local/:id" element={<LocalDetalle />} />
-        </Routes >
-      </main >
+        </Routes>
+      </main>
       {/* Mostrar Footer solo en la página de inicio */}
       {location.pathname === '/' && <Footer />}
       <ChatWidget />

@@ -46,13 +46,10 @@ const GestionNegocios: React.FC = () => {
     try {
       setLoading(true);
       const data = await getAllBusinesses();
-      console.log('📊 Negocios obtenidos:', data);
-      console.log('📊 Total de negocios:', data.length);
-      console.log('📊 Negocios sin logo (sin verificar):', data.filter((b: any) => !b.logo_url).length);
       setBusinesses(data);
       setError(null);
     } catch (err) {
-      console.error('❌ Error al cargar negocios:', err);
+
       setError(err instanceof Error ? err.message : 'Error al cargar negocios');
     } finally {
       setLoading(false);
@@ -103,18 +100,16 @@ const GestionNegocios: React.FC = () => {
 
   // Filtrar negocios según el parámetro de URL
   const filteredBusinesses = React.useMemo(() => {
-    console.log('🔍 Filtro activo:', filterType);
-    console.log('🔍 Total businesses:', businesses.length);
+
+
     
     if (filterType === 'unverified') {
       // Negocios sin verificar = sin logo_url
       const unverified = businesses.filter(b => !b.logo_url);
-      console.log('🔍 Negocios sin verificar (sin logo):', unverified.length);
-      console.log('🔍 Ejemplos:', unverified.slice(0, 3));
       return unverified;
     }
     
-    console.log('🔍 Mostrando todos los negocios');
+
     return businesses;
   }, [businesses, filterType]);
 
@@ -254,8 +249,8 @@ const GestionNegocios: React.FC = () => {
                   <td>
                     <div className="rating-display">
                       <span className="star-icon">⭐</span>
-                      <span>
-                        {typeof business.average_rating === 'number' 
+                      <span className="rating-value">
+                        {typeof business.average_rating === 'number' && business.average_rating > 0
                           ? business.average_rating.toFixed(1) 
                           : 'N/A'}
                       </span>

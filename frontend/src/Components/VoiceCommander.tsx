@@ -137,7 +137,7 @@ export const VoiceCommander: React.FC = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     
     if (!SpeechRecognition) {
-      console.warn("Speech Recognition no está soportado en este navegador");
+
       setFeedback("❌ Tu navegador no soporta reconocimiento de voz. Usa Chrome, Edge o verifica la configuración de Brave.");
       return;
     }
@@ -186,7 +186,7 @@ export const VoiceCommander: React.FC = () => {
 
     // Manejo de errores
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      console.error("Error en reconocimiento de voz:", event.error);
+
       
       if (event.error === "not-allowed") {
         setFeedback("❌ Permiso de micrófono denegado. Verifica los permisos del navegador.");
@@ -275,7 +275,7 @@ export const VoiceCommander: React.FC = () => {
       
       setTimeout(() => setFeedback(""), 3000);
     } else {
-      console.warn("❌ Comando no reconocido:", command);
+
       setFeedback(`❓ No entendí: "${command}". Intenta: inicio, login, registro, negocios, perfil, crear negocio, guardados`);
       setTimeout(() => setFeedback(""), 5000);
     }
@@ -294,7 +294,7 @@ export const VoiceCommander: React.FC = () => {
           setTimeout(() => setFeedback(""), 6000);
         }
       } catch (error: any) {
-        console.error("Error al iniciar:", error);
+
         setFeedback("❌ Error. Verifica permisos del micrófono.");
       }
     } else {

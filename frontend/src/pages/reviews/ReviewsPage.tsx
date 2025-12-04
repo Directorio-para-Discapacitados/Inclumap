@@ -75,7 +75,7 @@ export default function ReviewsPage() {
             liked = likedRes.data.liked;
           } catch (err) {
             // Si no está autenticado, simplemente no está likeado
-            console.warn('Error verificando like del usuario:', err);
+
           }
         }
         
@@ -85,7 +85,7 @@ export default function ReviewsPage() {
           liked
         };
       } catch (err) {
-        console.error('Error cargando likes para reseña', r.review_id, err);
+
         return {
           id: r.review_id,
           count: 0,
@@ -124,7 +124,7 @@ export default function ReviewsPage() {
         }
       }));
     } catch (err: any) {
-      console.error('Error al dar like:', err);
+
       toast.error("Error al procesar el like");
     }
   };
@@ -262,19 +262,77 @@ export default function ReviewsPage() {
     }
   };
 
+
+
+  const handleReportReview = async (reviewId: number) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error("Debes iniciar sesión para reportar reseñas");
+      return;
+    }
+
+    const { value: reason } = await Swal.fire({
+      title: '¿Reportar esta reseña?',
+      input: 'textarea',
+      inputLabel: 'Razón del reporte',
+      inputPlaceholder: 'Describe por qué reportas esta reseña (mínimo 10 caracteres)...',
+      inputAttributes: {
+        maxlength: '500',
+      },
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Sí, reportar',
+      cancelButtonText: 'Cancelar',
+      background: 'var(--color-background)',
+      color: 'var(--color-text)',
+      preConfirm: (value) => {
+        if (!value || value.trim().length < 10) {
+          Swal.showValidationMessage('La razón debe tener al menos 10 caracteres');
+          return false;
+        }
+        return value;
+      }
+    });
+
+    if (reason) {
+      try {
+        await api.post(`/reviews/reports`, 
+          { review_id: reviewId, reason },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+
+        await Swal.fire({
+          title: '¡Reportado!',
+          text: 'La reseña está en revisión. Recibirás una notificación cuando sea evaluada.',
+          icon: 'success',
+          background: 'var(--color-background)',
+          color: 'var(--color-text)',
+          timer: 3000,
+        });
+
+        fetchReviews(); // Recargar lista
+      } catch (error: any) {
+        Swal.fire({
+          title: 'Error',
+          text: error.response?.data?.message || 'No se pudo enviar el reporte',
+          icon: 'error',
+          background: 'var(--color-background)',
+          color: 'var(--color-text)',
+        });
+      }
+    }
+  };
+
   const fetchReviews = async () => {
     try {
       const res = await api.get("/reviews");
-      console.log('📊 Reseñas obtenidas:', res.data);
-      console.log('📊 Primera reseña (ejemplo):', res.data[0]);
-      console.log('📊 Reseñas con categoría:', res.data.filter((r: any) => r.category).length);
-      console.log('📊 Categorías encontradas:', [...new Set(res.data.map((r: any) => r.category).filter(Boolean))]);
       setReviews(res.data);
       setFiltered(res.data);
       // Cargar likes después de obtener las reseñas
       await fetchLikesData(res.data);
     } catch (err) {
-      console.error("Error cargando reseñas:", err);
+
     }
   };
 
@@ -285,13 +343,11 @@ export default function ReviewsPage() {
   useEffect(() => {
     let temp = [...reviews];
 
-    console.log('🔍 Filtro activo - Categoría:', category);
-    console.log('🔍 Total reseñas antes de filtrar:', temp.length);
+
+
     
     if (category !== "all") {
       temp = temp.filter((r) => r.category === category);
-      console.log('🔍 Reseñas después de filtrar por categoría:', temp.length);
-      console.log('🔍 Ejemplos filtrados:', temp.slice(0, 3).map(r => ({ category: r.category, comment: r.comment?.substring(0, 30) })));
     }
     
     if (rating !== "") temp = temp.filter((r) => r.rating === Number(rating));
@@ -330,8 +386,28 @@ export default function ReviewsPage() {
           >
             🔄 Reanalizar Todas las Reseñas
           </button>
+          <button
+            className="revPendingReportsBtn"
+            onClick={() => navigate('/reviews/pending-reports')}
+            style={{
+              marginLeft: '12px',
+              padding: '10px 20px',
+              backgroundColor: '#ff9800',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontWeight: '500',
+              fontSize: '14px',
+              transition: 'all 0.2s'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f57c00'}
+            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#ff9800'}
+          >
+            📋 Ver Reportes Pendientes
+          </button>
           <p className="revAdminHint">
-            Usa este botón para analizar reseñas antiguas que no tienen análisis de sentimientos
+            Usa estos botones para analizar reseñas antiguas y revisar reportes pendientes
           </p>
         </div>
       )}
@@ -454,6 +530,19 @@ export default function ReviewsPage() {
                   </span>
                 </div>
                 <p className="revResponseText">{r.owner_reply}</p>
+                
+                {/* Botón para reportar respuesta del propietario */}
+                <div className="revResponseActions">
+                  {!r.review_reported && (
+                    <button
+                      className="revReportReviewBtn"
+                      onClick={() => handleReportReview(r.review_id)}
+                      title="Reportar reseña"
+                    >
+                      🚩 Reportar reseña
+                    </button>
+                  )}
+                </div>
               </div>
             )}
 
@@ -531,16 +620,34 @@ export default function ReviewsPage() {
 
             {/* ❤️ LIKE CON API */}
             <div className="revLikeContainer">
-              <button
-                className={`revLikeBtn ${likesData[r.review_id]?.liked ? "liked" : ""}`}
-                onClick={() => toggleLike(r.review_id)}
-              >
-                {likesData[r.review_id]?.liked ? "💛" : "🤍"}
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  className={`revLikeBtn ${likesData[r.review_id]?.liked ? "liked" : ""}`}
+                  onClick={() => toggleLike(r.review_id)}
+                >
+                  {likesData[r.review_id]?.liked ? "💛" : "🤍"}
+                </button>
 
-              <span className="revLikeCount">
-                {likesData[r.review_id]?.count || 0}
-              </span>
+                <span className="revLikeCount">
+                  {likesData[r.review_id]?.count || 0}
+                </span>
+
+                {/* 🚩 REPORTAR RESEÑA */}
+                {user && user.user_id !== r.user?.user_id && !r.review_reported_by_owner && (
+                  <button
+                    className="revReportOwnerReplyBtn"
+                    onClick={() => handleReportReview(r.review_id)}
+                    title="Reportar reseña"
+                  >
+                    🚩 Reportar reseña
+                  </button>
+                )}
+                {r.review_reported_by_owner && user && user.user_id !== r.user?.user_id && (
+                  <span className="revOwnerReplyReportedBadge" title="Reseña reportada en revisión">
+                    ⏳ En revisión
+                  </span>
+                )}
+              </div>
 
               {/* Botón de eliminar (solo admin) */}
               {isAdmin && (

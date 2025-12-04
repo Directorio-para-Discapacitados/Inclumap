@@ -22,7 +22,7 @@ export default function QuickActions({ businessId }: QuickActionsProps) {
       icon: <Image size={20} />,
       label: "Gestionar Fotos",
       description: "Agrega o elimina imágenes",
-      onClick: () => navigate("/perfil"),
+      onClick: () => window.location.href = "#gallery",
       color: "action-purple",
     },
     {

@@ -89,9 +89,9 @@ export class NotificationService {
 
     // Filtrar por tipo según el rol
     if (isAdmin) {
-      // Admin sees Review Alerts
-      query.andWhere('notification.type = :type', {
-        type: NotificationType.REVIEW_ALERT,
+      // Admin sees Review Alerts AND Review Attention notifications
+      query.andWhere('notification.type IN (:...types)', {
+        types: [NotificationType.REVIEW_ALERT, NotificationType.REVIEW_ATTENTION],
       });
     } else {
       // Regular User sees Suggestions AND Review Attentions

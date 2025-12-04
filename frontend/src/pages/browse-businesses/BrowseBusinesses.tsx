@@ -73,7 +73,7 @@ export default function BrowseBusinesses() {
       setBusinesses(allBusinesses);
       setFilteredBusinesses(allBusinesses);
     } catch (error) {
-      console.error("❌ Error cargando negocios:", error);
+
     } finally {
       setLoading(false);
     }

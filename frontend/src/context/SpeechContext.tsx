@@ -70,7 +70,7 @@ export const SpeechProvider = ({ children }: { children: ReactNode }) => {
       currentUtteranceRef.current = utterance;
       synthRef.current.speak(utterance);
     } catch (error) {
-      console.error('Error al sintetizar voz:', error);
+
     }
   }, [isSpeechEnabled, cancelSpeech]);
 

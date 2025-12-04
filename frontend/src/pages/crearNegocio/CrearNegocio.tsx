@@ -60,7 +60,7 @@ export default function CrearNegocio() {
         const data = await getAllCategories();
         setCategories(data);
       } catch (error) {
-        console.error("Error al cargar categorías:", error);
+
         setCategoriesError("No se pudieron cargar las categorías. Intenta nuevamente.");
         toast.error("❌ Error al cargar las categorías", { 
           position: "top-center", 
@@ -101,7 +101,7 @@ export default function CrearNegocio() {
         const data = await getAllCategories();
         setCategories(data);
       } catch (error) {
-        console.error("Error al cargar categorías:", error);
+
         setCategoriesError("No se pudieron cargar las categorías. Intenta nuevamente.");
         toast.error("❌ Error al cargar las categorías", { 
           position: "top-center", 
@@ -132,7 +132,7 @@ export default function CrearNegocio() {
           });
         },
         (error) => {
-          console.warn("Error al obtener ubicación:", error);
+
           setCoordinates("0,0");
           setLocationDetected(false);
           setIsDetectingLocation(false);
@@ -200,7 +200,7 @@ export default function CrearNegocio() {
           });
         },
         (error) => {
-          console.warn("Error al obtener ubicación:", error);
+
           setIsDetectingLocation(false);
           // Abrir el mapa de todas formas con ubicación por defecto
           setShowMap(true);
@@ -526,12 +526,14 @@ export default function CrearNegocio() {
 
             
             {/* Selector de categorías */}
-            <CategoryMultiSelect
-              categories={categories}
-              selectedCategoryIds={selectedCategories}
-              onChange={setSelectedCategories}
-              error={categoriesError}
-            />
+            <div className="crear-negocio-categories">
+              <CategoryMultiSelect
+                categories={categories}
+                selectedCategoryIds={selectedCategories}
+                onChange={setSelectedCategories}
+                error={categoriesError}
+              />
+            </div>
 
             <h3 className="accesibilidad-titulo">Selecciona la accesibilidad de tu local</h3>
 

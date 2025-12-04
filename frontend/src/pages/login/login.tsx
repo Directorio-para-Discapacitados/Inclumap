@@ -21,6 +21,7 @@ export default function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [savedAccounts, setSavedAccounts] = useState<Array<{ email: string; password: string }>>([]);
   const [mostrarPassword, setMostrarPassword] = useState(false);
+  const [showAccountsDropdown, setShowAccountsDropdown] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
   const { onMouseEnter, onFocus } = useSpeakable();
@@ -40,6 +41,18 @@ export default function Login() {
     } catch {
       // ignorar errores de lectura de localStorage
     }
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.email-input-wrapper')) {
+        setShowAccountsDropdown(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const decodeJwt = (token: string): any => {
@@ -156,6 +169,27 @@ export default function Login() {
     navigate("/registro");
   };
 
+  const handleSelectAccount = (account: { email: string; password: string }) => {
+    setEmail(account.email);
+    setPassword(account.password);
+    setRememberMe(true);
+    setShowAccountsDropdown(false);
+  };
+
+  const handleRemoveAccount = (emailToRemove: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const updated = savedAccounts.filter(a => a.email !== emailToRemove);
+    setSavedAccounts(updated);
+    localStorage.setItem('savedAccounts', JSON.stringify(updated));
+    
+    // Si es la cuenta actualmente seleccionada, limpiar los campos
+    if (email === emailToRemove) {
+      setEmail('');
+      setPassword('');
+      setRememberMe(false);
+    }
+  };
+
   return (
     <div className="login-page">
       {showRegistrationModal && (
@@ -209,29 +243,38 @@ export default function Login() {
           <div className="login-container">
             <form onSubmit={handleEmailLogin}>
               <label>Correo electrónico</label>
-              <input
-                type="email"
-                value={email}
-                list="saved-emails"
-                onChange={(e) => {
-                  const v = e.target.value;
-                  setEmail(v);
-                  const acc = savedAccounts.find((a) => a.email === v);
-                  if (acc) {
-                    setPassword(acc.password);
-                    setRememberMe(true);
-                  }
-                }}
-                required
-                aria-label="Correo electrónico para iniciar sesión"
-                onMouseEnter={onMouseEnter}
-                onFocus={onFocus}
-              />
-              <datalist id="saved-emails">
-                {savedAccounts.map((a) => (
-                  <option key={a.email} value={a.email} />
-                ))}
-              </datalist>
+              <div className="email-input-wrapper">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onFocus={() => savedAccounts.length > 0 && setShowAccountsDropdown(true)}
+                  required
+                  aria-label="Correo electrónico para iniciar sesión"
+                  onMouseEnter={onMouseEnter}
+                />
+                {showAccountsDropdown && savedAccounts.length > 0 && (
+                  <div className="saved-accounts-dropdown">
+                    {savedAccounts.map((account) => (
+                      <div
+                        key={account.email}
+                        className="saved-account-item"
+                        onClick={() => handleSelectAccount(account)}
+                      >
+                        <span className="account-email">{account.email}</span>
+                        <button
+                          type="button"
+                          className="remove-account-btn"
+                          onClick={(e) => handleRemoveAccount(account.email, e)}
+                          aria-label={`Eliminar cuenta ${account.email}`}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               <label>Contraseña</label>
               <div className="password-container">

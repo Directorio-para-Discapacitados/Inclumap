@@ -10,6 +10,7 @@ export interface PayloadInterface {
   business_name: string | null;
   business_address: string | null;
   NIT: number | null;
+  created_at?: Date;
   accessibilityIds?: number[];
   categoryIds?: number[];
 }

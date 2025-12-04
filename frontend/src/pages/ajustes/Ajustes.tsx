@@ -224,15 +224,18 @@ const AjustesPage = () => {
               <div className="profile-header">
                 <div className="profile-avatar">
                   <div className="avatar-circle">
-                    <span className="avatar-text">
-                      {user?.first_name?.charAt(0).toUpperCase() || 'U'}
-                      {user?.last_name?.charAt(0).toUpperCase() || 'S'}
-                    </span>
+                    {user?.avatar ? (
+                      <img src={user.avatar} alt={user.displayName || 'Usuario'} className="avatar-image" />
+                    ) : (
+                      <span className="avatar-text">
+                        {user?.displayName?.charAt(0).toUpperCase() || 'U'}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="profile-info">
                   <h2 className="profile-name">
-                    {user?.first_name} {user?.last_name}
+                    {user?.displayName || 'Usuario'}
                   </h2>
                   <p className="profile-email">{user?.email}</p>
                   <div className="profile-badge">
@@ -248,12 +251,14 @@ const AjustesPage = () => {
                   <div className="stat-content">
                     <span className="stat-label">Miembro desde</span>
                     <span className="stat-value">
-                      {user?.createdAt 
-                        ? new Date(user.createdAt).toLocaleDateString('es-ES', { 
+                      {user?.created_at 
+                        ? new Date(user.created_at).toLocaleDateString('es-ES', { 
+                            day: 'numeric',
                             year: 'numeric', 
                             month: 'long' 
                           })
-                        : 'Fecha no disponible'}
+                        : 'No disponible'
+                      }
                     </span>
                   </div>
                 </div>

@@ -38,7 +38,7 @@ export default function LocationPicker({ initialLat, initialLng, onConfirm, onCa
     try {
       geocoder.current = new google.maps.Geocoder();
     } catch (e) {
-      console.error("Error inicializando Geocoder:", e);
+
     }
     
     if (initialLat !== 0 && initialLng !== 0) {

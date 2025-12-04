@@ -148,4 +148,34 @@ body.dark-mode ::-webkit-scrollbar-thumb {
   background: #555;
 }
 
-/* ...otros estilos... */
+/* ===========================================
+   SWEETALERT2 - MODO OSCURO SIMPLE
+   =========================================== */
+body.dark-mode .swal2-popup,
+[data-theme='dark'] .swal2-popup {
+  background: #1f2937 !important;
+  color: #e5e7eb !important;
+  border: 1px solid #374151 !important;
+}
+
+body.dark-mode .swal2-title,
+[data-theme='dark'] .swal2-title {
+  color: #f9fafb !important;
+}
+
+body.dark-mode .swal2-html-container,
+[data-theme='dark'] .swal2-html-container {
+  color: #e5e7eb !important;
+}
+
+body.dark-mode .swal2-confirm,
+[data-theme='dark'] .swal2-confirm {
+  background: #374151 !important;
+  color: #fff !important;
+}
+
+body.dark-mode .swal2-cancel,
+[data-theme='dark'] .swal2-cancel {
+  background: #4b5563 !important;
+  color: #e5e7eb !important;
+}

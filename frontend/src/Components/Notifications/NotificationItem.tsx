@@ -19,6 +19,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
   const [startX, setStartX] = useState(0);
   const [currentX, setCurrentX] = useState(0);
   const [translateX, setTranslateX] = useState(0);
+  const [isExpanded, setIsExpanded] = useState(false);
   const itemRef = useRef<HTMLDivElement>(null);
 
   const getTimeAgo = (date: string): string => {
@@ -123,7 +124,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
   };
 
   return (
-    <div className="notification-item-container">
+    <div className={`notification-item-container ${translateX > 10 ? 'swiped' : ''}`}>
       <div className="notification-delete-background">
         <svg className="delete-icon-bg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -149,7 +150,20 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         <div className="notification-icon">{getIcon()}</div>
         <div className="notification-content">
           <p className="notification-title">{getTitle()}</p>
-          <p className="notification-message">{notification.message}</p>
+          <p className={`notification-message ${isExpanded ? 'expanded' : ''}`}>
+            {notification.message}
+          </p>
+          {notification.message && notification.message.length > 50 && (
+            <button 
+              className="expand-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsExpanded(!isExpanded);
+              }}
+            >
+              {isExpanded ? '▼ Ver menos' : '▶ Ver más'}
+            </button>
+          )}
           <span className="notification-time">{getTimeAgo(notification.created_at)}</span>
         </div>
         {!notification.is_read && <div className="notification-badge"></div>}
@@ -157,6 +171,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
           className="notification-delete-btn"
           onClick={handleDeleteClick}
           aria-label="Eliminar notificación"
+          title="Eliminar notificación"
         >
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>

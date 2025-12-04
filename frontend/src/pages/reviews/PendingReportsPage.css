@@ -1,0 +1,255 @@
+.pendingReportsContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: var(--color-background, #f5f5f5);
+  min-height: 100vh;
+}
+
+.pendingReportsHeader {
+  margin-bottom: 30px;
+  padding: 20px;
+  background-color: var(--color-card-bg, #ffffff);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pendingReportsBackBtn {
+  padding: 8px 16px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  margin-bottom: 15px;
+  transition: background-color 0.2s;
+}
+
+.pendingReportsBackBtn:hover {
+  background-color: #5a6268;
+}
+
+.pendingReportsHeader h1 {
+  margin: 10px 0;
+  color: var(--color-text, #333);
+  font-size: 28px;
+}
+
+.pendingReportsCount {
+  color: #666;
+  font-size: 14px;
+  margin: 10px 0 0 0;
+}
+
+.pendingReportsLoading,
+.pendingReportsEmpty {
+  text-align: center;
+  padding: 60px 20px;
+  background-color: var(--color-card-bg, #ffffff);
+  border-radius: 10px;
+  color: var(--color-text, #333);
+  font-size: 18px;
+  margin: 20px 0;
+}
+
+.pendingReportsList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.pendingReportCard {
+  background-color: var(--color-card-bg, #ffffff);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.pendingReportCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.reportCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+  color: white;
+}
+
+.reportCardHeader h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.reportStatus {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.reportStatus.pending {
+  background-color: #ffc107;
+  color: #333;
+}
+
+.reportStatus.accepted {
+  background-color: #4caf50;
+  color: white;
+}
+
+.reportStatus.rejected {
+  background-color: #f44336;
+  color: white;
+}
+
+.reportCardContent {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.reportSection {
+  margin-bottom: 15px;
+}
+
+.reportSection:last-child {
+  margin-bottom: 0;
+}
+
+.reportSection h4 {
+  margin: 0 0 8px 0;
+  color: var(--color-text, #333);
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #ff9800;
+}
+
+.reportSection p {
+  margin: 8px 0;
+  color: var(--color-text, #333);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.reviewPreview {
+  background-color: #f9f9f9;
+  padding: 12px;
+  border-radius: 6px;
+  border-left: 4px solid #ff9800;
+}
+
+.reviewPreview p {
+  margin: 6px 0;
+  font-size: 13px;
+}
+
+.reportCardActions {
+  padding: 16px 20px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  background-color: #fafafa;
+}
+
+.reportAcceptBtn,
+.reportRejectBtn,
+.reportDeleteBtn {
+  flex: 1;
+  min-width: 100px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 12px;
+  transition: all 0.2s;
+}
+
+.reportAcceptBtn {
+  background-color: #4caf50;
+  color: white;
+}
+
+.reportAcceptBtn:hover {
+  background-color: #45a049;
+}
+
+.reportRejectBtn {
+  background-color: #757575;
+  color: white;
+}
+
+.reportRejectBtn:hover {
+  background-color: #616161;
+}
+
+.reportDeleteBtn {
+  background-color: #f44336;
+  color: white;
+}
+
+.reportDeleteBtn:hover {
+  background-color: #da190b;
+}
+
+.pendingReportsPagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin: 40px 0 20px 0;
+}
+
+.paginationBtn {
+  padding: 10px 20px;
+  background-color: #ff9800;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.paginationBtn:hover:not(:disabled) {
+  background-color: #f57c00;
+}
+
+.paginationBtn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.paginationInfo {
+  color: var(--color-text, #333);
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .pendingReportsList {
+    grid-template-columns: 1fr;
+  }
+
+  .reportCardActions {
+    flex-direction: column;
+  }
+
+  .reportAcceptBtn,
+  .reportRejectBtn,
+  .reportDeleteBtn {
+    width: 100%;
+  }
+
+  .pendingReportsHeader h1 {
+    font-size: 22px;
+  }
+}

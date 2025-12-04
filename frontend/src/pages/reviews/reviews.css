@@ -803,6 +803,46 @@ body.dark-mode .revReanalyzeText {
   font-style: italic;
 }
 
+.revResponseActions {
+  margin-top: 12px;
+  padding-left: 60px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.revReportOwnerReplyBtn {
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.08));
+  color: #dc2626;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.revReportOwnerReplyBtn:hover {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.12));
+  border-color: rgba(239, 68, 68, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+}
+
+.revOwnerReplyReportedBadge {
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.1), rgba(202, 138, 4, 0.08));
+  color: #ca8a04;
+  border-radius: 12px;
+  white-space: nowrap;
+  display: inline-block;
+}
+
 body.dark-mode .revBusinessResponse {
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
 }

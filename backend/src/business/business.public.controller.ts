@@ -195,6 +195,7 @@ export class BusinessPublicController {
       business_id: b.business_id,
       business_name: b.business_name,
       address: b.address,
+      phone: b.user?.people?.cellphone || null,
       description: b.description,
       coordinates: b.coordinates,
       latitude: b.latitude,

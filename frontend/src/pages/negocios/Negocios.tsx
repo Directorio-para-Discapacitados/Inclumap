@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import "./Negocios.css";
 import { API_URL } from "../../config/api";
 import { useSpeakable } from "../../hooks/useSpeakable";
+import { LoadingSpinner } from "../../Components/LoadingSpinner/LoadingSpinner";
 
 export default function Negocios() {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ export default function Negocios() {
         const data = await resp.json();
         setBusinesses(data || []);
       } catch (e: any) {
-        console.error("Error cargando negocios:", e.message, e);
+
         setError("Error al cargar los negocios");
         setBusinesses([]);
       } finally {

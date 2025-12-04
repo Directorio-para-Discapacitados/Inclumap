@@ -22,7 +22,7 @@ const NotificationBell: React.FC = () => {
     } catch (error: any) {
       // Solo mostrar error si no es un problema de autenticación (401)
       if (error?.response?.status !== 401) {
-        console.error('Error al cargar notificaciones:', error?.response?.data || error.message);
+
       }
     } finally {
       setLoading(false);
@@ -63,7 +63,7 @@ const NotificationBell: React.FC = () => {
       // Luego hacer la llamada al backend
       await markAsRead(id);
     } catch (error) {
-      console.error('Error al marcar como leída:', error);
+
       // Revertir el cambio si falla
       setNotifications((prev) =>
         prev.map((n) => (n.notification_id === id ? { ...n, is_read: false } : n))
@@ -76,7 +76,7 @@ const NotificationBell: React.FC = () => {
       await deleteNotification(id);
       setNotifications((prev) => prev.filter((n) => n.notification_id !== id));
     } catch (error) {
-      console.error('Error al eliminar notificación:', error);
+
     }
   };
 

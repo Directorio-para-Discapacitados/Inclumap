@@ -38,7 +38,7 @@ export const getAllCategories = async (): Promise<Category[]> => {
     
     return sortedCategories;
   } catch (error) {
-    console.error("Error al cargar categorías:", error);
+
     throw error;
   }
 };
@@ -64,7 +64,7 @@ export const getCategoryById = async (id: number): Promise<Category> => {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("Error al cargar categoría:", error);
+
     throw error;
   }
 };
@@ -90,7 +90,7 @@ export const createCategory = async (categoryData: Omit<Category, 'category_id'>
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("Error al crear categoría:", error);
+
     throw error;
   }
 };
@@ -117,7 +117,7 @@ export const updateCategory = async (id: number, categoryData: Partial<Omit<Cate
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error("Error al actualizar categoría:", error);
+
     throw error;
   }
 };
@@ -139,7 +139,7 @@ export const deleteCategory = async (id: number): Promise<void> => {
       throw new Error(errorData.message || `Error al eliminar categoría: ${response.status}`);
     }
   } catch (error) {
-    console.error("Error al eliminar categoría:", error);
+
     throw error;
   }
 };

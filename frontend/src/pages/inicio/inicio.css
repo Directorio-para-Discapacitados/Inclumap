@@ -1133,6 +1133,7 @@
 .map-header {
   text-align: center;
   margin-bottom: 2rem;
+  position: relative;
 }
 
 .map-header h2 {
@@ -1145,9 +1146,62 @@
 .map-header p {
   color: var(--color-text-muted);
   max-width: 600px;
-  margin: 0 auto;
+  margin: 0 auto 1rem;
   font-size: 1rem;
   line-height: 1.6;
+}
+
+.recenter-map-btn-floating {
+  position: absolute;
+  top: 100px;
+  left: 10px;
+  z-index: 1000;
+  background: #ffffff;
+  color: #333;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border-radius: 6px;
+  font-size: 26px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 10px 0;
+}
+
+.recenter-map-btn-floating:hover {
+  background: #f4f4f4;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+  transform: scale(1.1);
+}
+
+/* Estilos para aumentar el tamaño de los controles de zoom de Leaflet */
+.leaflet-control-zoom {
+  border: 2px solid rgba(0, 0, 0, 0.2) !important;
+  border-radius: 6px !important;
+  overflow: hidden !important;
+  margin: 10px !important;
+}
+
+.leaflet-control-zoom a {
+  width: 40px !important;
+  height: 40px !important;
+  line-height: 40px !important;
+  font-size: 24px !important;
+  font-weight: bold !important;
+  margin: 0 !important;
+}
+
+.leaflet-control-zoom-in {
+  margin-bottom: 0 !important;
+}
+
+.leaflet-control-zoom-out {
+  margin-top: 0 !important;
 }
 
 .map-container-wrapper {
@@ -1211,6 +1265,11 @@ body.dark-mode .leaflet-control-zoom a {
   color: var(--color-text) !important;
   border-color: var(--color-border) !important;
   transition: background-color 0.2s ease;
+  width: 40px !important;
+  height: 40px !important;
+  line-height: 40px !important;
+  font-size: 24px !important;
+  font-weight: bold !important;
 }
 
 body.dark-mode .leaflet-control-zoom a:hover {
@@ -1456,5 +1515,21 @@ body:not(.dark-mode) .leaflet-control-zoom a:hover {
 .ver-mas-accesibilidades-btn:hover .ver-mas-accesibilidades-card,
 .ver-mas-accesibilidades-btn:focus .ver-mas-accesibilidades-card {
   background: linear-gradient(135deg, var(--color-primary-hover, #1a4b7c) 0%, var(--color-primary, #123252) 100%);
+}
+
+/* Modo oscuro para botón flotante de ubicación */
+body.dark-mode .recenter-map-btn-floating {
+  background: #1f2937;
+  color: #ffffff;
+  border-color: #4b5563;
+  width: 48px;
+  height: 48px;
+  font-size: 26px;
+}
+
+body.dark-mode .recenter-map-btn-floating:hover {
+  background: #374151;
+  border-color: #6b7280;
+  transform: scale(1.1);
 }
 

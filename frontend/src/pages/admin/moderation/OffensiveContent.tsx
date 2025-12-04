@@ -11,7 +11,7 @@ interface OffensiveReview {
   comment: string;
   rating: number;
   created_at: string;
-  reason?: 'offensive' | 'incoherent'; // Nuevo campo para distinguir tipo
+  reason?: 'offensive' | 'incoherent';
   coherence_check?: string;
   user: {
     user_id: number;
@@ -42,10 +42,10 @@ const OffensiveContent: React.FC = () => {
       const res = await api.get('/reviews/moderation/offensive', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      console.log('📋 Reseñas para moderación:', res.data);
+
       setReviews(res.data || []);
     } catch (error: any) {
-      console.error('Error cargando reseñas:', error);
+
       toast.error('Error al cargar reseñas para moderación');
     } finally {
       setLoading(false);
@@ -59,7 +59,7 @@ const OffensiveContent: React.FC = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Reseña marcada como revisada');
-      fetchOffensiveReviews(); // Recargar lista
+      fetchOffensiveReviews();
     } catch (error: any) {
       toast.error('Error al marcar reseña como revisada');
     }
@@ -97,7 +97,7 @@ const OffensiveContent: React.FC = () => {
         showConfirmButton: false
       });
       
-      fetchOffensiveReviews(); // Recargar lista
+      fetchOffensiveReviews();
     } catch (error: any) {
       Swal.fire({
         title: 'Error',
@@ -137,7 +137,7 @@ const OffensiveContent: React.FC = () => {
       });
 
       toast.success(`✅ ${res.data.message}. Strikes actuales: ${res.data.strikes}`, { autoClose: 4000 });
-      fetchOffensiveReviews(); // Recargar para actualizar strikes
+      fetchOffensiveReviews();
     } catch (error: any) {
       toast.error(`❌ Error: ${error.response?.data?.message || error.message}`);
     }
@@ -161,6 +161,13 @@ const OffensiveContent: React.FC = () => {
         <p className="page-subtitle">
           Reseñas ofensivas e incoherentes que requieren revisión
         </p>
+        <button 
+          className="history-btn" 
+          onClick={() => navigate('/admin/moderation/history')}
+          title="Ver historial de reportes"
+        >
+          📋 Ver Historial
+        </button>
       </div>
 
       {reviews.length === 0 ? (
@@ -185,10 +192,6 @@ const OffensiveContent: React.FC = () => {
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
                             target.style.display = 'none';
-                            const initials = document.createElement('div');
-                            initials.className = 'user-avatar-initials';
-                            initials.textContent = `${review.user.name?.charAt(0) || ''}${review.user.lastname?.charAt(0) || ''}`.toUpperCase();
-                            target.parentElement?.appendChild(initials);
                           }}
                         />
                       ) : (
@@ -203,11 +206,9 @@ const OffensiveContent: React.FC = () => {
                         <span className="user-id-badge">ID: {review.user.user_id}</span>
                       </div>
                     </div>
-                    {/* Badge de tipo de problema */}
                     <span className={`reason-badge ${review.reason === 'offensive' ? 'offensive' : 'incoherent'}`}>
                       {review.reason === 'offensive' ? '🚨 OFENSIVA' : '⚠️ INCOHERENTE'}
                     </span>
-                    {/* Badge de strikes - visible para todos */}
                     <span className={`strikes-badge ${review.user.offensive_strikes >= 2 ? 'critical' : review.user.offensive_strikes >= 1 ? 'warning' : 'normal'}`}>
                       ⚠️ {review.user.offensive_strikes}/3 strikes
                     </span>
@@ -248,7 +249,6 @@ const OffensiveContent: React.FC = () => {
               </div>
 
               <div className="review-actions">
-                {/* Botón de reportar - solo si no está bloqueado */}
                 {!review.user.is_banned && (
                   <button
                     className="action-btn report-btn"

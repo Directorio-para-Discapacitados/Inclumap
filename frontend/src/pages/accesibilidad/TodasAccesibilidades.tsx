@@ -49,7 +49,7 @@ export default function TodasAccesibilidades() {
         const data: Accessibility[] = await resp.json();
         setAccesibilidades(data || []);
       } catch (e: any) {
-        console.error("Error cargando accesibilidades:", e.message, e);
+
         setError("No se pudieron cargar las accesibilidades");
         setAccesibilidades([]);
       } finally {

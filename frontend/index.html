@@ -7,6 +7,51 @@
     <title>Inclumap</title>
     <!-- Font Awesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+    <style>
+      /* SweetAlert2 Dark Mode Override - Máxima prioridad */
+      body.dark-mode .swal2-popup,
+      html.dark-mode .swal2-popup,
+      .dark-mode .swal2-popup {
+        background-color: #1f2937 !important;
+        color: #e5e7eb !important;
+        border: 1px solid #374151 !important;
+      }
+      
+      body.dark-mode .swal2-title,
+      html.dark-mode .swal2-title,
+      .dark-mode .swal2-title {
+        color: #f9fafb !important;
+      }
+      
+      body.dark-mode .swal2-html-container,
+      html.dark-mode .swal2-html-container,
+      .dark-mode .swal2-html-container {
+        color: #e5e7eb !important;
+      }
+      
+      body.dark-mode .swal2-icon.swal2-info,
+      html.dark-mode .swal2-icon.swal2-info,
+      .dark-mode .swal2-icon.swal2-info {
+        border-color: #60a5fa !important;
+        color: #60a5fa !important;
+      }
+      
+      body.dark-mode .swal2-confirm,
+      html.dark-mode .swal2-confirm,
+      .dark-mode .swal2-confirm {
+        background-color: #2d3748 !important;
+        color: #ffffff !important;
+        border: 1px solid #4a5568 !important;
+      }
+      
+      body.dark-mode .swal2-container,
+      html.dark-mode .swal2-container,
+      .dark-mode .swal2-container {
+        background-color: rgba(0, 0, 0, 0.75) !important;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

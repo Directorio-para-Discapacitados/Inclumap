@@ -11,10 +11,15 @@
   width: 100%;
   height: 100%;
   background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
-  display: flex;
+  display: none;
   align-items: center;
   padding-left: 20px;
   z-index: 0;
+}
+
+/* Solo mostrar al hacer swipe (cuando translateX > 0) */
+.notification-item-container.swiped .notification-delete-background {
+  display: flex;
 }
 
 .delete-icon-bg {
@@ -25,7 +30,7 @@
 
 .notification-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
   padding: 12px 16px;
   border-bottom: 1px solid var(--color-border);
@@ -55,6 +60,7 @@
 .notification-icon {
   font-size: 24px;
   flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .notification-content {
@@ -131,8 +137,17 @@
   padding: 6px;
   transition: all 0.2s ease;
   flex-shrink: 0;
-  opacity: 0;
-  pointer-events: none;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.notification-delete-btn:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  transform: scale(1.1);
+}
+
+.notification-delete-btn:active {
+  transform: scale(0.95);
 }
 
 .notification-delete-btn svg {
@@ -214,3 +229,57 @@
     display: none;
   }
 }
+
+/* ============================================
+   ESTILOS PARA EXPANDIR/CONTRAER MENSAJES
+   ============================================ */
+
+.notification-message {
+  margin: 0 0 6px 0;
+  font-size: 14px;
+  color: var(--color-text);
+  line-height: 1.5;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  font-weight: 400;
+  transition: max-height 0.3s ease;
+  max-height: 3em;
+  word-break: break-word;
+}
+
+.notification-message.expanded {
+  -webkit-line-clamp: unset;
+  max-height: 100%;
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.expand-btn {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 3px 8px;
+  margin: 4px 0 0 0;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
+  border-radius: 4px;
+  user-select: none;
+}
+
+.expand-btn:hover {
+  background-color: rgba(59, 130, 246, 0.08);
+  color: #1e40af;
+}
+
+.expand-btn:active {
+  background-color: rgba(59, 130, 246, 0.12);
+  transform: scale(0.99);
+}
+
