@@ -30,7 +30,7 @@ describe('Sistema de Reportes de Reseñas', () => {
     offensive_strikes: 0,
     is_banned: false,
     people: { full_name: 'Test User' },
-  } as unknown as UserEntity;
+  } as unknown as any;
 
   const mockReviewAuthor = {
     user_id: 3,
@@ -38,7 +38,7 @@ describe('Sistema de Reportes de Reseñas', () => {
     offensive_strikes: 0,
     is_banned: false,
     people: { full_name: 'Review Author' },
-  } as unknown as UserEntity;
+  } as unknown as any;
 
   const mockReview = {
     review_id: 1,
@@ -48,13 +48,13 @@ describe('Sistema de Reportes de Reseñas', () => {
     user_id: 3,
     user: mockReviewAuthor,
     business: { business_id: 1, business_name: 'Mi Negocio' },
-  } as unknown as ReviewEntity;
+  } as unknown as any;
 
   const mockAdmin = {
     user_id: 1,
     user_email: 'admin@test.com',
     userroles: [{ rol: { rol_id: 1, rol_name: 'Admin' } }],
-  } as unknown as UserEntity;
+  } as unknown as any;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -98,6 +98,7 @@ describe('Sistema de Reportes de Reseñas', () => {
           provide: getRepositoryToken(ReportHistoryEntity),
           useValue: {
             save: jest.fn(),
+            create: jest.fn(),
           },
         },
         {
@@ -111,6 +112,12 @@ describe('Sistema de Reportes de Reseñas', () => {
           useValue: {
             findOne: jest.fn(),
             save: jest.fn(),
+            createQueryBuilder: jest.fn(() => ({
+              innerJoin: jest.fn().mockReturnThis(),
+              where: jest.fn().mockReturnThis(),
+              select: jest.fn().mockReturnThis(),
+              getRawMany: jest.fn().mockResolvedValue([]),
+            })),
           },
         },
         {
@@ -381,7 +388,7 @@ describe('Sistema de Reportes de Reseñas', () => {
         .spyOn(reportRepository, 'findAndCount' as any)
         .mockResolvedValue([mockReports, 2]);
 
-      const result = await service.getPendingReports(1, 10);
+      const result = await service.getPendingReports(1, 10) as any;
 
       expect(result).toHaveProperty('data');
       expect(result.page).toBe(1);
@@ -422,7 +429,7 @@ describe('Sistema de Reportes de Reseñas', () => {
         .spyOn(reportRepository, 'findAndCount')
         .mockResolvedValue([mockReports as unknown as ReviewReport[], 2]);
 
-      const result = await service.getReviewReports(1, 1, 10);
+      const result = await service.getReviewReports(1, 1, 10) as any;
 
       expect(result.data).toHaveLength(2);
       expect(result.total).toBe(2);
