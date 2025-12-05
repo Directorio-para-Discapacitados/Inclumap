@@ -100,8 +100,18 @@ const NotificationBell: React.FC = () => {
       navigate('/admin/moderation/offensive');
     } 
     else if (notification.type === 'REVIEW_ATTENTION') {
-      // Navegar a las reseñas incoherentes
-      navigate('/reviews?filter=incoherent');
+      // REVIEW_ATTENTION puede ser para usuario (business_id) o admin (review_id)
+      // Si el usuario es admin, navega a reportes, si no, navega al local
+      const userRoles = localStorage.getItem('userRoles');
+      const isAdmin = userRoles ? JSON.parse(userRoles).includes(1) : false;
+      
+      if (isAdmin) {
+        // Para admin, el related_id es review_id
+        navigate('/admin/moderation/reported');
+      } else {
+        // Para usuario normal, el related_id es business_id
+        navigate(`/local/${notification.related_id}`);
+      }
     }
   };
 

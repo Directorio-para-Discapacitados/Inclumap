@@ -86,8 +86,8 @@ describe('Sistema de Reportes de Reseñas', () => {
 
   describe('Crear Reporte de Reseña', () => {
     it('Debe crear un reporte exitosamente', async () => {
-      jest.spyOn(reviewRepository, 'findOne').mockResolvedValue(mockReview);
-      jest.spyOn(reportRepository, 'findOne').mockResolvedValue(null);
+      jest.spyOn(reviewRepository, 'findOne' as any).mockResolvedValue(mockReview);
+      jest.spyOn(reportRepository, 'findOne' as any).mockResolvedValue(null);
 
       const mockSavedReport = { report_id: 1, status: 'pending' } as ReviewReport;
       jest.spyOn(reportRepository, 'create').mockReturnValue(mockSavedReport);
@@ -108,7 +108,7 @@ describe('Sistema de Reportes de Reseñas', () => {
 
     it('Debe lanzar error si el usuario reporta su propia reseña', async () => {
       const ownReview = { ...mockReview, user_id: mockUser.user_id } as ReviewEntity;
-      jest.spyOn(reviewRepository, 'findOne').mockResolvedValue(ownReview);
+      jest.spyOn(reviewRepository, 'findOne' as any).mockResolvedValue(ownReview);
 
       await expect(
         service.createReviewReport(1, 'Razón válida', mockUser)
@@ -116,8 +116,8 @@ describe('Sistema de Reportes de Reseñas', () => {
     });
 
     it('Debe lanzar error si ya existe un reporte pendiente', async () => {
-      jest.spyOn(reviewRepository, 'findOne').mockResolvedValue(mockReview);
-      jest.spyOn(reportRepository, 'findOne').mockResolvedValue({} as ReviewReport);
+      jest.spyOn(reviewRepository, 'findOne' as any).mockResolvedValue(mockReview);
+      jest.spyOn(reportRepository, 'findOne' as any).mockResolvedValue({} as ReviewReport);
 
       await expect(
         service.createReviewReport(1, 'Razón válida', mockUser)
@@ -125,8 +125,8 @@ describe('Sistema de Reportes de Reseñas', () => {
     });
 
     it('Debe cambiar el estado de la reseña a in_review', async () => {
-      jest.spyOn(reviewRepository, 'findOne').mockResolvedValue(mockReview);
-      jest.spyOn(reportRepository, 'findOne').mockResolvedValue(null);
+      jest.spyOn(reviewRepository, 'findOne' as any).mockResolvedValue(mockReview);
+      jest.spyOn(reportRepository, 'findOne' as any).mockResolvedValue(null);
 
       const saveSpy = jest.spyOn(reviewRepository, 'save');
       jest.spyOn(reportRepository, 'create').mockReturnValue({} as ReviewReport);

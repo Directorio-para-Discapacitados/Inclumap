@@ -274,8 +274,28 @@ const LocalDetalle: React.FC = () => {
     const load = async () => {
       try {
         setLoading(true);
+        
+        // Log para debugging
+        console.log('Cargando local con ID:', id);
+        
         const resp = await fetch(`${API_URL}/business/public/${id}`);
-        const json = await resp.json();
+        
+        // Validar que la respuesta sea OK
+        if (!resp.ok) {
+          throw new Error(`Error ${resp.status}: ${resp.statusText}`);
+        }
+        
+        // Validar que haya contenido
+        const text = await resp.text();
+        console.log('Respuesta del servidor:', text.substring(0, 100));
+        
+        if (!text) {
+          throw new Error('Respuesta vacía del servidor');
+        }
+        
+        // Hacer parse del JSON
+        const json = JSON.parse(text);
+        console.log('Datos cargados:', json);
         setData(json);
 
         // Registrar vista del negocio SOLO UNA VEZ y SOLO si el usuario NO es propietario (rol 3)
@@ -284,6 +304,35 @@ const LocalDetalle: React.FC = () => {
           viewRegisteredRef.current = true;
           recordBusinessView(json.business_id).catch(() => {
             // Error silencioso - no afecta la experiencia del usuario
+          });
+        }
+      } catch (error: any) {
+        console.error('Error al cargar local:', error);
+        
+        // Si es un negocio no encontrado, volver a la página anterior
+        if (error.message.includes('vacía')) {
+          Swal.fire({
+            title: "Negocio no encontrado",
+            text: "El negocio que buscas no existe o no está disponible.",
+            icon: "warning",
+            customClass: {
+              popup: "my-swal-dark",
+              title: "my-swal-title",
+              htmlContainer: "my-swal-text",
+            },
+          }).then(() => {
+            navigate(-1);
+          });
+        } else {
+          Swal.fire({
+            title: "Error",
+            text: `No se pudo cargar la información del negocio: ${error.message}`,
+            icon: "error",
+            customClass: {
+              popup: "my-swal-dark",
+              title: "my-swal-title",
+              htmlContainer: "my-swal-text",
+            },
           });
         }
       } finally {
@@ -329,54 +378,6 @@ const LocalDetalle: React.FC = () => {
         });
         const reviewsData = res.data || [];
         setReviews(reviewsData);
-        
-        // Cargar likes para cada reseña
-        if (reviewsData.length > 0) {
-          const likesPromises = reviewsData.map(async (review: any) => {
-            try {
-              const likesRes = await api.get(`/reviews/${review.review_id}/likes-count`);
-              
-              // Si el usuario está logueado, verificar si ha dado like
-              let userHasLiked = false;
-              if (token) {
-                try {
-                  const likedRes = await api.get(`/reviews/${review.review_id}/user-liked`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                  });
-                  userHasLiked = likedRes.data.liked || false;
-                } catch {
-                  userHasLiked = false;
-                }
-              }
-              
-              return {
-                review_id: review.review_id,
-                likes_count: likesRes.data.count || 0,
-                user_has_liked: userHasLiked
-              };
-            } catch {
-              return {
-                review_id: review.review_id,
-                likes_count: 0,
-                user_has_liked: false
-              };
-            }
-          });
-          
-          const likesData = await Promise.all(likesPromises);
-          
-          // Actualizar las reseñas con los datos de likes
-          const updatedReviews = reviewsData.map((review: any) => {
-            const likeData = likesData.find(l => l.review_id === review.review_id);
-            return {
-              ...review,
-              likes_count: likeData?.likes_count || 0,
-              user_has_liked: likeData?.user_has_liked || false
-            };
-          });
-          
-          setReviews(updatedReviews);
-        }
       } catch {
         Swal.fire({
           title: "Error",
@@ -715,56 +716,8 @@ const LocalDetalle: React.FC = () => {
       });
       
       const reviewsData = reviewsRes.data || [];
-      
-      // Cargar likes actualizados para cada reseña
-      if (reviewsData.length > 0) {
-        const likesPromises = reviewsData.map(async (review: any) => {
-          try {
-            const likesRes = await api.get(`/reviews/${review.review_id}/likes-count`);
-            
-            // Verificar si el usuario ha dado like
-            let userHasLiked = false;
-            if (token) {
-              try {
-                const likedRes = await api.get(`/reviews/${review.review_id}/user-liked`, {
-                  headers: { Authorization: `Bearer ${token}` }
-                });
-                userHasLiked = likedRes.data.liked || false;
-              } catch {
-                userHasLiked = false;
-              }
-            }
-            
-            return {
-              review_id: review.review_id,
-              likes_count: likesRes.data.count || 0,
-              user_has_liked: userHasLiked
-            };
-          } catch {
-            return {
-              review_id: review.review_id,
-              likes_count: 0,
-              user_has_liked: false
-            };
-          }
-        });
-        
-        const likesData = await Promise.all(likesPromises);
-        
-        // Actualizar las reseñas con los datos de likes
-        const updatedReviews = reviewsData.map((review: any) => {
-          const likeData = likesData.find(l => l.review_id === review.review_id);
-          return {
-            ...review,
-            likes_count: likeData?.likes_count || 0,
-            user_has_liked: likeData?.user_has_liked || false
-          };
-        });
-        
-        setReviews(updatedReviews);
-      }
+      setReviews(reviewsData);
     } catch (error) {
-
       Swal.fire("Error", "No se pudo procesar tu reacción.", "error");
     }
   };
@@ -1203,14 +1156,24 @@ const LocalDetalle: React.FC = () => {
               {reviews.length === 0 ? (
                 <p>No hay reseñas aún.</p>
               ) : (
-                reviews.map((r) => {
-                  const firstName = r.user?.people?.firstName || 'Usuario';
-                  const lastName = r.user?.people?.firstLastName || '';
-                  const avatar = r.user?.people?.avatar;
-                  const initials = `${firstName.charAt(0)}${lastName.charAt(0) || firstName.charAt(1) || ''}`;
-                  const likesCount = r.likes_count || 0;
+                (() => {
+                  // Ordenar reseñas: la del usuario actual primero, luego el resto
+                  const sortedReviews = [...reviews].sort((a, b) => {
+                    const aIsMyReview = a.user?.user_id === userId;
+                    const bIsMyReview = b.user?.user_id === userId;
+                    
+                    if (aIsMyReview && !bIsMyReview) return -1;
+                    if (!aIsMyReview && bIsMyReview) return 1;
+                    return 0;
+                  });
                   
-                  return (
+                  return sortedReviews.map((r) => {
+                    const firstName = r.user?.people?.firstName || 'Usuario';
+                    const lastName = r.user?.people?.firstLastName || '';
+                    const avatar = r.user?.people?.avatar;
+                    const initials = `${firstName.charAt(0)}${lastName.charAt(0) || firstName.charAt(1) || ''}`;
+                    
+                    return (
                   <div key={r.review_id} className="review-item">
                     <div className="review-header">
                       <div className="review-user-info">
@@ -1284,7 +1247,7 @@ const LocalDetalle: React.FC = () => {
                               onClick={() => handleLikeReview(r.review_id)}
                               title={r.user_has_liked ? "Quitar like" : "Me gusta"}
                             >
-                              {r.user_has_liked ? '💛' : '🤍'} Me gusta ({likesCount})
+                              {r.user_has_liked ? '💛' : '🤍'} Me gusta ({r.likes_count || 0})
                             </button>
                             
                             {/* Botón de Reportar */}
@@ -1308,8 +1271,9 @@ const LocalDetalle: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  );
-                })
+                    );
+                  });
+                })()
               )}
             </div>
 
