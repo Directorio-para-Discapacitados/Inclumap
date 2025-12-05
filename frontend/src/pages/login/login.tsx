@@ -39,8 +39,8 @@ export default function Login() {
         // Admin
         navigate('/admin/dashboard', { replace: true });
       } else if (rolIds.includes(3)) {
-        // Propietario
-        navigate('/perfil', { replace: true });
+        // Propietario - ir a página de inicio donde se mostrará OwnerDashboard
+        navigate('/', { replace: true });
       } else {
         // Usuario normal
         navigate('/', { replace: true });
