@@ -3,8 +3,13 @@ import { ReviewService } from './review.service';
 import { ReviewController } from './review.controller';
 import { ReviewEntity } from './entity/review.entity';
 import { ReviewReport } from './entity/review-report.entity';
+import { ReviewLikeEntity } from './entity/review-like.entity';
+import { ReportHistoryEntity } from './entity/report-history.entity';
 import { UserEntity } from '../user/entity/user.entity';
+import { BusinessEntity } from '../business/entity/business.entity';
 import { NotificationService } from '../notification/notification.service';
+import { SentimentService } from '../sentiment/sentiment.service';
+import { OffensiveContentDetector } from './offensive-content.detector';
 import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import {
@@ -25,7 +30,7 @@ describe('Sistema de Reportes de Reseñas', () => {
     offensive_strikes: 0,
     is_banned: false,
     people: { full_name: 'Test User' },
-  } as UserEntity;
+  } as unknown as UserEntity;
 
   const mockReviewAuthor = {
     user_id: 3,
@@ -33,7 +38,7 @@ describe('Sistema de Reportes de Reseñas', () => {
     offensive_strikes: 0,
     is_banned: false,
     people: { full_name: 'Review Author' },
-  } as UserEntity;
+  } as unknown as UserEntity;
 
   const mockReview = {
     review_id: 1,
@@ -43,13 +48,13 @@ describe('Sistema de Reportes de Reseñas', () => {
     user_id: 3,
     user: mockReviewAuthor,
     business: { business_id: 1, business_name: 'Mi Negocio' },
-  } as ReviewEntity;
+  } as unknown as ReviewEntity;
 
   const mockAdmin = {
     user_id: 1,
     user_email: 'admin@test.com',
     userroles: [{ rol: { rol_id: 1, rol_name: 'Admin' } }],
-  } as UserEntity;
+  } as unknown as UserEntity;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -64,6 +69,13 @@ describe('Sistema de Reportes de Reseñas', () => {
           },
         },
         {
+          provide: getRepositoryToken(ReviewLikeEntity),
+          useValue: {
+            find: jest.fn(),
+            count: jest.fn(),
+          },
+        },
+        {
           provide: getRepositoryToken(ReviewReport),
           useValue: {
             create: jest.fn(),
@@ -71,12 +83,52 @@ describe('Sistema de Reportes de Reseñas', () => {
             findOne: jest.fn(),
             find: jest.fn(),
             findAndCount: jest.fn(),
+            createQueryBuilder: jest.fn(() => ({
+              leftJoinAndSelect: jest.fn().mockReturnThis(),
+              where: jest.fn().mockReturnThis(),
+              orderBy: jest.fn().mockReturnThis(),
+              skip: jest.fn().mockReturnThis(),
+              take: jest.fn().mockReturnThis(),
+              getMany: jest.fn().mockResolvedValue([]),
+              getCount: jest.fn().mockResolvedValue(0),
+            })),
+          },
+        },
+        {
+          provide: getRepositoryToken(ReportHistoryEntity),
+          useValue: {
+            save: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(BusinessEntity),
+          useValue: {
+            findOne: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(UserEntity),
+          useValue: {
+            findOne: jest.fn(),
+            save: jest.fn(),
           },
         },
         {
           provide: NotificationService,
           useValue: {
             createNotification: jest.fn(),
+          },
+        },
+        {
+          provide: SentimentService,
+          useValue: {
+            analyzeSentiment: jest.fn(),
+          },
+        },
+        {
+          provide: OffensiveContentDetector,
+          useValue: {
+            isOffensive: jest.fn(),
           },
         },
       ],
@@ -332,9 +384,8 @@ describe('Sistema de Reportes de Reseñas', () => {
       const result = await service.getPendingReports(1, 10);
 
       expect(result).toHaveProperty('data');
-      expect(result).toHaveProperty('pagination');
-      expect(result.pagination.page).toBe(1);
-      expect(result.pagination.limit).toBe(10);
+      expect(result.page).toBe(1);
+      expect(result.limit).toBe(10);
     });
   });
 
@@ -349,10 +400,10 @@ describe('Sistema de Reportes de Reseñas', () => {
         .spyOn(reportRepository, 'findAndCount' as any)
         .mockResolvedValue([mockReports, 2]);
 
-      const result = await service.getReportHistory(1, 10);
+      const result = await service.getReportHistoryList(1, 10);
 
       expect(result.data).toHaveLength(2);
-      expect(result.pagination.total).toBe(2);
+      expect(result.total).toBe(2);
     });
   });
 
@@ -369,12 +420,12 @@ describe('Sistema de Reportes de Reseñas', () => {
 
       jest
         .spyOn(reportRepository, 'findAndCount')
-        .mockResolvedValue([mockReports, 2]);
+        .mockResolvedValue([mockReports as unknown as ReviewReport[], 2]);
 
       const result = await service.getReviewReports(1, 1, 10);
 
       expect(result.data).toHaveLength(2);
-      expect(result.pagination.total).toBe(2);
+      expect(result.total).toBe(2);
     });
 
     it('Debe lanzar error si la reseña no existe', async () => {
