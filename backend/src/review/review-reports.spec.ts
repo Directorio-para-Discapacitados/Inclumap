@@ -83,6 +83,7 @@ describe('Sistema de Reportes de Reseñas', () => {
             findOne: jest.fn(),
             find: jest.fn(),
             findAndCount: jest.fn(),
+            countBy: jest.fn().mockResolvedValue(0),
             createQueryBuilder: jest.fn(() => ({
               leftJoinAndSelect: jest.fn().mockReturnThis(),
               where: jest.fn().mockReturnThis(),
@@ -117,6 +118,7 @@ describe('Sistema de Reportes de Reseñas', () => {
               where: jest.fn().mockReturnThis(),
               select: jest.fn().mockReturnThis(),
               getRawMany: jest.fn().mockResolvedValue([]),
+              getMany: jest.fn().mockResolvedValue([]),
             })),
           },
         },
