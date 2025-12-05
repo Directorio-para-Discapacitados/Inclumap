@@ -483,7 +483,9 @@ export class UserService {
       }
 
       if (!user.business) {
-        throw new NotFoundException('Este usuario no tiene un negocio asignado');
+        throw new NotFoundException(
+          'Este usuario no tiene un negocio asignado',
+        );
       }
 
       return user.business;

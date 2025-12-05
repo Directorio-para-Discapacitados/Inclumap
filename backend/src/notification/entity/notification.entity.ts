@@ -10,8 +10,8 @@ import { UserEntity } from 'src/user/entity/user.entity';
 
 export enum NotificationType {
   SUGGESTION = 'SUGGESTION',
-  REVIEW_ALERT = 'REVIEW_ALERT',       
-  REVIEW_ATTENTION = 'REVIEW_ATTENTION', 
+  REVIEW_ALERT = 'REVIEW_ALERT',
+  REVIEW_ATTENTION = 'REVIEW_ATTENTION',
 }
 
 @Entity({ name: 'notification' })

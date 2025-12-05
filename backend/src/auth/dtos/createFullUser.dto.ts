@@ -51,5 +51,4 @@ export class CreateFullUserDto {
   @IsArray({ message: 'rolId debe ser un arreglo de números' })
   @IsNumber({}, { each: true, message: 'Cada rol debe ser un número' })
   rolIds: number[];
-
 }

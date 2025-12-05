@@ -37,6 +37,9 @@ export class NotificationController {
   @ApiOperation({ summary: 'Eliminar una notificación' })
   async deleteNotification(@Param('id') id: string, @Request() req) {
     const userId = req.user.user_id;
-    return await this.notificationService.deleteNotification(Number(id), userId);
+    return await this.notificationService.deleteNotification(
+      Number(id),
+      userId,
+    );
   }
 }

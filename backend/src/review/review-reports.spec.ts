@@ -2,12 +2,16 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ReviewService } from './review.service';
 import { ReviewController } from './review.controller';
 import { ReviewEntity } from './entity/review.entity';
-import { ReviewReport, ReportStatus, StrikeAction } from './entity/review-report.entity';
+import { ReviewReport } from './entity/review-report.entity';
 import { UserEntity } from '../user/entity/user.entity';
 import { NotificationService } from '../notification/notification.service';
 import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { ForbiddenException, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 
 describe('Sistema de Reportes de Reseñas', () => {
   let service: ReviewService;
@@ -20,7 +24,7 @@ describe('Sistema de Reportes de Reseñas', () => {
     user_email: 'reporter@test.com',
     offensive_strikes: 0,
     is_banned: false,
-    people: { full_name: 'Test User' }
+    people: { full_name: 'Test User' },
   } as UserEntity;
 
   const mockReviewAuthor = {
@@ -28,7 +32,7 @@ describe('Sistema de Reportes de Reseñas', () => {
     user_email: 'author@test.com',
     offensive_strikes: 0,
     is_banned: false,
-    people: { full_name: 'Review Author' }
+    people: { full_name: 'Review Author' },
   } as UserEntity;
 
   const mockReview = {
@@ -38,13 +42,13 @@ describe('Sistema de Reportes de Reseñas', () => {
     status: 'approved',
     user_id: 3,
     user: mockReviewAuthor,
-    business: { business_id: 1, business_name: 'Mi Negocio' }
+    business: { business_id: 1, business_name: 'Mi Negocio' },
   } as ReviewEntity;
 
   const mockAdmin = {
     user_id: 1,
     user_email: 'admin@test.com',
-    userroles: [{ rol: { rol_id: 1, rol_name: 'Admin' } }]
+    userroles: [{ rol: { rol_id: 1, rol_name: 'Admin' } }],
   } as UserEntity;
 
   beforeEach(async () => {
@@ -79,64 +83,97 @@ describe('Sistema de Reportes de Reseñas', () => {
     }).compile();
 
     service = module.get<ReviewService>(ReviewService);
-    reviewRepository = module.get<Repository<ReviewEntity>>(getRepositoryToken(ReviewEntity));
-    reportRepository = module.get<Repository<ReviewReport>>(getRepositoryToken(ReviewReport));
+    reviewRepository = module.get<Repository<ReviewEntity>>(
+      getRepositoryToken(ReviewEntity),
+    );
+    reportRepository = module.get<Repository<ReviewReport>>(
+      getRepositoryToken(ReviewReport),
+    );
     notificationService = module.get<NotificationService>(NotificationService);
   });
 
   describe('Crear Reporte de Reseña', () => {
     it('Debe crear un reporte exitosamente', async () => {
-      jest.spyOn(reviewRepository, 'findOne' as any).mockResolvedValue(mockReview);
+      jest
+        .spyOn(reviewRepository, 'findOne' as any)
+        .mockResolvedValue(mockReview);
       jest.spyOn(reportRepository, 'findOne' as any).mockResolvedValue(null);
 
-      const mockSavedReport = { report_id: 1, status: 'pending' } as ReviewReport;
-      jest.spyOn(reportRepository, 'create').mockReturnValue(mockSavedReport);
-      jest.spyOn(reportRepository, 'save').mockResolvedValue(mockSavedReport);
-      jest.spyOn(reviewRepository, 'save').mockResolvedValue(mockReview);
-      jest.spyOn(notificationService, 'createNotification').mockResolvedValue({} as any);
+      const mockSavedReport = {
+        report_id: 1,
+        status: 'pending',
+      } as ReviewReport;
+      jest
+        .spyOn(reportRepository, 'create' as any)
+        .mockReturnValue(mockSavedReport);
+      jest
+        .spyOn(reportRepository, 'save' as any)
+        .mockResolvedValue(mockSavedReport);
+      jest.spyOn(reviewRepository, 'save' as any).mockResolvedValue(mockReview);
+      jest
+        .spyOn(notificationService, 'createNotification' as any)
+        .mockResolvedValue({} as any);
 
       const result = await service.createReviewReport(
         1,
         'Esta reseña contiene contenido ofensivo',
-        mockUser
+        mockUser,
       );
 
       expect(result).toHaveProperty('report_id');
       expect(result).toHaveProperty('message');
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(notificationService.createNotification).toHaveBeenCalled();
     });
 
     it('Debe lanzar error si el usuario reporta su propia reseña', async () => {
-      const ownReview = { ...mockReview, user_id: mockUser.user_id } as ReviewEntity;
-      jest.spyOn(reviewRepository, 'findOne' as any).mockResolvedValue(ownReview);
+      const ownReview = {
+        ...mockReview,
+        user_id: mockUser.user_id,
+      } as ReviewEntity;
+      jest
+        .spyOn(reviewRepository, 'findOne' as any)
+        .mockResolvedValue(ownReview);
 
       await expect(
-        service.createReviewReport(1, 'Razón válida', mockUser)
+        service.createReviewReport(1, 'Razón válida', mockUser),
       ).rejects.toThrow(ForbiddenException);
     });
 
     it('Debe lanzar error si ya existe un reporte pendiente', async () => {
-      jest.spyOn(reviewRepository, 'findOne' as any).mockResolvedValue(mockReview);
-      jest.spyOn(reportRepository, 'findOne' as any).mockResolvedValue({} as ReviewReport);
+      jest
+        .spyOn(reviewRepository, 'findOne' as any)
+        .mockResolvedValue(mockReview);
+      jest
+        .spyOn(reportRepository, 'findOne' as any)
+        .mockResolvedValue({} as ReviewReport);
 
       await expect(
-        service.createReviewReport(1, 'Razón válida', mockUser)
+        service.createReviewReport(1, 'Razón válida', mockUser),
       ).rejects.toThrow(ConflictException);
     });
 
     it('Debe cambiar el estado de la reseña a in_review', async () => {
-      jest.spyOn(reviewRepository, 'findOne' as any).mockResolvedValue(mockReview);
+      jest
+        .spyOn(reviewRepository, 'findOne' as any)
+        .mockResolvedValue(mockReview);
       jest.spyOn(reportRepository, 'findOne' as any).mockResolvedValue(null);
 
-      const saveSpy = jest.spyOn(reviewRepository, 'save');
-      jest.spyOn(reportRepository, 'create').mockReturnValue({} as ReviewReport);
-      jest.spyOn(reportRepository, 'save').mockResolvedValue({} as ReviewReport);
+      const saveSpy = jest.spyOn(reviewRepository, 'save' as any);
+      jest
+        .spyOn(reportRepository, 'create' as any)
+        .mockReturnValue({} as ReviewReport);
+      jest
+        .spyOn(reportRepository, 'save' as any)
+        .mockResolvedValue({} as ReviewReport);
 
       await service.createReviewReport(1, 'Razón válida', mockUser);
 
-      expect(saveSpy).toHaveBeenCalledWith(expect.objectContaining({
-        status: 'in_review'
-      }));
+      expect(saveSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'in_review',
+        }),
+      );
     });
   });
 
@@ -146,23 +183,28 @@ describe('Sistema de Reportes de Reseñas', () => {
         report_id: 1,
         status: 'pending',
         review: mockReview,
-        user: mockUser
+        user: mockUser,
       } as ReviewReport;
 
-      jest.spyOn(reportRepository, 'findOne').mockResolvedValue(mockReport);
-      jest.spyOn(reviewRepository, 'save').mockResolvedValue(mockReview);
-      jest.spyOn(reportRepository, 'save').mockResolvedValue(mockReport);
-      jest.spyOn(notificationService, 'createNotification').mockResolvedValue({} as any);
+      jest
+        .spyOn(reportRepository, 'findOne' as any)
+        .mockResolvedValue(mockReport);
+      jest.spyOn(reviewRepository, 'save' as any).mockResolvedValue(mockReview);
+      jest.spyOn(reportRepository, 'save' as any).mockResolvedValue(mockReport);
+      jest
+        .spyOn(notificationService, 'createNotification')
+        .mockResolvedValue({} as any);
 
       const result = await service.resolveReportDecision(
         1,
         'rejected',
         undefined,
         'La reseña es legítima',
-        mockAdmin
+        mockAdmin,
       );
 
       expect(result.report.status).toBe('rejected');
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(reviewRepository.save).toHaveBeenCalled();
     });
   });
@@ -173,27 +215,32 @@ describe('Sistema de Reportes de Reseñas', () => {
         report_id: 1,
         status: 'pending',
         review: mockReview,
-        user: mockUser
+        user: mockUser,
       } as ReviewReport;
 
-      jest.spyOn(reportRepository, 'findOne').mockResolvedValue(mockReport);
-      jest.spyOn(reportRepository, 'save').mockResolvedValue(mockReport);
-      jest.spyOn(notificationService, 'createNotification').mockResolvedValue({} as any);
+      jest
+        .spyOn(reportRepository, 'findOne' as any)
+        .mockResolvedValue(mockReport);
+      jest.spyOn(reportRepository, 'save' as any).mockResolvedValue(mockReport);
+      jest
+        .spyOn(notificationService, 'createNotification')
+        .mockResolvedValue({} as any);
 
       const result = await service.resolveReportDecision(
         1,
         'accepted',
         'without_strike',
         'Cuestionable pero no grave',
-        mockAdmin
+        mockAdmin,
       );
 
       expect(result.report.strike_action).toBe('without_strike');
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(notificationService.createNotification).toHaveBeenCalledWith(
         mockReviewAuthor.user_id,
         expect.any(String),
         expect.stringContaining('sin sanciones'),
-        expect.any(Number)
+        expect.any(Number),
       );
     });
   });
@@ -205,24 +252,31 @@ describe('Sistema de Reportes de Reseñas', () => {
         report_id: 1,
         status: 'pending',
         review: { ...mockReview, user: reportedUser },
-        user: mockUser
+        user: mockUser,
       } as any;
 
-      jest.spyOn(reportRepository, 'findOne').mockResolvedValue(mockReport);
-      jest.spyOn(reportRepository, 'save').mockResolvedValue(mockReport);
+      jest
+        .spyOn(reportRepository, 'findOne' as any)
+        .mockResolvedValue(mockReport);
+      jest.spyOn(reportRepository, 'save' as any).mockResolvedValue(mockReport);
       // Mock del repositorio de usuarios
-      jest.spyOn(service['userRepository'], 'save').mockResolvedValue(reportedUser);
-      jest.spyOn(notificationService, 'createNotification').mockResolvedValue({} as any);
+      jest
+        .spyOn(service['userRepository'] as any, 'save' as any)
+        .mockResolvedValue(reportedUser);
+      jest
+        .spyOn(notificationService, 'createNotification' as any)
+        .mockResolvedValue({} as any);
 
       const result = await service.resolveReportDecision(
         1,
         'accepted',
         'with_strike',
         'Lenguaje ofensivo',
-        mockAdmin
+        mockAdmin,
       );
 
       expect(result.report.strike_action).toBe('with_strike');
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(notificationService.createNotification).toHaveBeenCalled();
     });
 
@@ -232,26 +286,35 @@ describe('Sistema de Reportes de Reseñas', () => {
         report_id: 1,
         status: 'pending',
         review: { ...mockReview, user: reportedUser },
-        user: mockUser
+        user: mockUser,
       } as any;
 
-      jest.spyOn(reportRepository, 'findOne').mockResolvedValue(mockReport);
-      jest.spyOn(reportRepository, 'save').mockResolvedValue(mockReport);
-      const userSaveSpy = jest.spyOn(service['userRepository'], 'save');
+      jest
+        .spyOn(reportRepository, 'findOne' as any)
+        .mockResolvedValue(mockReport);
+      jest.spyOn(reportRepository, 'save' as any).mockResolvedValue(mockReport);
+      const userSaveSpy = jest.spyOn(
+        service['userRepository'] as any,
+        'save' as any,
+      );
       userSaveSpy.mockResolvedValue(reportedUser);
-      jest.spyOn(notificationService, 'createNotification').mockResolvedValue({} as any);
+      jest
+        .spyOn(notificationService, 'createNotification')
+        .mockResolvedValue({} as any);
 
       await service.resolveReportDecision(
         1,
         'accepted',
         'with_strike',
         'Tercer strike',
-        mockAdmin
+        mockAdmin,
       );
 
-      expect(userSaveSpy).toHaveBeenCalledWith(expect.objectContaining({
-        is_banned: true
-      }));
+      expect(userSaveSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          is_banned: true,
+        }),
+      );
     });
   });
 
@@ -259,10 +322,12 @@ describe('Sistema de Reportes de Reseñas', () => {
     it('Debe obtener lista paginada de reportes pendientes', async () => {
       const mockReports = [
         { report_id: 1, status: 'pending' },
-        { report_id: 2, status: 'pending' }
+        { report_id: 2, status: 'pending' },
       ];
 
-      jest.spyOn(reportRepository, 'findAndCount').mockResolvedValue([mockReports, 2]);
+      jest
+        .spyOn(reportRepository, 'findAndCount' as any)
+        .mockResolvedValue([mockReports, 2]);
 
       const result = await service.getPendingReports(1, 10);
 
@@ -277,10 +342,12 @@ describe('Sistema de Reportes de Reseñas', () => {
     it('Debe obtener reportes revisados (aceptados/rechazados)', async () => {
       const mockReports = [
         { report_id: 1, status: 'accepted', strike_action: 'with_strike' },
-        { report_id: 2, status: 'rejected' }
+        { report_id: 2, status: 'rejected' },
       ];
 
-      jest.spyOn(reportRepository, 'findAndCount').mockResolvedValue([mockReports, 2]);
+      jest
+        .spyOn(reportRepository, 'findAndCount' as any)
+        .mockResolvedValue([mockReports, 2]);
 
       const result = await service.getReportHistory(1, 10);
 
@@ -291,14 +358,18 @@ describe('Sistema de Reportes de Reseñas', () => {
 
   describe('Obtener Reportes de una Reseña', () => {
     it('Debe obtener todos los reportes para una reseña específica', async () => {
-      jest.spyOn(reviewRepository, 'findOne').mockResolvedValue(mockReview);
+      jest
+        .spyOn(reviewRepository, 'findOne' as any)
+        .mockResolvedValue(mockReview);
 
       const mockReports = [
         { report_id: 1, review_id: 1, status: 'pending' },
-        { report_id: 2, review_id: 1, status: 'accepted' }
+        { report_id: 2, review_id: 1, status: 'accepted' },
       ];
 
-      jest.spyOn(reportRepository, 'findAndCount').mockResolvedValue([mockReports, 2]);
+      jest
+        .spyOn(reportRepository, 'findAndCount')
+        .mockResolvedValue([mockReports, 2]);
 
       const result = await service.getReviewReports(1, 1, 10);
 
@@ -307,11 +378,11 @@ describe('Sistema de Reportes de Reseñas', () => {
     });
 
     it('Debe lanzar error si la reseña no existe', async () => {
-      jest.spyOn(reviewRepository, 'findOne').mockResolvedValue(null);
+      jest.spyOn(reviewRepository, 'findOne' as any).mockResolvedValue(null);
 
-      await expect(
-        service.getReviewReports(999, 1, 10)
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.getReviewReports(999, 1, 10)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

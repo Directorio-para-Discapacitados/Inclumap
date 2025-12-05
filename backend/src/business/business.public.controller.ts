@@ -26,7 +26,8 @@ export class BusinessPublicController {
       address: b.address,
       description: b.description,
       average_rating: b.average_rating,
-      logo_url: b.logo_url || 'https://res.cloudinary.com/demo/image/upload/sample.jpg',
+      logo_url:
+        b.logo_url || 'https://res.cloudinary.com/demo/image/upload/sample.jpg',
       latitude: b.latitude,
       longitude: b.longitude,
       verified: b.verified || false,
@@ -54,27 +55,33 @@ export class BusinessPublicController {
     if (categoryId) {
       const categoryIdNum = parseInt(categoryId, 10);
       console.log('🔍 Filtrando por categoría ID:', categoryIdNum);
-      
+
       if (!isNaN(categoryIdNum)) {
         filtered = filtered.filter((b: any) => {
-          const hasCategory = Array.isArray(b.business_categories) &&
+          const hasCategory =
+            Array.isArray(b.business_categories) &&
             b.business_categories.some(
               (bc: any) => bc.category?.category_id === categoryIdNum,
             );
-          
+
           if (hasCategory) {
-            console.log('✅ Negocio encontrado:', b.business_name, 'con categorías:', 
+            console.log(
+              '✅ Negocio encontrado:',
+              b.business_name,
+              'con categorías:',
               b.business_categories.map((bc: any) => ({
                 id: bc.category?.category_id,
-                name: bc.category?.name
-              }))
+                name: bc.category?.name,
+              })),
             );
           }
-          
+
           return hasCategory;
         });
-        
-        console.log(`📊 Negocios filtrados: ${filtered.length} de ${list.length} totales`);
+
+        console.log(
+          `📊 Negocios filtrados: ${filtered.length} de ${list.length} totales`,
+        );
       }
     }
 
@@ -95,7 +102,9 @@ export class BusinessPublicController {
           acc.includes(qLower),
         );
         return (
-          name.includes(qLower) || address.includes(qLower) || matchesAccessibility
+          name.includes(qLower) ||
+          address.includes(qLower) ||
+          matchesAccessibility
         );
       });
     }
@@ -123,7 +132,10 @@ export class BusinessPublicController {
         : [],
       business_accessibility: Array.isArray(b.business_accessibility)
         ? b.business_accessibility
-            .filter((ba: any) => ba.accessibility && ba.accessibility.accessibility_id)
+            .filter(
+              (ba: any) =>
+                ba.accessibility && ba.accessibility.accessibility_id,
+            )
             .map((ba: any) => ({
               accessibility_id: ba.accessibility.accessibility_id,
               accessibility_name: ba.accessibility.accessibility_name,
@@ -151,7 +163,12 @@ export class BusinessPublicController {
     const businessAccessibilities =
       await this.businessAccessibilityRepository.find({
         where: { accessibility: { accessibility_id: accessibilityIdNum } },
-        relations: ['business', 'business.user', 'business.user.people', 'business.images'],
+        relations: [
+          'business',
+          'business.user',
+          'business.user.people',
+          'business.images',
+        ],
       });
 
     // Mapear a formato público
@@ -245,7 +262,7 @@ export class BusinessPublicController {
       business_id: businessId,
       ...recordViewDto,
     });
-    
+
     return { message: 'Vista registrada' };
   }
 }

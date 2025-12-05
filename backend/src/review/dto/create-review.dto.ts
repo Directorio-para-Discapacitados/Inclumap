@@ -22,7 +22,9 @@ export class CreateReviewDto {
   @IsString()
   comment?: string;
 
-  @ApiProperty({ description: 'Categoría de la reseña: access, service, comfort, food' })
+  @ApiProperty({
+    description: 'Categoría de la reseña: access, service, comfort, food',
+  })
   @IsOptional()
   @IsString()
   category?: string;

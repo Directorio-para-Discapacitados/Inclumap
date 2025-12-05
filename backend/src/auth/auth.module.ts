@@ -21,7 +21,6 @@ import { MailsService } from 'src/mails/mails.service';
 import { MapsModule } from 'src/maps/maps.module';
 import { NotificationModule } from 'src/notification/notification.module';
 import { CategoryEntity } from 'src/category/entity/category.entity';
-import { BusinessCategoryModule } from 'src/business_category/business_category.module';
 import { BusinessCategoryEntity } from 'src/business_category/entity/business_category.entity';
 
 @Module({

@@ -4,18 +4,82 @@ import { Injectable } from '@nestjs/common';
 export class OffensiveContentDetector {
   // Lista de palabras ofensivas (puedes expandir esta lista)
   private offensiveWords = [
-    'idiota', 'idiotas', 'estúpido', 'estúpidos', 'imbécil', 'imbéciles', 
-    'pendejo', 'pendejos', 'puto', 'putos', 'puta', 'putas', 'ptas', 'mierda',
-    'carajo', 'joder', 'coño', 'huevón', 'huevones', 'culero', 'culeros',
-    'mamón', 'mamones', 'cabrón', 'cabrones', 'chingada', 'verga', 'pinche',
-    'gonorrea', 'malparido', 'malparidos', 'hijueputa', 'hijueputas',
-    'hp', 'hps', 'hdp', 'basura', 'porquería', 'maldito', 'malditos',
-    'concha', 'cagada', 'ojete', 'marica', 'maricas', 'perra', 'perras',
-    'zorra', 'zorras', 'ramera', 'rameras', 'prostituta', 'prostitutas',
+    'idiota',
+    'idiotas',
+    'estúpido',
+    'estúpidos',
+    'imbécil',
+    'imbéciles',
+    'pendejo',
+    'pendejos',
+    'puto',
+    'putos',
+    'puta',
+    'putas',
+    'ptas',
+    'mierda',
+    'carajo',
+    'joder',
+    'coño',
+    'huevón',
+    'huevones',
+    'culero',
+    'culeros',
+    'mamón',
+    'mamones',
+    'cabrón',
+    'cabrones',
+    'chingada',
+    'verga',
+    'pinche',
+    'gonorrea',
+    'malparido',
+    'malparidos',
+    'hijueputa',
+    'hijueputas',
+    'hp',
+    'hps',
+    'hdp',
+    'basura',
+    'porquería',
+    'maldito',
+    'malditos',
+    'concha',
+    'cagada',
+    'ojete',
+    'marica',
+    'maricas',
+    'perra',
+    'perras',
+    'zorra',
+    'zorras',
+    'ramera',
+    'rameras',
+    'prostituta',
+    'prostitutas',
     // Inglés
-    'fuck', 'fucks', 'shit', 'shits', 'bitch', 'bitches', 'asshole', 'assholes',
-    'bastard', 'bastards', 'damn', 'crap', 'stupid', 'idiot', 'idiots',
-    'moron', 'morons', 'retard', 'retards', 'dumb', 'loser', 'losers'
+    'fuck',
+    'fucks',
+    'shit',
+    'shits',
+    'bitch',
+    'bitches',
+    'asshole',
+    'assholes',
+    'bastard',
+    'bastards',
+    'damn',
+    'crap',
+    'stupid',
+    'idiot',
+    'idiots',
+    'moron',
+    'morons',
+    'retard',
+    'retards',
+    'dumb',
+    'loser',
+    'losers',
   ];
 
   /**
@@ -27,8 +91,8 @@ export class OffensiveContentDetector {
     if (!text) return false;
 
     const normalizedText = text.toLowerCase();
-    
-    return this.offensiveWords.some(word => {
+
+    return this.offensiveWords.some((word) => {
       // Buscar la palabra completa (con límites de palabra)
       const regex = new RegExp(`\\b${word}\\b`, 'i');
       return regex.test(normalizedText);
@@ -46,7 +110,7 @@ export class OffensiveContentDetector {
     const normalizedText = text.toLowerCase();
     const foundWords: string[] = [];
 
-    this.offensiveWords.forEach(word => {
+    this.offensiveWords.forEach((word) => {
       const regex = new RegExp(`\\b${word}\\b`, 'i');
       if (regex.test(normalizedText)) {
         foundWords.push(word);
@@ -66,7 +130,7 @@ export class OffensiveContentDetector {
 
     let censoredText = text;
 
-    this.offensiveWords.forEach(word => {
+    this.offensiveWords.forEach((word) => {
       const regex = new RegExp(`\\b${word}\\b`, 'gi');
       const replacement = word[0] + '*'.repeat(word.length - 1);
       censoredText = censoredText.replace(regex, replacement);

@@ -40,10 +40,20 @@ export class UserEntity {
   @Column({ type: 'varchar', length: 500, nullable: true, name: 'avatar_url' })
   avatar_url: string | null;
 
-  @Column({ type: 'int', default: 0, name: 'offensive_strikes', comment: 'Número de strikes por contenido ofensivo' })
+  @Column({
+    type: 'int',
+    default: 0,
+    name: 'offensive_strikes',
+    comment: 'Número de strikes por contenido ofensivo',
+  })
   offensive_strikes: number;
 
-  @Column({ type: 'boolean', default: false, name: 'is_banned', comment: 'Usuario bloqueado por comportamiento ofensivo' })
+  @Column({
+    type: 'boolean',
+    default: false,
+    name: 'is_banned',
+    comment: 'Usuario bloqueado por comportamiento ofensivo',
+  })
   is_banned: boolean;
 
   @CreateDateColumn({ name: 'created_at' })

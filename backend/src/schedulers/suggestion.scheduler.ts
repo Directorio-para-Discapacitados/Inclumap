@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BusinessEntity } from 'src/business/entity/business.entity';
@@ -15,7 +15,6 @@ export class SuggestionScheduler {
     private readonly notificationService: NotificationService,
   ) {}
 
-
   @Cron('*/10 * * * *', {
     name: 'every-10-minutes-top-business-suggestion',
     timeZone: 'America/Bogota',
@@ -27,13 +26,15 @@ export class SuggestionScheduler {
       // Buscar el local con mayor calificación (> 4.0)
       const topBusiness = await this.businessRepository
         .createQueryBuilder('business')
-        .where('business.average_rating >= :minRating', { minRating: 4.0 }) 
+        .where('business.average_rating >= :minRating', { minRating: 4.0 })
         .orderBy('business.average_rating', 'DESC')
-        .addOrderBy('business.business_id', 'DESC') 
+        .addOrderBy('business.business_id', 'DESC')
         .getOne();
 
       if (!topBusiness) {
-        this.logger.warn('⚠️ No se encontraron locales aptos para sugerir (> 4.0).');
+        this.logger.warn(
+          '⚠️ No se encontraron locales aptos para sugerir (> 4.0).',
+        );
         return;
       }
 
@@ -59,7 +60,7 @@ export class SuggestionScheduler {
       );
     }
   }
-  
+
   async executeSuggestionManually() {
     await this.suggestTopBusiness();
   }
