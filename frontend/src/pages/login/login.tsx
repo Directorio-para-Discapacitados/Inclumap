@@ -23,22 +23,41 @@ export default function Login() {
   const [mostrarPassword, setMostrarPassword] = useState(false);
   const [showAccountsDropdown, setShowAccountsDropdown] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
   const { onMouseEnter, onFocus } = useSpeakable();
   const { darkMode } = useTheme();
 
   const isValid = email && password;
 
+  // Redirigir si ya está autenticado
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      // Determinar la página de inicio según el rol
+      const rolIds = user?.rolIds || [];
+      
+      if (rolIds.includes(1)) {
+        // Admin
+        navigate('/admin/dashboard', { replace: true });
+      } else if (rolIds.includes(3)) {
+        // Propietario - ir a página de inicio donde se mostrará OwnerDashboard
+        navigate('/', { replace: true });
+      } else {
+        // Usuario normal
+        navigate('/', { replace: true });
+      }
+    }
+  }, [isAuthenticated, user, navigate]);
+
   useEffect(() => {
     try {
-      const raw = localStorage.getItem('savedAccounts');
+      const raw = localStorage.getItem("savedAccounts");
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
           setSavedAccounts(parsed);
         }
       }
-    } catch {
+    } catch (error) {
       // ignorar errores de lectura de localStorage
     }
   }, []);
@@ -46,13 +65,13 @@ export default function Login() {
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (!target.closest('.email-input-wrapper')) {
+      if (!target.closest(".email-input-wrapper")) {
         setShowAccountsDropdown(false);
       }
     };
     
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const decodeJwt = (token: string): any => {

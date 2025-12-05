@@ -22,7 +22,6 @@ import { BusinessEntity } from 'src/business/entity/business.entity';
 import { BusinessAccessibilityEntity } from 'src/business_accessibility/entity/business_accessibility.entity';
 import { AccessibilityEntity } from 'src/accessibility/entity/accesibility.entity';
 import { CreateFullBusinessDto } from './dtos/createFullBusiness.dto';
-import { TokenDto } from './dtos/token.dto';
 import { usuarioEmailResetPasswordDto } from './dtos/usuario-email-resetpassword.dto';
 import { UpgradeToBusinessDto } from './dtos/upgradeToBusiness.dto';
 import { MailsService } from 'src/mails/mails.service';
@@ -82,9 +81,12 @@ export class AuthService {
     );
   }
 
-  async registerFullUser(
-    userData: CreateFullUserDto,
-  ): Promise<{ message: string; token: string; access_token: string; user: UserEntity }> {
+  async registerFullUser(userData: CreateFullUserDto): Promise<{
+    message: string;
+    token: string;
+    access_token: string;
+    user: UserEntity;
+  }> {
     try {
       const existingUser: UserEntity | null = await this.userRepository.findOne(
         {
@@ -210,9 +212,12 @@ export class AuthService {
     }
   }
 
-  async registerFullBusiness(
-    businessData: CreateFullBusinessDto,
-  ): Promise<{ message: string; token: string; access_token: string; user: UserEntity }> {
+  async registerFullBusiness(businessData: CreateFullBusinessDto): Promise<{
+    message: string;
+    token: string;
+    access_token: string;
+    user: UserEntity;
+  }> {
     try {
       // 1. Validaciones previas
       const existingUser: UserEntity | null = await this.userRepository.findOne(

@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { ReviewEntity } from './review.entity';
 import { UserEntity } from '../../user/entity/user.entity';
 
@@ -66,7 +74,9 @@ export class ReviewReport {
   @UpdateDateColumn({ name: 'updated_at' })
   updated_at: Date;
 
-  @ManyToOne(() => ReviewEntity, review => review.reports, { onDelete: 'CASCADE' })
+  @ManyToOne(() => ReviewEntity, (review) => review.reports, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn({ name: 'review_id' })
   review: ReviewEntity;
 

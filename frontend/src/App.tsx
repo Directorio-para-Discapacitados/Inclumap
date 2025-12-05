@@ -40,6 +40,7 @@ import { setSessionModalCallback } from "./config/api";
 import Accesibilidad from "./pages/accesibilidad/Accesibilidad";
 import TodasAccesibilidades from "./pages/accesibilidad/TodasAccesibilidades";
 import Negocios from "./pages/negocios/Negocios";
+import AdminDashboard from "./Components/AdminDashboard/AdminDashboard";
 import BrowseBusinesses from "./pages/explore-businesses/BrowseBusinesses";
 import Tutorial from "./pages/tutoriales/Tutorial";
 
@@ -416,6 +417,7 @@ function AppContent() {
               path="/ajustes"
               element={<AjustesPage />}
             />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/gestion-usuarios" element={<GestionUsuarios />} />
             <Route path="/admin/gestion-propietarios" element={<GestionPropietarios />} />
             <Route path="/admin/gestion-negocios" element={<GestionNegocios />} />

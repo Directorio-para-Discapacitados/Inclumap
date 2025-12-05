@@ -15,7 +15,7 @@ export class RolesService implements OnModuleInit {
   async onModuleInit() {
     // Esperar a que TypeORM esté listo
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       await this.initializeDefaultRoles();
     } catch (error) {
       this.logger.error('Error initializing default roles:', error);
@@ -49,7 +49,10 @@ export class RolesService implements OnModuleInit {
         this.logger.debug(`Role ${roleData.rol_name} created successfully`);
       }
     } catch (error) {
-      this.logger.warn(`Error creating role ${roleData.rol_name}:`, error.message);
+      this.logger.warn(
+        `Error creating role ${roleData.rol_name}:`,
+        error.message,
+      );
     }
   }
 

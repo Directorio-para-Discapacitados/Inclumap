@@ -75,7 +75,6 @@ export class ChatbotService {
 
     // Buscar coincidencia flexible: palabra por palabra
     let foundKeyword: string | undefined;
-    let foundAccessibility: AccessibilityEntity | undefined;
 
     for (const accessibility of allAccessibilities) {
       const accessibilityName = accessibility.accessibility_name.toLowerCase();
@@ -84,18 +83,19 @@ export class ChatbotService {
       // Verificar si el mensaje incluye el nombre completo o alguna palabra clave
       if (message.includes(accessibilityName)) {
         foundKeyword = accessibilityName;
-        foundAccessibility = accessibility;
         break;
       }
 
       // Si no, verificar si incluye al menos una palabra significativa (> 3 caracteres)
+      let found = false;
       for (const word of words) {
         if (word.length > 3 && message.includes(word)) {
           foundKeyword = accessibilityName;
-          foundAccessibility = accessibility;
+          found = true;
           break;
         }
       }
+      if (found) break;
 
       if (foundKeyword) break;
     }

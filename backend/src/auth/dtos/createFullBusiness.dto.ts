@@ -108,6 +108,4 @@ export class CreateFullBusinessDto {
     { each: true, message: 'Cada accesibilidad debe ser un número' },
   )
   accessibilityIds?: number[];
-
-  
 }

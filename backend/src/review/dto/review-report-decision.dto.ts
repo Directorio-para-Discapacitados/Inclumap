@@ -1,12 +1,22 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class ReviewReportDecisionDto {
   @IsNotEmpty({ message: 'La decisión es requerida' })
-  @IsEnum(['accepted', 'rejected'], { message: 'La decisión debe ser accepted o rejected' })
+  @IsEnum(['accepted', 'rejected'], {
+    message: 'La decisión debe ser accepted o rejected',
+  })
   decision: 'accepted' | 'rejected';
 
   @IsOptional()
-  @IsEnum(['add_strike', 'no_strike'], { message: 'La acción de strike debe ser add_strike o no_strike' })
+  @IsEnum(['add_strike', 'no_strike'], {
+    message: 'La acción de strike debe ser add_strike o no_strike',
+  })
   strike_action?: 'add_strike' | 'no_strike';
 
   @IsOptional()

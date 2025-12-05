@@ -207,10 +207,12 @@ const ReportHistory: React.FC = () => {
                   </div>
                   
                   <div className="record-details-grid">
-                    <div className="detail-item">
-                      <p className="detail-label">Usuario Reportado</p>
-                      <p className="detail-value">{record.reported_user.name} {record.reported_user.lastname}</p>
-                    </div>
+                    {record.reported_user && (
+                      <div className="detail-item">
+                        <p className="detail-label">Usuario Reportado</p>
+                        <p className="detail-value">{record.reported_user.name} {record.reported_user.lastname}</p>
+                      </div>
+                    )}
                     {record.reporter_user && (
                       <div className="detail-item">
                         <p className="detail-label">Reportado Por</p>

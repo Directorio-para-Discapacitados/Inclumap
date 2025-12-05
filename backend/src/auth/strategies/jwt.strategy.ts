@@ -29,7 +29,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     } else if (payload.rol_id !== undefined) {
       // Si viene como rol_id individual, convertirlo a array
       rolIds = [Number(payload.rol_id)];
-    } else {
     }
 
     const { user_email } = payload;

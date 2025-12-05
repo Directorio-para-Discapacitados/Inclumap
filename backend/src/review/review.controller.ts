@@ -14,6 +14,7 @@ import {
   DefaultValuePipe,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from 'src/auth/guards/optional-jwt-auth.guard';
 import { User } from 'src/auth/decorators/user.decorator';
 import { UserEntity } from 'src/user/entity/user.entity';
 import { CreateReviewDto } from './dto/create-review.dto';
@@ -36,9 +37,14 @@ export class ReviewController {
     return this.reviewService.create(createReviewDto, user);
   }
 
+  @UseGuards(OptionalJwtAuthGuard)
   @Get('business/:id')
-  getForBusiness(@Param('id', ParseIntPipe) id: number) {
-    return this.reviewService.getReviewsForBusiness(id);
+  async getForBusiness(
+    @Param('id', ParseIntPipe) id: number,
+    @User() user?: UserEntity,
+  ) {
+    const userId = user?.user_id;
+    return this.reviewService.getReviewsForBusiness(id, userId);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -319,4 +325,3 @@ export class ReviewController {
     );
   }
 }
-

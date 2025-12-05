@@ -15,7 +15,14 @@ import { OffensiveContentDetector } from './offensive-content.detector';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ReviewEntity, ReviewLikeEntity, ReviewReport, ReportHistoryEntity, BusinessEntity, UserEntity]),
+    TypeOrmModule.forFeature([
+      ReviewEntity,
+      ReviewLikeEntity,
+      ReviewReport,
+      ReportHistoryEntity,
+      BusinessEntity,
+      UserEntity,
+    ]),
     AuthModule,
     SentimentModule,
     NotificationModule,

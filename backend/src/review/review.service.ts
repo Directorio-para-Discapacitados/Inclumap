@@ -3,7 +3,6 @@ import {
   NotFoundException,
   ConflictException,
   ForbiddenException,
-  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { BusinessEntity } from 'src/business/entity/business.entity';
@@ -12,7 +11,12 @@ import { Repository } from 'typeorm';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { ReviewEntity } from './entity/review.entity';
 import { ReviewLikeEntity } from './entity/review-like.entity';
-import { ReviewReport, ReportStatus } from './entity/review-report.entity';
+import {
+  ReviewReport,
+  ReportStatus,
+  StrikeAction,
+} from './entity/review-report.entity';
+import { ReportHistoryEntity } from './entity/report-history.entity';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { SentimentService } from 'src/sentiment/sentiment.service';
 import { NotificationService } from 'src/notification/notification.service';
@@ -28,6 +32,8 @@ export class ReviewService {
     private readonly reviewLikeRepository: Repository<ReviewLikeEntity>,
     @InjectRepository(ReviewReport)
     private readonly reportRepository: Repository<ReviewReport>,
+    @InjectRepository(ReportHistoryEntity)
+    private readonly reportHistoryRepository: Repository<ReportHistoryEntity>,
     @InjectRepository(BusinessEntity)
     private readonly businessRepository: Repository<BusinessEntity>,
     @InjectRepository(UserEntity)
@@ -77,19 +83,24 @@ export class ReviewService {
     // 3. Detectar contenido ofensivo (solo si hay comentario)
     let isOffensive = false;
     let offensiveWords: string[] = [];
-    
+
     if (comment) {
       isOffensive = this.offensiveDetector.containsOffensiveContent(comment);
-      console.log('🔍 Detección de contenido ofensivo:', { comment, isOffensive });
-      
+      console.log('🔍 Detección de contenido ofensivo:', {
+        comment,
+        isOffensive,
+      });
+
       if (isOffensive) {
         offensiveWords = this.offensiveDetector.getOffensiveWords(comment);
         console.log('🚨 Palabras ofensivas detectadas:', offensiveWords);
-        
+
         // Incrementar strikes del usuario
         user.offensive_strikes = (user.offensive_strikes || 0) + 1;
         await this.userRepository.save(user);
-        console.log(`📊 Usuario ${user.user_id} ahora tiene ${user.offensive_strikes} strikes`);
+        console.log(
+          `📊 Usuario ${user.user_id} ahora tiene ${user.offensive_strikes} strikes`,
+        );
 
         // Si es el tercer strike o más, bloquear la cuenta
         if (user.offensive_strikes >= 3) {
@@ -135,12 +146,22 @@ export class ReviewService {
     });
 
     const savedReview = await this.reviewRepository.save(newReview);
-    console.log('💾 Reseña guardada:', { review_id: savedReview.review_id, is_offensive: savedReview.is_offensive });
+    console.log('💾 Reseña guardada:', {
+      review_id: savedReview.review_id,
+      is_offensive: savedReview.is_offensive,
+    });
 
     // Notificar al administrador si hay contenido ofensivo (después de guardar la reseña)
     if (isOffensive && offensiveWords.length > 0) {
-      console.log('📧 Notificando al administrador sobre contenido ofensivo...');
-      await this.notifyAdminOffensiveContent(user, comment || '', offensiveWords, savedReview.review_id);
+      console.log(
+        '📧 Notificando al administrador sobre contenido ofensivo...',
+      );
+      await this.notifyAdminOffensiveContent(
+        user,
+        comment || '',
+        offensiveWords,
+        savedReview.review_id,
+      );
       console.log('✅ Notificación enviada a todos los administradores');
     }
 
@@ -233,7 +254,10 @@ export class ReviewService {
 
   //Obtiene todas las reseñas de un local (versión minimalista).
 
-  async getReviewsForBusiness(business_id: number): Promise<ReviewEntity[]> {
+  async getReviewsForBusiness(
+    business_id: number,
+    user_id?: number,
+  ): Promise<any[]> {
     // Obtener IDs de reseñas con reportes pendientes
     const reportedReviewIds = await this.reportRepository
       .createQueryBuilder('report')
@@ -241,10 +265,10 @@ export class ReviewService {
       .where('report.status = :status', { status: ReportStatus.PENDING })
       .getMany();
 
-    const reportedIds = reportedReviewIds.map(r => r.review_id);
+    const reportedIds = reportedReviewIds.map((r) => r.review_id);
 
     // Obtener reseñas del negocio excluyendo las reportadas
-    return this.reviewRepository
+    const reviews = await this.reviewRepository
       .createQueryBuilder('review')
       .leftJoinAndSelect('review.user', 'user')
       .leftJoinAndSelect('user.people', 'people')
@@ -266,10 +290,42 @@ export class ReviewService {
         'people.avatar',
       ])
       .where('business.business_id = :business_id', { business_id })
-      .andWhere(reportedIds.length > 0 ? 'review.review_id NOT IN (:...reportedIds)' : '1=1', 
-        reportedIds.length > 0 ? { reportedIds } : {})
+      .andWhere(
+        reportedIds.length > 0
+          ? 'review.review_id NOT IN (:...reportedIds)'
+          : '1=1',
+        reportedIds.length > 0 ? { reportedIds } : {},
+      )
       .orderBy('review.created_at', 'DESC')
       .getMany();
+
+    // Agregar información de likes a cada reseña
+    const reviewsWithLikes = await Promise.all(
+      reviews.map(async (review) => {
+        const likesCount = await this.reviewLikeRepository.count({
+          where: { review: { review_id: review.review_id } },
+        });
+
+        let userHasLiked = false;
+        if (user_id) {
+          const like = await this.reviewLikeRepository.findOne({
+            where: {
+              review: { review_id: review.review_id },
+              user: { user_id },
+            },
+          });
+          userHasLiked = !!like;
+        }
+
+        return {
+          ...review,
+          likes_count: likesCount,
+          user_has_liked: userHasLiked,
+        };
+      }),
+    );
+
+    return reviewsWithLikes;
   }
 
   async setOwnerReply(
@@ -464,7 +520,9 @@ export class ReviewService {
       relations: ['userroles', 'userroles.rol'],
     });
 
-    const isAdmin = userWithRoles?.userroles?.some(ur => ur.rol?.rol_id === 1);
+    const isAdmin = userWithRoles?.userroles?.some(
+      (ur) => ur.rol?.rol_id === 1,
+    );
 
     // Permitir eliminación si es el creador O si es admin
     if (review.user.user_id !== user.user_id && !isAdmin) {
@@ -516,10 +574,9 @@ export class ReviewService {
     };
   }
 
-
   async reanalyzeAllReviews() {
     const reviews = await this.reviewRepository.find({
-      relations: ['business', 'user'], 
+      relations: ['business', 'user'],
     });
 
     let analyzed = 0;
@@ -544,7 +601,7 @@ export class ReviewService {
         // Si es incoherente, activar flujo inteligente
         if (sentimentAnalysis.coherence_check.startsWith('Incoherente')) {
           incoherent++;
-          
+
           // CAMBIO: Usamos el manejador inteligente en vez de notificar admin directamente
           await this.notificationService.handleIncoherentReview(review);
         }
@@ -627,7 +684,7 @@ export class ReviewService {
     reviewId: number,
   ): Promise<void> {
     console.log('🔍 Buscando administradores para notificar...');
-    
+
     // Obtener todos los usuarios con rol de administrador (rol_id = 1)
     const admins = await this.userRepository
       .createQueryBuilder('user')
@@ -636,11 +693,15 @@ export class ReviewService {
       .where('rol.rol_id = :rolId', { rolId: 1 })
       .getMany();
 
-    console.log(`👥 Administradores encontrados: ${admins.length}`, admins.map(a => ({ id: a.user_id, email: a.user_email })));
+    console.log(
+      `👥 Administradores encontrados: ${admins.length}`,
+      admins.map((a) => ({ id: a.user_id, email: a.user_email })),
+    );
 
     const userName = user.people?.firstName || user.user_email;
     const strikes = user.offensive_strikes || 1;
-    const censoredComment = this.offensiveDetector.censorOffensiveContent(comment);
+    const censoredComment =
+      this.offensiveDetector.censorOffensiveContent(comment);
 
     const message = `🚨 ALERTA: Contenido ofensivo detectado
 Usuario: ${userName} (ID: ${user.user_id})
@@ -674,8 +735,10 @@ ${strikes >= 3 ? '⛔ Usuario bloqueado automáticamente' : strikes === 2 ? '⚠
     });
 
     console.log(`🔍 Reseñas ofensivas encontradas: ${offensiveReviews.length}`);
-    offensiveReviews.forEach(r => {
-      console.log(`  - ID: ${r.review_id}, Comment: "${r.comment}", is_offensive: ${r.is_offensive}, is_reviewed: ${r.is_reviewed_by_admin}`);
+    offensiveReviews.forEach((r) => {
+      console.log(
+        `  - ID: ${r.review_id}, Comment: "${r.comment}", is_offensive: ${r.is_offensive}, is_reviewed: ${r.is_reviewed_by_admin}`,
+      );
     });
 
     // Obtener reseñas incoherentes NO revisadas
@@ -684,15 +747,19 @@ ${strikes >= 3 ? '⛔ Usuario bloqueado automáticamente' : strikes === 2 ? '⚠
       .leftJoinAndSelect('review.user', 'user')
       .leftJoinAndSelect('user.people', 'people')
       .leftJoinAndSelect('review.business', 'business')
-      .where('review.coherence_check LIKE :pattern', { pattern: 'Incoherente%' })
+      .where('review.coherence_check LIKE :pattern', {
+        pattern: 'Incoherente%',
+      })
       .andWhere('review.is_reviewed_by_admin = :reviewed', { reviewed: false })
       .orderBy('review.created_at', 'DESC')
       .getMany();
 
-    console.log(`🔍 Reseñas incoherentes encontradas: ${incoherentReviews.length}`);
+    console.log(
+      `🔍 Reseñas incoherentes encontradas: ${incoherentReviews.length}`,
+    );
 
     // Mapear y agregar campo 'reason' para distinguir el tipo
-    const mappedOffensive = offensiveReviews.map(review => ({
+    const mappedOffensive = offensiveReviews.map((review) => ({
       ...review,
       reason: 'offensive',
       user: {
@@ -705,7 +772,7 @@ ${strikes >= 3 ? '⛔ Usuario bloqueado automáticamente' : strikes === 2 ? '⚠
       },
     }));
 
-    const mappedIncoherent = incoherentReviews.map(review => ({
+    const mappedIncoherent = incoherentReviews.map((review) => ({
       ...review,
       reason: 'incoherent',
       user: {
@@ -720,10 +787,15 @@ ${strikes >= 3 ? '⛔ Usuario bloqueado automáticamente' : strikes === 2 ? '⚠
 
     // Combinar ambas listas y ordenar por fecha
     const allReviews = [...mappedOffensive, ...mappedIncoherent];
-    allReviews.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    allReviews.sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    );
 
-    console.log(`📋 Total reseñas para moderación: ${allReviews.length} (${mappedOffensive.length} ofensivas, ${mappedIncoherent.length} incoherentes)`);
-    
+    console.log(
+      `📋 Total reseñas para moderación: ${allReviews.length} (${mappedOffensive.length} ofensivas, ${mappedIncoherent.length} incoherentes)`,
+    );
+
     return allReviews;
   }
 
@@ -764,7 +836,11 @@ ${strikes >= 3 ? '⛔ Usuario bloqueado automáticamente' : strikes === 2 ? '⚠
       user_id: user.user_id,
       strikes: user.offensive_strikes || 0,
       is_banned: user.is_banned,
-      status: user.is_banned ? 'Bloqueado' : user.offensive_strikes >= 1 ? 'Advertido' : 'Normal',
+      status: user.is_banned
+        ? 'Bloqueado'
+        : user.offensive_strikes >= 1
+          ? 'Advertido'
+          : 'Normal',
     };
   }
 
@@ -806,8 +882,8 @@ ${strikes >= 3 ? '⛔ Usuario bloqueado automáticamente' : strikes === 2 ? '⚠
     await this.userRepository.save(user);
 
     return {
-      message: user.is_banned 
-        ? 'Usuario bloqueado por acumular 3 strikes' 
+      message: user.is_banned
+        ? 'Usuario bloqueado por acumular 3 strikes'
         : 'Strike agregado y notificación enviada',
       user_id: user.user_id,
       strikes: user.offensive_strikes,
@@ -865,7 +941,9 @@ ${strikes >= 3 ? '⛔ Usuario bloqueado automáticamente' : strikes === 2 ? '⚠
       .select(['user.user_id'])
       .getMany();
 
-    console.log(`📢 Notificando a ${admins.length} admin(s) sobre nuevo reporte de reseña #${review_id}`);
+    console.log(
+      `📢 Notificando a ${admins.length} admin(s) sobre nuevo reporte de reseña #${review_id}`,
+    );
 
     for (const admin of admins) {
       try {
@@ -887,9 +965,11 @@ ${strikes >= 3 ? '⛔ Usuario bloqueado automáticamente' : strikes === 2 ? '⚠
         review.user.user_id,
         NotificationType.REVIEW_ATTENTION,
         `Tu reseña en "${review.business.business_name}" ha sido reportada y está siendo revisada por un administrador.`,
-        review_id,
+        review.business.business_id,
       );
-      console.log(`✓ Notificación enviada al autor de la reseña ${review.user.user_id}`);
+      console.log(
+        `✓ Notificación enviada al autor de la reseña ${review.user.user_id}`,
+      );
     } catch (error) {
       console.error(`✗ Error notificando al autor:`, error);
     }
@@ -948,19 +1028,63 @@ ${strikes >= 3 ? '⛔ Usuario bloqueado automáticamente' : strikes === 2 ? '⚠
         .leftJoinAndSelect('reporter.people', 'reporter_people')
         .leftJoinAndSelect('report.admin', 'admin')
         .leftJoinAndSelect('admin.people', 'admin_people')
-        .where('report.status IN (:...statuses)', { statuses: [ReportStatus.ACCEPTED, ReportStatus.REJECTED] })
+        .where('report.status IN (:...statuses)', {
+          statuses: [ReportStatus.ACCEPTED, ReportStatus.REJECTED],
+        })
         .orderBy('report.updated_at', 'DESC')
         .skip(skip)
         .take(limit)
         .getMany(),
       this.reportRepository
         .createQueryBuilder('report')
-        .where('report.status IN (:...statuses)', { statuses: [ReportStatus.ACCEPTED, ReportStatus.REJECTED] })
+        .where('report.status IN (:...statuses)', {
+          statuses: [ReportStatus.ACCEPTED, ReportStatus.REJECTED],
+        })
         .getCount(),
     ]);
 
+    // Mapear la respuesta al formato esperado por el frontend
+    const mappedReports = reports.map((report) => ({
+      history_id: report.report_id,
+      review_id: report.review_id,
+      report_type: 'review_reported',
+      decision:
+        report.status === ReportStatus.ACCEPTED ? 'accepted' : 'rejected',
+      action_taken: report.strike_action || 'no_action',
+      created_at: report.updated_at,
+      business_name:
+        report.review?.business?.business_name || 'Negocio desconocido',
+      content_snapshot: report.review?.comment || '',
+      report_reason: report.reason || '',
+      admin_notes: report.admin_notes || null,
+      admin: report.admin
+        ? {
+            user_id: report.admin.user_id,
+            name: report.admin.people?.firstName || 'Admin',
+            lastname: report.admin.people?.firstLastName || '',
+            avatar: report.admin.people?.avatar || null,
+          }
+        : null,
+      reported_user: report.review?.user
+        ? {
+            user_id: report.review.user.user_id,
+            name: report.review.user.people?.firstName || 'Usuario',
+            lastname: report.review.user.people?.firstLastName || '',
+            avatar: report.review.user.people?.avatar || null,
+          }
+        : null,
+      reporter_user: report.user
+        ? {
+            user_id: report.user.user_id,
+            name: report.user.people?.firstName || 'Usuario',
+            lastname: report.user.people?.firstLastName || '',
+            avatar: report.user.people?.avatar || null,
+          }
+        : null,
+    }));
+
     return {
-      data: reports,
+      data: mappedReports,
       total,
       page,
       limit,
@@ -971,7 +1095,14 @@ ${strikes >= 3 ? '⛔ Usuario bloqueado automáticamente' : strikes === 2 ? '⚠
   /**
    * Obtener reportes de una reseña
    */
-  async getReviewReports(review_id: number, page: number = 1, limit: number = 10) {
+
+  async getReviewReports(
+    review_id: number,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    page: number = 1,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    limit: number = 10,
+  ) {
     return {
       data: [],
       total: 0,
@@ -984,26 +1115,60 @@ ${strikes >= 3 ? '⛔ Usuario bloqueado automáticamente' : strikes === 2 ? '⚠
   async resolveReportDecision(
     report_id: number,
     decision: 'accepted' | 'rejected',
-    strike_action?: 'add_strike' | 'no_strike',
+    strike_action?:
+      | 'add_strike'
+      | 'no_strike'
+      | 'with_strike'
+      | 'without_strike',
     admin_notes?: string,
     admin?: UserEntity,
   ) {
+    const report = await this.reportRepository.findOne({
+      where: { report_id },
+      relations: [
+        'review',
+        'review.user',
+        'review.user.people',
+        'review.business',
+      ],
+    });
+
+    if (!report) {
+      throw new NotFoundException('Reporte no encontrado');
+    }
+
     if (decision === 'accepted') {
       // Si se acepta, eliminar la reseña
-      return this.deleteReportedReview(report_id, strike_action, admin_notes, admin);
+      return this.deleteReportedReview(
+        report_id,
+        strike_action as any,
+        admin_notes,
+        admin,
+      );
     } else {
       // Si se rechaza, restaurar visibilidad de la reseña
-      return this.rejectReport(report_id, admin);
+      return this.rejectReport(report_id, admin, admin_notes);
     }
   }
 
   /**
    * Rechazar reporte - La reseña vuelve a ser visible
    */
-  async rejectReport(report_id: number, admin?: UserEntity) {
+  async rejectReport(
+    report_id: number,
+    admin?: UserEntity,
+    admin_notes?: string,
+  ) {
     const report = await this.reportRepository.findOne({
       where: { report_id },
-      relations: ['review', 'review.user', 'review.user.people', 'review.business', 'user', 'user.people'],
+      relations: [
+        'review',
+        'review.user',
+        'review.user.people',
+        'review.business',
+        'user',
+        'user.people',
+      ],
     });
 
     if (!report) {
@@ -1013,25 +1178,54 @@ ${strikes >= 3 ? '⛔ Usuario bloqueado automáticamente' : strikes === 2 ? '⚠
     // Actualizar el reporte a rechazado
     report.status = ReportStatus.REJECTED;
     report.admin_id = admin?.user_id || null;
+    report.admin_notes = admin_notes || null;
     await this.reportRepository.save(report);
 
+    // Guardar en el historial
+    const history = this.reportHistoryRepository.create({
+      review_id: report.review.review_id,
+      report_type: 'review_report',
+      decision: 'rejected',
+      admin_id: admin?.user_id || null,
+      reported_user_id: report.review.user.user_id,
+      reporter_user_id: report.user_id,
+      content_snapshot: report.review.comment || '',
+      report_reason: report.reason,
+      admin_notes: admin_notes || null,
+      action_taken: 'report_rejected',
+    });
+
+    await this.reportHistoryRepository.save(history);
+
     // Notificar al usuario que reportó que su reporte fue rechazado
-    await this.notificationService.createNotification(
-      report.user_id,
-      NotificationType.REVIEW_ATTENTION,
-      `Tu reporte sobre la reseña en "${report.review.business?.business_name || 'este negocio'}" ha sido revisado y rechazado por el administrador.`,
-      report.review_id,
-    );
+    try {
+      await this.notificationService.createNotification(
+        report.user_id,
+        NotificationType.REVIEW_ATTENTION,
+        `Tu reporte sobre la reseña en "${report.review.business?.business_name || 'este negocio'}" ha sido revisado y rechazado por el administrador.`,
+        report.review_id,
+      );
+    } catch (error) {
+      console.error('Error notificando al reportero:', error);
+    }
 
     // Notificar al autor de la reseña que su reseña vuelve a estar visible
-    await this.notificationService.createNotification(
-      report.review.user.user_id,
-      NotificationType.REVIEW_ATTENTION,
-      `Tu reseña en "${report.review.business?.business_name || 'este negocio'}" está nuevamente visible en la plataforma.`,
-      report.review_id,
-    );
+    try {
+      await this.notificationService.createNotification(
+        report.review.user.user_id,
+        NotificationType.REVIEW_ATTENTION,
+        `Tu reseña en "${report.review.business?.business_name || 'este negocio'}" está nuevamente visible en la plataforma.`,
+        report.review_id,
+      );
+    } catch (error) {
+      console.error('Error notificando al autor:', error);
+    }
 
-    return { message: 'Reporte rechazado', report_id };
+    return {
+      message:
+        'Reporte rechazado. Reseña restaurada a su visibilidad anterior.',
+      report: report,
+    };
   }
 
   /**
@@ -1039,21 +1233,42 @@ ${strikes >= 3 ? '⛔ Usuario bloqueado automáticamente' : strikes === 2 ? '⚠
    */
   async deleteReportedReview(
     report_id: number,
-    strike_action?: 'add_strike' | 'no_strike',
+    strike_action?:
+      | 'add_strike'
+      | 'no_strike'
+      | 'with_strike'
+      | 'without_strike',
     admin_notes?: string,
     admin?: UserEntity,
   ) {
     const report = await this.reportRepository.findOne({
       where: { report_id },
-      relations: ['review', 'review.user', 'review.user.people', 'user', 'user.people', 'review.business'],
+      relations: [
+        'review',
+        'review.user',
+        'review.user.people',
+        'user',
+        'user.people',
+        'review.business',
+      ],
     });
 
     if (!report) {
       throw new NotFoundException('Reporte no encontrado');
     }
 
+    // Normalizar strike_action
+    const normalizedStrike =
+      strike_action === 'with_strike' || strike_action === 'add_strike'
+        ? 'add_strike'
+        : 'no_strike';
+
     // Actualizar el reporte a aceptado
     report.status = ReportStatus.ACCEPTED;
+    report.strike_action =
+      normalizedStrike === 'add_strike'
+        ? StrikeAction.WITH_STRIKE
+        : StrikeAction.WITHOUT_STRIKE;
     report.admin_id = admin?.user_id || null;
     report.admin_notes = admin_notes || null;
     await this.reportRepository.save(report);
@@ -1068,59 +1283,64 @@ ${strikes >= 3 ? '⛔ Usuario bloqueado automáticamente' : strikes === 2 ? '⚠
     }
 
     // Si se agrega strike, actualizar el contador
-    let strikeData = {
+    const strikeData = {
       current_strikes: reviewAuthor.offensive_strikes,
       max_strikes: 3,
       is_banned: reviewAuthor.is_banned,
       banned_after_this_strike: false,
     };
 
-    if (strike_action === 'add_strike' && !reviewAuthor.is_banned) {
+    if (normalizedStrike === 'add_strike' && !reviewAuthor.is_banned) {
       reviewAuthor.offensive_strikes += 1;
-      
+      strikeData.current_strikes = reviewAuthor.offensive_strikes;
+
       // Si alcanza 3 strikes, banear la cuenta
       if (reviewAuthor.offensive_strikes >= 3) {
         reviewAuthor.is_banned = true;
-        strikeData.banned_after_this_strike = true;
         strikeData.is_banned = true;
-      }
-      
-      await this.userRepository.save(reviewAuthor);
-      strikeData.current_strikes = reviewAuthor.offensive_strikes;
-    }
-
-    // Notificar al usuario que reportó que su reporte fue aceptado
-    await this.notificationService.createNotification(
-      report.user_id,
-      NotificationType.REVIEW_ATTENTION,
-      `Tu reporte sobre la reseña en "${report.review.business.business_name}" ha sido aceptado. La reseña ha sido eliminada.`,
-      report.review_id,
-    );
-
-    // Notificar al autor de la reseña que fue eliminada
-    let authorNotificationMessage = `Tu reseña en "${report.review.business.business_name}" ha sido eliminada por violar nuestras políticas de contenido.`;
-    
-    if (strike_action === 'add_strike') {
-      authorNotificationMessage += ` (Strike ${strikeData.current_strikes}/${strikeData.max_strikes})`;
-      
-      if (strikeData.banned_after_this_strike) {
-        authorNotificationMessage += `. Tu cuenta ha sido bloqueada después de ${strikeData.max_strikes} reportes aceptados.`;
+        strikeData.banned_after_this_strike = true;
       }
     }
 
-    await this.notificationService.createNotification(
-      report.review.user.user_id,
-      NotificationType.REVIEW_ATTENTION,
-      authorNotificationMessage,
-      report.review_id,
-    );
+    await this.userRepository.save(reviewAuthor);
 
     // Eliminar la reseña
-    await this.reviewRepository.delete({ review_id: report.review_id });
+    await this.reviewRepository.delete({ review_id: report.review.review_id });
+
+    // Guardar en el historial
+    const history = this.reportHistoryRepository.create({
+      review_id: report.review.review_id,
+      report_type: 'review_report',
+      decision: 'accepted',
+      admin_id: admin?.user_id || null,
+      reported_user_id: reviewAuthor.user_id,
+      reporter_user_id: report.user_id,
+      content_snapshot: report.review.comment || '',
+      report_reason: report.reason,
+      admin_notes: admin_notes || null,
+      action_taken:
+        normalizedStrike === 'add_strike'
+          ? `strike_added_${strikeData.current_strikes}_of_3`
+          : 'review_deleted',
+    });
+
+    await this.reportHistoryRepository.save(history);
+
+    // Notificar al autor de la reseña
+    try {
+      await this.notificationService.createNotification(
+        reviewAuthor.user_id,
+        NotificationType.REVIEW_ATTENTION,
+        `Tu reseña ha sido eliminada tras ser reportada. ${normalizedStrike === 'add_strike' ? `Strike ${strikeData.current_strikes}/3. ${strikeData.banned_after_this_strike ? 'Tu cuenta ha sido bloqueada.' : ''}` : ''}`,
+        report.review.review_id,
+      );
+    } catch (error) {
+      console.error('Error notificando al usuario:', error);
+    }
 
     return {
-      message: 'Reseña eliminada',
-      report_id,
+      message: 'Reporte aceptado. Reseña eliminada.',
+      report: report,
       strike_info: strikeData,
     };
   }
@@ -1129,20 +1349,108 @@ ${strikes >= 3 ? '⛔ Usuario bloqueado automáticamente' : strikes === 2 ? '⚠
    * Obtener estadísticas de reportes
    */
   async getReportStatistics() {
+    const total =
+      (await this.reportRepository.countBy({ status: ReportStatus.ACCEPTED })) +
+      (await this.reportRepository.countBy({ status: ReportStatus.REJECTED }));
+    const accepted = await this.reportRepository.countBy({
+      status: ReportStatus.ACCEPTED,
+    });
+    const rejected = await this.reportRepository.countBy({
+      status: ReportStatus.REJECTED,
+    });
+
+    const acceptanceRate =
+      total > 0 ? `${((accepted / total) * 100).toFixed(2)}%` : '0%';
+
     return {
-      pending: await this.reviewRepository.countBy({ status: 'in_review' }),
-      approved: await this.reviewRepository.countBy({ status: 'approved' }),
-      rejected: await this.reviewRepository.countBy({ status: 'rejected' }),
+      total,
+      accepted,
+      rejected,
+      acceptanceRate,
     };
   }
 
   /**
    * Obtener historial con filtro por decisión
    */
-  async getReportHistoryByDecision(decision: string, page: number = 1, limit: number = 20) {
+  async getReportHistoryByDecision(
+    decision: string,
+    page: number = 1,
+    limit: number = 20,
+  ) {
+    const skip = (page - 1) * limit;
+    const statusMap = {
+      accepted: ReportStatus.ACCEPTED,
+      rejected: ReportStatus.REJECTED,
+    };
+
+    const status = statusMap[decision] || ReportStatus.ACCEPTED;
+
+    const [reports, total] = await Promise.all([
+      this.reportRepository
+        .createQueryBuilder('report')
+        .leftJoinAndSelect('report.review', 'review')
+        .leftJoinAndSelect('review.user', 'review_author')
+        .leftJoinAndSelect('review_author.people', 'review_author_people')
+        .leftJoinAndSelect('review.business', 'business')
+        .leftJoinAndSelect('report.user', 'reporter')
+        .leftJoinAndSelect('reporter.people', 'reporter_people')
+        .leftJoinAndSelect('report.admin', 'admin')
+        .leftJoinAndSelect('admin.people', 'admin_people')
+        .where('report.status = :status', { status })
+        .orderBy('report.updated_at', 'DESC')
+        .skip(skip)
+        .take(limit)
+        .getMany(),
+      this.reportRepository.countBy({ status }),
+    ]);
+
+    // Mapear la respuesta al formato esperado por el frontend
+    const mappedReports = reports.map((report) => ({
+      history_id: report.report_id,
+      review_id: report.review_id,
+      report_type: 'review_reported',
+      decision:
+        report.status === ReportStatus.ACCEPTED ? 'accepted' : 'rejected',
+      action_taken: report.strike_action || 'no_action',
+      created_at: report.updated_at,
+      business_name:
+        report.review?.business?.business_name || 'Negocio desconocido',
+      content_snapshot: report.review?.comment || '',
+      report_reason: report.reason || '',
+      admin_notes: report.admin_notes || null,
+      admin: report.admin
+        ? {
+            user_id: report.admin.user_id,
+            name: report.admin.people?.firstName || 'Admin',
+            lastname: report.admin.people?.firstLastName || '',
+            avatar: report.admin.people?.avatar || null,
+          }
+        : null,
+      reported_user: report.review?.user
+        ? {
+            user_id: report.review.user.user_id,
+            name: report.review.user.people?.firstName || 'Usuario',
+            lastname: report.review.user.people?.firstLastName || '',
+            avatar: report.review.user.people?.avatar || null,
+          }
+        : null,
+      reporter_user: report.user
+        ? {
+            user_id: report.user.user_id,
+            name: report.user.people?.firstName || 'Usuario',
+            lastname: report.user.people?.firstLastName || '',
+            avatar: report.user.people?.avatar || null,
+          }
+        : null,
+    }));
+
     return {
-      data: [],
-      total: 0,
+      data: mappedReports,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
     };
   }
 
@@ -1159,6 +1467,7 @@ ${strikes >= 3 ? '⛔ Usuario bloqueado automáticamente' : strikes === 2 ? '⚠
   /**
    * Aprobar reseña
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async approveReview(review_id: number, admin?: UserEntity) {
     const review = await this.reviewRepository.findOne({
       where: { review_id },
@@ -1177,6 +1486,7 @@ ${strikes >= 3 ? '⛔ Usuario bloqueado automáticamente' : strikes === 2 ? '⚠
   /**
    * Rechazar reseña
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async rejectReview(review_id: number, admin?: UserEntity) {
     const review = await this.reviewRepository.findOne({
       where: { review_id },
@@ -1192,4 +1502,3 @@ ${strikes >= 3 ? '⛔ Usuario bloqueado automáticamente' : strikes === 2 ? '⚠
     return { message: 'Reseña rechazada' };
   }
 }
-

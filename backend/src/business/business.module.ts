@@ -25,7 +25,7 @@ import { BusinessCategoryEntity } from 'src/business_category/entity/business_ca
       UserRolesEntity,
       RolEntity,
       BusinessAccessibilityEntity,
-      BusinessCategoryEntity
+      BusinessCategoryEntity,
     ]),
     AuthModule,
     CloudinaryModule,

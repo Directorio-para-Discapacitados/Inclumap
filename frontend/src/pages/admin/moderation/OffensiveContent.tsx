@@ -161,13 +161,6 @@ const OffensiveContent: React.FC = () => {
         <p className="page-subtitle">
           Reseñas ofensivas e incoherentes que requieren revisión
         </p>
-        <button 
-          className="history-btn" 
-          onClick={() => navigate('/admin/moderation/history')}
-          title="Ver historial de reportes"
-        >
-          📋 Ver Historial
-        </button>
       </div>
 
       {reviews.length === 0 ? (

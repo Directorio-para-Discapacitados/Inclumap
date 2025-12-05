@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import { ReviewService } from 'src/review/review.service';
 
 @Injectable()
@@ -8,17 +8,19 @@ export class ReviewScheduler {
 
   constructor(private readonly reviewService: ReviewService) {}
 
-
   @Cron('*/10 * * * *')
   async handleCron() {
-    this.logger.log('🕵️ Ejecutando re-análisis periódico de reseñas (10 min)...');
-    
-    try {
+    this.logger.log(
+      '🕵️ Ejecutando re-análisis periódico de reseñas (10 min)...',
+    );
 
+    try {
       const result = await this.reviewService.reanalyzeAllReviews();
-      
+
       if (result.incoherent_found > 0) {
-        this.logger.warn(`⚠️ Se encontraron ${result.incoherent_found} reseñas incoherentes en el escaneo.`);
+        this.logger.warn(
+          `⚠️ Se encontraron ${result.incoherent_found} reseñas incoherentes en el escaneo.`,
+        );
       } else {
         this.logger.log('✅ Escaneo completado. Sin novedades.');
       }

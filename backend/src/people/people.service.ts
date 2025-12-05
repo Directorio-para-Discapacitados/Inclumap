@@ -88,7 +88,7 @@ export class PeopleService {
         address: persona.address,
         user_id: persona.user?.user_id ?? null,
       };
-    } catch (error) {
+    } catch {
       throw new InternalServerErrorException('Error al obtener la persona');
     }
   }

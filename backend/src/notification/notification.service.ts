@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import {
   NotificationEntity,
   NotificationType,
@@ -91,7 +91,10 @@ export class NotificationService {
     if (isAdmin) {
       // Admin sees Review Alerts AND Review Attention notifications
       query.andWhere('notification.type IN (:...types)', {
-        types: [NotificationType.REVIEW_ALERT, NotificationType.REVIEW_ATTENTION],
+        types: [
+          NotificationType.REVIEW_ALERT,
+          NotificationType.REVIEW_ATTENTION,
+        ],
       });
     } else {
       // Regular User sees Suggestions AND Review Attentions
@@ -128,7 +131,10 @@ export class NotificationService {
    * @param notificationId - ID de la notificación
    * @param userId - ID del usuario que solicita eliminar
    */
-  async deleteNotification(notificationId: number, userId: number): Promise<void> {
+  async deleteNotification(
+    notificationId: number,
+    userId: number,
+  ): Promise<void> {
     const notification = await this.notificationRepository.findOne({
       where: { notification_id: notificationId },
       relations: ['user'],
@@ -156,20 +162,19 @@ export class NotificationService {
    * @param reviewId - ID de la reseña
    */
   async notifyAllAdmins(message: string, reviewId: number): Promise<void> {
-
     const admins = await this.userRepository
       .createQueryBuilder('user')
       .leftJoin('user.userroles', 'userroles')
       .leftJoin('userroles.rol', 'rol')
-      .where('rol.rol_id = :roleId', { roleId: 1 }) 
+      .where('rol.rol_id = :roleId', { roleId: 1 })
       .getMany();
 
     if (admins.length === 0) return;
 
     const existingNotifications = await this.notificationRepository.find({
       where: {
-        type: NotificationType.REVIEW_ALERT, 
-        related_id: reviewId,                
+        type: NotificationType.REVIEW_ALERT,
+        related_id: reviewId,
       },
       relations: ['user'],
     });
@@ -183,7 +188,7 @@ export class NotificationService {
     );
 
     if (adminsToNotify.length === 0) {
-      return; 
+      return;
     }
 
     const notifications = adminsToNotify.map((admin) =>
@@ -230,9 +235,9 @@ export class NotificationService {
     const existingNotifications = await this.notificationRepository.find({
       where: {
         type: NotificationType.SUGGESTION,
-        related_id: businessId, 
+        related_id: businessId,
       },
-      relations: ['user'], 
+      relations: ['user'],
     });
 
     const notifiedUserIds = new Set(
@@ -258,27 +263,29 @@ export class NotificationService {
     );
 
     await this.notificationRepository.save(notifications);
-    
-    console.log(`Notificación enviada a ${notifications.length} usuarios nuevos.`);
+
+    console.log(
+      `Notificación enviada a ${notifications.length} usuarios nuevos.`,
+    );
   }
 
   async handleIncoherentReview(review: any): Promise<void> {
     const userNotification = await this.notificationRepository.findOne({
       where: {
         type: NotificationType.REVIEW_ATTENTION,
-        related_id: review.business.business_id, 
+        related_id: review.business.business_id,
         user: { user_id: review.user.user_id },
       },
     });
 
     if (!userNotification) {
       const message = `Detectamos una inconsistencia en tu reseña de "${review.business?.business_name}". ¿Podrías revisarla?`;
-      
+
       await this.createNotification(
         review.user.user_id,
         NotificationType.REVIEW_ATTENTION,
         message,
-        review.business.business_id, 
+        review.business.business_id,
       );
       return;
     }
@@ -288,19 +295,20 @@ export class NotificationService {
   }
 
   // MODIFICAR ESTE MÉTODO PARA LIMPIAR AMBOS CASOS
-  async resolveReviewNotifications(reviewId: number, businessId: number): Promise<void> {
+  async resolveReviewNotifications(
+    reviewId: number,
+    businessId: number,
+  ): Promise<void> {
     // Borrar alertas de ADMIN (vinculadas a la reseña)
     await this.notificationRepository.delete({
       related_id: reviewId,
       type: NotificationType.REVIEW_ALERT,
     });
 
-    // Borrar alertas de USUARIO 
+    // Borrar alertas de USUARIO
     await this.notificationRepository.delete({
       related_id: businessId,
       type: NotificationType.REVIEW_ATTENTION,
     });
   }
 }
-
-
